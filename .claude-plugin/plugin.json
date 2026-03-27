@@ -1,0 +1,5 @@
+{
+  "name": "claude-harness-forge",
+  "version": "1.0.0",
+  "description": "GAN-inspired autonomous SDLC scaffold with browser-based verification, Karpathy ratcheting, and cross-project learning."
+}

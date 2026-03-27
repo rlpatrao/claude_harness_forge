@@ -1,0 +1,226 @@
+# Claude Harness Forge — Architecture Reference
+
+Comprehensive design document for the Claude Harness Forge: a merged autonomous development scaffold combining GAN-inspired verification, Karpathy ratcheting, browser-based UI testing, and cross-project learning.
+
+Copied into target projects by `/scaffold`.
+
+Based on:
+- [Anthropic: Harness Design for Long-Running Apps](https://www.anthropic.com/engineering/harness-design-long-running-apps)
+- [Anthropic: Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
+- [OpenAI: Harness Engineering](https://openai.com/index/harness-engineering/)
+- [Steve Krenzel: AI is Forcing Us to Write Good Code](https://bits.logic.inc/p/ai-is-forcing-us-to-write-good-code)
+- [Andrej Karpathy: Autoresearch Loop](https://x.com/karpathy) — monotonic ratchet pattern
+
+---
+
+## 1. System Architecture
+
+```
++---------------------------------------------------------------------+
+|                        HUMAN INTERFACE                                |
+|                                                                      |
+|  program.md           CLAUDE.md            project-manifest.json     |
+|  (Karpathy bridge)    (table of contents)  (stack + eval config)     |
++--------+------------------+--------------------+--------------------+
+         |                  |                    |
+         v                  v                    v
++---------------------------------------------------------------------+
+|                      ORCHESTRATION LAYER                             |
+|                                                                      |
+|  /build --> /brd -> /architect -> /spec -> /design -> /auto          |
+|              │           │          │          │          │           |
+|              v           v          v          v          v           |
+|  Support: /fix-issue  /refactor  /improve  /lint-drift  /deploy      |
++--------+------------------+--------------------+--------------------+
+         |                  |                    |
+         v                  v                    v
++---------------------------------------------------------------------+
+|                   AGENT LAYER (10 agents)                            |
+|                                                                      |
+|  PLANNING: brd-creator / architect / spec-writer / ui-designer       |
+|  GAN CORE: generator / evaluator                                     |
+|  REVIEW:   code-reviewer / security-reviewer / ui-standards-reviewer |
+|  TESTING:  test-engineer                                             |
+|                                                                      |
+|  Model tiering: Opus for judgment (architect, evaluator)             |
+|                 Sonnet for execution (generator, reviewers, etc.)    |
++--------+------------------+--------------------+--------------------+
+         |                  |                    |
+         v                  v                    v
++---------------------------------------------------------------------+
+|                 ENFORCEMENT LAYER (14 hooks)                         |
+|                                                                      |
+|  Security: scope-directory | protect-env | detect-secrets            |
+|  Quality:  lint-on-save | typecheck | check-architecture             |
+|            check-function-length | check-file-length                 |
+|  Gates:    pre-commit-gate | sprint-contract-gate | protect-pdfs     |
+|  Teams:    teammate-idle-check                                       |
+|  Info:     task-completed | cost-tracker                             |
++--------+------------------+--------------------+--------------------+
+         |                  |                    |
+         v                  v                    v
++---------------------------------------------------------------------+
+|                   VERIFICATION LAYER                                 |
+|                                                                      |
+|  Gate 1-3: Unit tests + Lint + Coverage          [all modes]         |
+|  Gate 4:   Architecture checks                    [full/lean]        |
+|  Gate 5:   Evaluator (API + Playwright + Console) [full/lean]        |
+|  Gate 6:   Code reviewer (static quality)         [full/lean]        |
+|  Gate 7:   UI standards review (conformance)      [full only]        |
+|  Gate 8:   Security reviewer (OWASP)              [full only]        |
++--------+------------------+--------------------+--------------------+
+         |                  |                    |
+         v                  v                    v
++---------------------------------------------------------------------+
+|                       STATE LAYER                                    |
+|  program.md | iteration-log.md | learned-rules.md | failures.md     |
+|  coverage-baseline | features.json | claude-progress.txt             |
+|  sprint-contracts/ | eval-scores.json | cost-log.json               |
++---------------------------------------------------------------------+
+         |
+         v
++---------------------------------------------------------------------+
+|                     LEARNINGS LAYER                                  |
+|                                                                      |
+|  stack-decisions/ — Per-project stack records with verdicts          |
+|  failure-patterns/ — Recurring failures across projects              |
+|  integration-notes/ — Per-API/service gotchas and patterns           |
++---------------------------------------------------------------------+
+```
+
+---
+
+## 2. The GAN Architecture
+
+The generator writes code and claims it works. The evaluator runs the app and checks. Neither can do the other's job.
+
+```
+Generator                              Evaluator
+(writes code — cannot evaluate)        (runs app — cannot write code)
+     |                                      |
+     |-- 1. Propose sprint contract ------->|
+     |<-- 2. Evaluator finalizes -----------|
+     |                                      |
+     |-- 3. Implement code + tests -------->|
+     |                                      |-- 4. Start app (Docker/local)
+     |                                      |-- 5. Layer 1: curl API endpoints
+     |                                      |-- 6. Layer 2: Playwright browser flows
+     |                                      |-- 7. Layer 2.5: Browser console health
+     |                                      |-- 8. Read Docker logs on failure
+     |                                      |
+     |<-- 9. VERDICT: PASS or FAIL --------|
+     |      + structured failure JSON       |
+     |                                      |
+     |-- 10. Self-heal (if FAIL) ---------->|
+     |<-- 11. Re-evaluate -----------------|
+     |                                      |
+     (max 3 attempts, then revert + learn)
+```
+
+### Browser Console Capture (Layer 2.5)
+
+During every Playwright check, the evaluator captures browser telemetry:
+- `console.error` entries → FAIL with source file:line
+- Unhandled promise rejections → FAIL
+- Network 4xx/5xx not in `expected_errors` → FAIL
+- `console.warn` entries → WARN (non-blocking)
+
+Browser errors produce structured failure JSON that feeds directly into the self-healing loop. The generator receives the exact file and line to fix.
+
+---
+
+## 3. The Karpathy Ratchet (8 Gates)
+
+Every quality metric can only move forward, never backward. The 8-gate ratchet:
+
+| Gate | What | Cost | Catches |
+|------|------|------|---------|
+| 1. Unit tests | pytest + vitest | Cheap | Logic errors |
+| 2. Lint + types | ruff + mypy + tsc | Cheap | Style drift, type errors |
+| 3. Coverage ≥ baseline | Coverage comparison | Cheap | Missing tests |
+| 4. Architecture | File existence + schema validation | Moderate | Structure drift |
+| 5. Evaluator | API curl + Playwright + browser console | Expensive | Runtime bugs, frontend errors |
+| 6. Code reviewer | Static analysis of changed files | Moderate | Dead code, quality violations |
+| 7. UI standards | Conformance checklist screenshots | Moderate | Accessibility, responsiveness |
+| 8. Security | OWASP scan of changed files | Moderate | Vulnerabilities |
+
+---
+
+## 4. Execution Modes
+
+| Mode | Cost | Gates | Agent Teams | When to Use |
+|------|------|-------|-------------|-------------|
+| **Full** | $100-300 | All 8 | Yes (phased) | Production apps, complex requirements |
+| **Lean** | $30-80 | 1-6 | Yes | Backend-heavy, internal tools |
+| **Solo** | $5-15 | 1-3 | No | Bug fixes, small features, prototyping |
+| **Turbo** | $30-50 | 1-3 per commit, 4-8 at end | No | Well-specified + capable model |
+
+---
+
+## 5. Interactive Architect
+
+The architect runs after BRD approval and before story decomposition. It:
+1. Reads the BRD and existing cross-project learnings
+2. Conducts a 5-round stack interrogation (backend, database, frontend, deployment, verification)
+3. Challenges weak decisions with BRD-specific trade-offs
+4. Generates machine-readable design artifacts
+5. Runs a verification gate (every BRD feature → API endpoint, every entity → model)
+6. Persists decisions to learnings folder for cross-project reuse
+7. Post-build: fills in verdict and patterns after the autonomous loop completes
+
+---
+
+## 6. UI Standards Review
+
+Single-pass conformance check replacing the original GAN design-critic. The `ui-standards-reviewer` agent checks industry-standard patterns for the project type (SaaS, enterprise, internal tool). No scoring, no iteration, no originality judgment.
+
+SaaS apps: responsive, WCAG AA, 44px touch targets, empty states, error pages, form validation.
+Enterprise tools: desktop-only, WCAG AA, functional focus.
+API-only: skip all UI checks.
+
+---
+
+## 7. Cross-Project Learning
+
+The `learnings/` folder persists in the forge repo across all projects:
+
+- **Stack decisions** — per-project records with rationale, alternatives, and post-build verdicts
+- **Failure patterns** — recurring errors extracted when the same category appears in 3+ projects
+- **Integration notes** — per-API gotchas, test fixture strategies, error handling patterns
+
+The architect reads existing learnings before every new stack interrogation, enabling recommendations like: "In a similar project, we found that async SQLAlchemy caused Alembic migration issues. Want to account for that upfront?"
+
+---
+
+## 8. Production Standards for Generated Code
+
+All code generated by the harness follows these standards (enforced via `code-gen/SKILL.md`):
+
+- **Structured logging** — `logging.getLogger(__name__)`, structured `extra` dicts, never log secrets
+- **Typed exceptions** — per-domain error classes with context, no bare `except Exception`
+- **External API wrappers** — one wrapper per API, typed inputs/outputs, retry config in `config.yml`
+- **LLM integration** — structured output (tool_use/JSON mode), typed response schemas, validation before use
+- **Six quality principles** — small modules, static typing, functions under 50 lines, explicit errors, no dead code, self-documenting
+
+---
+
+## 9. Self-Healing (12-Category Error Taxonomy)
+
+When a gate fails, the generator attempts targeted self-healing (max 3 attempts):
+
+| Category | Signal | Strategy |
+|----------|--------|----------|
+| Lint/format | ruff/eslint error | Auto-fix tools |
+| Type error | mypy/tsc file:line | Fix annotation |
+| Test failure | Assertion error | Fix production code, not test |
+| Import error | ImportError | Fix import path |
+| Coverage drop | Below baseline | Add tests for uncovered lines |
+| API check fail | HTTP 500/404 | Read Docker logs, fix service |
+| Playwright fail | Element not found | Fix component |
+| Console error | Browser console.error | Fix source file:line (null check, error boundary) |
+| Network error | Frontend fetch 4xx/5xx | Fix URL, error handling, or backend |
+| Docker fail | Container won't start | Fix config or dependencies |
+| Architecture drift | Schema mismatch | Fix response or create file |
+| UI standards fail | Conformance check | Apply specific fix instruction |
+
+After 3 failures: revert, log, extract learned rule, mark group BLOCKED, continue to next group.

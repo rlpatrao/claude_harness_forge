@@ -1,0 +1,59 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git:*)", "Bash(cd:*)", "Bash(ls:*)", "Bash(find:*)", "Bash(grep:*)",
+      "Bash(cat:*)", "Bash(head:*)", "Bash(tail:*)", "Bash(wc:*)", "Bash(mkdir:*)",
+      "Bash(cp:*)", "Bash(mv:*)", "Bash(rm:*)", "Bash(chmod:*)", "Bash(echo:*)",
+      "Bash(curl:*)", "Bash(jq:*)", "Bash(docker compose:*)",
+      "Bash(uv:*)", "Bash(npm:*)", "Bash(npx:*)",
+      "Bash(ruff:*)", "Bash(mypy:*)", "Bash(pytest:*)",
+      "Read", "Write", "Edit", "Glob", "Grep", "Agent"
+    ],
+    "deny": ["Bash(rm -rf /)", "Bash(sudo:*)", "Bash(chmod 777:*)"]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/scope-directory.js" },
+          { "type": "command", "command": "node .claude/hooks/protect-env.js" },
+          { "type": "command", "command": "node .claude/hooks/detect-secrets.js" },
+          { "type": "command", "command": "node .claude/hooks/lint-on-save.js" },
+          { "type": "command", "command": "node .claude/hooks/typecheck.js" },
+          { "type": "command", "command": "node .claude/hooks/check-architecture.js" },
+          { "type": "command", "command": "node .claude/hooks/check-function-length.js" },
+          { "type": "command", "command": "node .claude/hooks/check-file-length.js" }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/protect-pdfs.js" }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/pre-commit-gate.js" },
+          { "type": "command", "command": "node .claude/hooks/sprint-contract-gate.js" },
+          { "type": "command", "command": "node .claude/hooks/teammate-idle-check.js" }
+        ]
+      },
+      {
+        "matcher": "Agent",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/cost-tracker.js" }
+        ]
+      }
+    ],
+    "TaskCompleted": [
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/task-completed.js" }
+        ]
+      }
+    ]
+  }
+}
