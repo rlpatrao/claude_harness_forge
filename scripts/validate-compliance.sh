@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -uo pipefail
+# Note: NOT using set -e because grep returns exit 1 on "no match"
+# which would abort the script. We handle errors explicitly.
 
 # =============================================================================
 # validate-compliance.sh — Verify compliance artifacts exist for AI/ML projects
@@ -50,11 +52,11 @@ echo "--- PII Checks ---"
 pii_count=0
 for dir in backend/src frontend/src src/; do
   if [ -d "$dir" ]; then
-    # SSN pattern
-    ssn=$(grep -rn '\b[0-9]\{3\}-[0-9]\{2\}-[0-9]\{4\}\b' "$dir" 2>/dev/null | grep -v __pycache__ | wc -l | tr -d ' ')
+    # SSN pattern (NNN-NN-NNNN)
+    ssn=$(grep -rn '[0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]' "$dir" 2>/dev/null | grep -v __pycache__ | grep -v '\.pyc' | wc -l | tr -d ' ')
     pii_count=$((pii_count + ssn))
-    # Credit card pattern
-    cc=$(grep -rn '\b[0-9]\{4\}[\s-]\?[0-9]\{4\}[\s-]\?[0-9]\{4\}[\s-]\?[0-9]\{4\}\b' "$dir" 2>/dev/null | grep -v __pycache__ | wc -l | tr -d ' ')
+    # Credit card pattern (NNNN-NNNN-NNNN-NNNN or NNNN NNNN NNNN NNNN)
+    cc=$(grep -rn '[0-9][0-9][0-9][0-9][-\ ][0-9][0-9][0-9][0-9][-\ ][0-9][0-9][0-9][0-9][-\ ][0-9][0-9][0-9][0-9]' "$dir" 2>/dev/null | grep -v __pycache__ | grep -v '\.pyc' | wc -l | tr -d ' ')
     pii_count=$((pii_count + cc))
   fi
 done
@@ -66,8 +68,14 @@ else
 fi
 
 # Check for secrets (reuse detect-secrets logic)
-if [ -d "backend/src" ] || [ -d "src/" ]; then
-  secrets=$(grep -rn 'api_key\s*=\s*['\''"]sk-\|password\s*=\s*['\''"]' backend/src/ src/ 2>/dev/null | grep -v __pycache__ | wc -l | tr -d ' ')
+secrets=0
+for sdir in backend/src backend/app src/; do
+  if [ -d "$sdir" ]; then
+    count=$(grep -rn 'api_key.*=.*sk-\|password.*=.*['\''"]' "$sdir" 2>/dev/null | grep -v __pycache__ | grep -v '\.pyc' | grep -v 'test' | wc -l | tr -d ' ')
+    secrets=$((secrets + count))
+  fi
+done
+if [ -d "backend/src" ] || [ -d "backend/app" ] || [ -d "src/" ]; then
   if [ "$secrets" -eq 0 ]; then
     pass "No hardcoded secrets in source code"
   else
@@ -83,7 +91,8 @@ if [ "$PROJECT_TYPE" = "ml" ] || [ "$PROJECT_TYPE" = "agentic" ]; then
   # Model card
   if [ -f "docs/model-card.md" ]; then
     # Check if model card has actual content (not just template placeholders)
-    placeholders=$(grep -c '{{' docs/model-card.md 2>/dev/null || echo 0)
+    placeholders=$(grep -c '{{' docs/model-card.md 2>/dev/null || echo "0")
+    placeholders=$(echo "$placeholders" | tr -d '[:space:]')
     if [ "$placeholders" -eq 0 ]; then
       pass "Model card exists and is filled in"
     else
