@@ -10,9 +10,11 @@ Implements best practices from Anthropic's harness design research, OpenAI's har
 
 ## Why This Exists: Two Philosophies, Neither Complete
 
-### The Forge Philosophy — Rich Templates, Weak Verification
+### The Forge Philosophy — Template-Rich SDLC Scaffolding
 
-The Forge approach prioritizes **developer ergonomics and full SDLC coverage**. It provides Socratic BRD interviews with 5-dimension exploration, story templates with Given/When/Then acceptance criteria, six enforced quality principles, code reviewer regression tests (evals), UI mockup generation, and a plugin-first onboarding model where you clone once and scaffold into any project. It covers every phase from requirements elicitation to deployment.
+The Forge approach treats autonomous development as a **structured engineering process** that needs rich guidance at every phase. It provides Socratic BRD interviews with 5-dimension exploration (Why, What, How, Edge Cases, UI), alternatives analysis before committing to approaches, story templates with Given/When/Then acceptance criteria, six enforced quality principles (small modules, static typing, short functions, explicit errors, no dead code, self-documenting names), code reviewer regression tests, UI mockup generation as self-contained HTML, and a plugin-first onboarding model.
+
+**Core belief:** If you give agents detailed enough templates, patterns, and checklists, they will produce quality code. Quality comes from thorough upfront specification.
 
 **But it has critical gaps:**
 
@@ -28,11 +30,13 @@ The Forge approach prioritizes **developer ergonomics and full SDLC coverage**. 
 | **Weaker test data patterns** | 56 lines vs 108 — less guidance on realistic fixtures and factory functions |
 | **No execution modes** | One-size-fits-all. A weekend prototype and a production SaaS get the same (expensive) treatment |
 
-The Forge builds fast but can't guarantee what it built actually works.
+The Forge builds fast from rich foundations but can't guarantee what it built actually works.
 
-### The Harness Philosophy — Strong Verification, Bare Templates
+### The Harness Philosophy — Adversarial Verification Engineering
 
-The Harness approach prioritizes **adversarial verification and monotonic quality enforcement**. Inspired by GAN architectures, it structurally separates the agent that writes code (generator) from the agent that verifies it (evaluator) — eliminating self-evaluation bias. It introduces sprint contracts (machine-readable JSON defining exactly what "done" means), 3-layer verification (API curl checks + Playwright browser automation + browser console error capture), Karpathy-style ratcheting where quality metrics only move forward, session chaining for builds that span multiple context windows, and four execution modes that right-size cost to project complexity.
+The Harness approach treats autonomous development as a **control problem** where the biggest risk is the agent declaring victory on broken code. Inspired by GAN architectures, it structurally separates the generator (writes code) from the evaluator (verifies behavior) — the agent that builds can never evaluate its own work. It introduces sprint contracts (machine-readable JSON defining done criteria), 3-layer verification (API curl + Playwright browser automation + browser console error capture), Karpathy-style monotonic ratcheting (quality metrics only move forward), session chaining for multi-context-window builds, and four execution modes (Full/Lean/Solo/Turbo) that right-size cost to project complexity.
+
+**Core belief:** If you verify behavior adversarially and prevent quality regression, the output will be reliable. Quality comes from rigorous independent verification.
 
 **But it has critical gaps:**
 
@@ -47,11 +51,15 @@ The Harness approach prioritizes **adversarial verification and monotonic qualit
 | **Less onboarding polish** | Requires more manual setup. No plugin-first model, no scaffold command, no self-contained project after setup |
 | **No story template structure** | Stories lack the Given/When/Then acceptance criteria format that makes them testable |
 
-The Harness verifies well but starts from weaker foundations and costs more to run.
+The Harness guarantees behavioral correctness but wastes iterations compensating for weak specs.
 
-### Claude Harness Forge — The Merger
+### Why Neither Alone Is Sufficient
 
-The merged system uses the **Harness's adversarial verification architecture as the structural backbone** and the **Forge's rich templates, evals, and developer ergonomics as the flesh**. Neither philosophy alone produces reliable autonomous software — you need both rigorous foundations and rigorous verification.
+The Forge builds fast from rich foundations but can't guarantee what it built works. The Harness guarantees behavioral correctness but wastes iterations compensating for weak specs. Neither philosophy alone produces reliable autonomous software — you need both rigorous upfront specification **and** rigorous independent verification.
+
+### Claude Harness Forge — The Unification
+
+The merged system uses the **Harness's adversarial verification as the structural backbone** and the **Forge's rich templates and developer ergonomics as the flesh**.
 
 | Capability | The Forge | The Harness | Harness Forge |
 |------------|----------|------------|---------------|
