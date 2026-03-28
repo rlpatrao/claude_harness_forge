@@ -38,17 +38,36 @@ const manifestPath = path.join(projectDir, 'project-manifest.json');
 // Extract agent name from tool input
 const agentName = (input.tool_input && input.tool_input.agent) || 'unknown';
 
-// Determine model tier from agent name
+// Read model routing from manifest
+let modelRouting = { strategy: 'cloud-only' };
+try {
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  modelRouting = (manifest.execution && manifest.execution.model_routing) || modelRouting;
+} catch (_) {}
+
+// Determine model tier from agent name and routing strategy
 const opusAgents = ['evaluator', 'architect'];
-const modelTier = opusAgents.includes(agentName) ? 'opus' : 'sonnet';
+const isReasoningAgent = opusAgents.includes(agentName);
+const modelTier = isReasoningAgent ? 'opus' : 'sonnet';
+
+// Determine if this agent uses a local model (cost = $0)
+let usesLocalModel = false;
+if (modelRouting.strategy === 'local-only') {
+  usesLocalModel = true;
+} else if (modelRouting.strategy === 'hybrid') {
+  // Hybrid: reasoning agents use cloud, code gen uses local
+  const localAgents = (modelRouting.code_gen_agents && modelRouting.code_gen_agents.agents) || [];
+  usesLocalModel = localAgents.includes(agentName);
+}
 
 // Cost estimation (rough — see plan Section 8)
 const rates = {
   opus: { input_per_1m: 15, output_per_1m: 75, avg_input: 15000, avg_output: 5000 },
-  sonnet: { input_per_1m: 3, output_per_1m: 15, avg_input: 10000, avg_output: 3000 }
+  sonnet: { input_per_1m: 3, output_per_1m: 15, avg_input: 10000, avg_output: 3000 },
+  local: { input_per_1m: 0, output_per_1m: 0, avg_input: 15000, avg_output: 5000 }
 };
 
-const r = rates[modelTier];
+const r = usesLocalModel ? rates.local : rates[modelTier];
 const estimatedCost = (r.avg_input / 1e6 * r.input_per_1m) + (r.avg_output / 1e6 * r.output_per_1m);
 
 // Read existing log
@@ -82,7 +101,9 @@ const budget = budgets[mode] || budgets.full;
 costLog.push({
   timestamp: new Date().toISOString(),
   agent: agentName,
-  model_tier: modelTier,
+  model_tier: usesLocalModel ? 'local' : modelTier,
+  model_name: usesLocalModel ? (modelRouting.local_model && modelRouting.local_model.name || 'local') : `claude-${modelTier}`,
+  routing_strategy: modelRouting.strategy,
   estimated_cost_usd: Math.round(estimatedCost * 100) / 100,
   cumulative_cost_usd: Math.round(cumulative * 100) / 100,
   mode: mode,

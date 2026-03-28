@@ -139,7 +139,31 @@ In Solo mode, the generator works alone sequentially. No team spawning, no phase
 | Generator teammates | Sonnet | Mechanical implementation |
 | Security reviewer | Sonnet | Pattern matching |
 
-Configure via `project-manifest.json` field `execution.model_tier`.
+### Model Routing
+
+Read `execution.model_routing` from `project-manifest.json` at the start of every iteration:
+
+```json
+"model_routing": {
+  "strategy": "cloud-only | hybrid | local-only",
+  "reasoning_agents": { "model": "...", "provider": "...", "base_url": "..." },
+  "code_gen_agents": { "model": "...", "provider": "...", "base_url": "..." },
+  "local_model": { "name": "...", "runtime": "...", "startup_command": "..." }
+}
+```
+
+**How to apply:**
+- **cloud-only** (default): Use Claude models as normal. Opus for reasoning agents, Sonnet for code gen.
+- **hybrid**: Spawn architect/evaluator with Claude Opus. Spawn generator/test-engineer/reviewers via the `base_url` in `code_gen_agents` using OpenAI-compatible API format.
+- **local-only**: ALL agents use the local model endpoint. Pass `base_url` and `model` name when spawning every agent.
+
+When `strategy` is `hybrid` or `local-only`, and the provider is `openai-compatible`:
+1. Before the first iteration, verify the local model is running: `curl -s {base_url}/models | jq .`
+2. If not running and `local_model.startup_command` exists, start it and wait for health.
+3. Log model routing in `claude-progress.txt` session block.
+4. In cost-tracker, use local model pricing ($0/token) instead of Claude pricing.
+
+**Fallback:** If local model is unreachable after 3 retries, log a warning and ask the human whether to fall back to cloud or abort.
 
 ---
 

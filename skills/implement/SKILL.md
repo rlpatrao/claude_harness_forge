@@ -60,6 +60,21 @@ This ownership map is the single source of truth for file assignments during par
 
 Read `.claude/state/learned-rules.md`. Inject ALL rules verbatim into every teammate spawn prompt. Learned rules represent project-specific decisions made during previous sprints (naming conventions, library choices, API patterns). Skipping this step causes regressions.
 
+### Step 4.5 — Read Model Routing
+
+Read `project-manifest.json` field `execution.model_routing`. This determines which model backs each agent spawn:
+
+- **cloud-only**: Spawn agents normally (Claude Code defaults).
+- **hybrid**: Generator teammates use the `code_gen_agents.base_url` endpoint. If using an OpenAI-compatible local model, prefix agent prompts with: `Use model: {model_name} via {base_url}`.
+- **local-only**: ALL agent spawns (teammates, evaluator, reviewers) use the local endpoint.
+
+If `strategy` is `hybrid` or `local-only`, verify the local endpoint is reachable before spawning:
+```bash
+curl -sf {base_url}/models > /dev/null || echo "WARN: Local model not reachable"
+```
+
+If unreachable, warn the human and wait for instructions. Do not fall back silently.
+
 ### Step 5 — Spawn Agent Team (Multiple Stories)
 
 If the group contains **2 or more stories**, spawn a Claude Code agent team:
