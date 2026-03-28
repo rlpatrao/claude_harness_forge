@@ -93,16 +93,28 @@ if [ "$PROJECT_TYPE" = "ml" ] || [ "$PROJECT_TYPE" = "agentic" ]; then
     fail "No model card found at docs/model-card.md (required for ML projects)"
   fi
 
-  # Fairness metrics
-  fairness_refs=$(grep -rn 'demographic_parity\|equal_opportunity\|equalized_odds\|disparate_impact\|fairlearn\|aif360' backend/ src/ 2>/dev/null | grep -v __pycache__ | wc -l | tr -d ' ')
+  # Fairness metrics (guard for missing dirs — code may not be generated yet)
+  fairness_refs=0
+  for sdir in backend/ src/ frontend/src/; do
+    if [ -d "$sdir" ]; then
+      count=$(grep -rn 'demographic_parity\|equal_opportunity\|equalized_odds\|disparate_impact\|fairlearn\|aif360' "$sdir" 2>/dev/null | grep -v __pycache__ | wc -l | tr -d ' ')
+      fairness_refs=$((fairness_refs + count))
+    fi
+  done
   if [ "$fairness_refs" -gt 0 ]; then
     pass "Fairness metrics referenced: $fairness_refs occurrences"
   else
     fail "No fairness metrics found in codebase (required for ML projects making decisions about people)"
   fi
 
-  # Explainability
-  explain_refs=$(grep -rn 'shap\|lime\|feature_importance\|explain' backend/ src/ 2>/dev/null | grep -v __pycache__ | grep -v node_modules | wc -l | tr -d ' ')
+  # Explainability (guard for missing dirs)
+  explain_refs=0
+  for sdir in backend/ src/; do
+    if [ -d "$sdir" ]; then
+      count=$(grep -rn 'shap\|lime\|feature_importance\|explain' "$sdir" 2>/dev/null | grep -v __pycache__ | grep -v node_modules | wc -l | tr -d ' ')
+      explain_refs=$((explain_refs + count))
+    fi
+  done
   if [ "$explain_refs" -gt 0 ]; then
     pass "Explainability references: $explain_refs occurrences"
   else
@@ -115,16 +127,28 @@ if [ "$PROJECT_TYPE" = "agentic" ]; then
   echo ""
   echo "--- Agentic Security Checks ---"
 
-  # Check for input sanitization before LLM calls
-  sanitize_refs=$(grep -rn 'sanitize\|escape\|validate.*input\|clean.*prompt' backend/ src/ 2>/dev/null | grep -v __pycache__ | wc -l | tr -d ' ')
+  # Check for input sanitization before LLM calls (guard for missing dirs)
+  sanitize_refs=0
+  for sdir in backend/ src/; do
+    if [ -d "$sdir" ]; then
+      count=$(grep -rn 'sanitize\|escape\|validate.*input\|clean.*prompt' "$sdir" 2>/dev/null | grep -v __pycache__ | wc -l | tr -d ' ')
+      sanitize_refs=$((sanitize_refs + count))
+    fi
+  done
   if [ "$sanitize_refs" -gt 0 ]; then
     pass "Input sanitization found: $sanitize_refs occurrences"
   else
     warn "No input sanitization found before LLM calls — risk of prompt injection (ASI01)"
   fi
 
-  # Check for tool allowlists
-  allowlist_refs=$(grep -rn 'allowed_tools\|tool_allowlist\|permitted_actions' backend/ src/ 2>/dev/null | grep -v __pycache__ | wc -l | tr -d ' ')
+  # Check for tool allowlists (guard for missing dirs)
+  allowlist_refs=0
+  for sdir in backend/ src/; do
+    if [ -d "$sdir" ]; then
+      count=$(grep -rn 'allowed_tools\|tool_allowlist\|permitted_actions' "$sdir" 2>/dev/null | grep -v __pycache__ | wc -l | tr -d ' ')
+      allowlist_refs=$((allowlist_refs + count))
+    fi
+  done
   if [ "$allowlist_refs" -gt 0 ]; then
     pass "Tool allowlists found: $allowlist_refs occurrences"
   else
@@ -136,7 +160,13 @@ fi
 echo ""
 echo "--- Audit Trail ---"
 
-audit_refs=$(grep -rn 'audit_log\|AuditLog\|audit_trail\|action_log' backend/ src/ 2>/dev/null | grep -v __pycache__ | wc -l | tr -d ' ')
+audit_refs=0
+for sdir in backend/ src/ frontend/src/; do
+  if [ -d "$sdir" ]; then
+    count=$(grep -rn 'audit_log\|AuditLog\|audit_trail\|action_log' "$sdir" 2>/dev/null | grep -v __pycache__ | wc -l | tr -d ' ')
+    audit_refs=$((audit_refs + count))
+  fi
+done
 if [ "$audit_refs" -gt 0 ]; then
   pass "Audit trail references: $audit_refs occurrences"
 else
@@ -151,7 +181,13 @@ fi
 echo ""
 echo "--- Data Retention ---"
 
-retention_refs=$(grep -rn 'retention\|delete_after\|cleanup_old\|purge\|gdpr\|right_to_be_forgotten' backend/ src/ 2>/dev/null | grep -v __pycache__ | wc -l | tr -d ' ')
+retention_refs=0
+for sdir in backend/ src/; do
+  if [ -d "$sdir" ]; then
+    count=$(grep -rn 'retention\|delete_after\|cleanup_old\|purge\|gdpr\|right_to_be_forgotten' "$sdir" 2>/dev/null | grep -v __pycache__ | wc -l | tr -d ' ')
+    retention_refs=$((retention_refs + count))
+  fi
+done
 if [ "$retention_refs" -gt 0 ]; then
   pass "Data retention logic found: $retention_refs occurrences"
 else
