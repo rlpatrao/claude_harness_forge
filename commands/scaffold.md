@@ -189,15 +189,21 @@ Based on project type (question 2):
 Copy from plugin source (`$CLAUDE_PLUGIN_DIR` or detect from this file's location):
 
 ```bash
+mkdir -p .claude
 cp -r $PLUGIN_SOURCE/agents/ .claude/agents/
 cp -r $PLUGIN_SOURCE/skills/ .claude/skills/
 cp -r $PLUGIN_SOURCE/hooks/ .claude/hooks/
-cp -r $PLUGIN_SOURCE/state/ .claude/state/
 cp -r $PLUGIN_SOURCE/templates/ .claude/templates/
 cp -r $PLUGIN_SOURCE/evals/ .claude/evals/
 cp $PLUGIN_SOURCE/architecture.md .claude/architecture.md
 cp $PLUGIN_SOURCE/program.md .claude/program.md
 cp $PLUGIN_SOURCE/settings.json .claude/settings.json
+cp $PLUGIN_SOURCE/design.md design.md
+
+# State files: only copy if not already present (preserve user data on re-scaffold)
+if [ ! -d ".claude/state" ]; then
+  cp -r $PLUGIN_SOURCE/state/ .claude/state/
+fi
 ```
 
 ## Step 5: Install Plugins (based on question 3)
@@ -277,11 +283,19 @@ echo '[]' > .claude/state/cost-log.json
 echo '{}' > .claude/state/eval-scores.json
 ```
 
+Write placeholder `init.sh` (will be replaced by `/architect` after stack decisions):
+```bash
+#!/usr/bin/env bash
+echo "Run /architect to generate the full init.sh bootstrap script"
+exit 0
+```
+
 Write `claude-progress.txt`:
 ```
 === Session 0 ===
 date: {ISO 8601 now}
 mode: full
+model_routing: {from project-manifest.json execution.model_routing.strategy}
 groups_completed: []
 groups_remaining: []
 current_group: none
