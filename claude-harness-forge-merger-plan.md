@@ -1,14 +1,36 @@
-# Claude Harness Forge — Merger Plan
+# Claude Harness Forge — Design Plan
 
-**Merging `claude_code_forge_v2` (Forge) + `claude_harness_eng_v1` (Harness) into a unified scaffold**
-
-Target repo name: `claude_harness_forge` (or `claude_code_harness_v3`)
+**Unifying two complementary philosophies for autonomous software development into a single scaffold**
 
 ---
 
-## 1. Design Principles for the Merge
+## The Two Philosophies
 
-The merged system takes the Harness's adversarial verification architecture as the structural backbone, and the Forge's rich templates, evals, and onboarding ergonomics as the flesh.
+### The Forge Philosophy — Template-Rich SDLC Scaffolding
+
+The Forge approach treats autonomous development as a **structured engineering process** that needs rich guidance at every phase. It provides Socratic BRD interviews with 5-dimension exploration (Why, What, How, Edge Cases, UI), alternatives analysis before committing to approaches, story templates with Given/When/Then acceptance criteria, six enforced quality principles (small modules, static typing, short functions, explicit errors, no dead code, self-documenting names), code reviewer regression tests, UI mockup generation as self-contained HTML, and a plugin-first onboarding model.
+
+**Core belief:** If you give agents detailed enough templates, patterns, and checklists, they will produce quality code. Quality comes from thorough upfront specification.
+
+**Weakness:** The same agent writes code and judges its quality. There is no independent verification that the running application actually works. Code review catches structural issues but never catches behavioral bugs.
+
+### The Harness Philosophy — Adversarial Verification Engineering
+
+The Harness approach treats autonomous development as a **control problem** where the biggest risk is the agent declaring victory on broken code. Inspired by GAN architectures, it structurally separates the generator (writes code) from the evaluator (verifies behavior) — the agent that builds can never evaluate its own work. It introduces sprint contracts (machine-readable JSON defining done criteria), 3-layer verification (API curl + Playwright browser automation + browser console error capture), Karpathy-style monotonic ratcheting (quality metrics only move forward), session chaining for multi-context-window builds, and four execution modes (Full/Lean/Solo/Turbo) that right-size cost to project complexity.
+
+**Core belief:** If you verify behavior adversarially and prevent quality regression, the output will be reliable. Quality comes from rigorous independent verification.
+
+**Weakness:** Weak requirements and design foundations. No Socratic interviews, no interactive architect, no UI mockups, minimal templates. The harness verifies well but starts from shallow specifications, leading to more self-healing iterations to get things right.
+
+### Why Neither Alone Is Sufficient
+
+The Forge builds fast from rich foundations but can't guarantee what it built works. The Harness guarantees behavioral correctness but wastes iterations compensating for weak specs. The merged system uses the **Harness's adversarial verification as the structural backbone** and the **Forge's rich templates and developer ergonomics as the flesh**.
+
+---
+
+## 1. Design Principles
+
+The merged system combines both philosophies, taking the strongest element from each:
 
 | Principle | Source | Rationale |
 |-----------|--------|-----------|
@@ -945,3 +967,29 @@ The merged system passes when:
 7. Session chaining works: kill Claude mid-build, restart, and the loop resumes from `claude-progress.txt`
 8. `/cost` reports estimates within reasonable range for the chosen mode
 9. Post-build learnings: architect re-invoked after build completes to fill in "Verdict after build" and "Patterns" sections in the stack decision record
+
+---
+
+## 15. References
+
+### Source Implementations
+
+The Forge and Harness philosophies described in this document were originally implemented as:
+
+- **The Forge:** [claude_code_forge_v2](https://github.com/cwijayasundara/claude_code_forge_v2) — template-rich SDLC scaffolding with Socratic BRD interviews, 6 quality principles, code reviewer evals, UI mockup generation, and plugin-first onboarding
+- **The Harness:** [claude_harness_eng_v1](https://github.com/cwijayasundara/claude_harness_eng_v1) — GAN-inspired adversarial verification with sprint contracts, Karpathy ratcheting, 3-layer browser verification, session chaining, and 4 execution modes
+
+### Harness Engineering Research
+
+- [Anthropic: Harness Design for Long-Running Application Development](https://www.anthropic.com/engineering/harness-design-long-running-apps)
+- [Anthropic: Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
+- [OpenAI: Harness Engineering](https://openai.com/index/harness-engineering/)
+- [Steve Krenzel: AI is Forcing Us to Write Good Code](https://bits.logic.inc/p/ai-is-forcing-us-to-write-good-code)
+
+### Multi-Agent Coding Research
+
+- SWE-agent (Princeton, 2024) — agent-computer interfaces for automated software engineering
+- AgentCoder (2024) — adversarial programmer/test-designer/executor loop
+- MetaGPT (2024) — structured artifacts between agents reduce hallucination cascading
+- Reflexion (Shinn et al., 2023) — verbal reinforcement learning from failure analysis
+- AlphaCode 2 (DeepMind, 2023) — verifier models more valuable than generator improvements
