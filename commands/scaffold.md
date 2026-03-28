@@ -91,7 +91,19 @@ Write `project-manifest.json` to the project root with populated project info an
     "coverage_threshold": 80,
     "session_chaining": true,
     "agent_team_size": "auto",
-    "teammate_model": "sonnet"
+    "teammate_model": "sonnet",
+    "model_routing": {
+      "strategy": "cloud-only",
+      "reasoning_agents": {
+        "model": "claude-opus",
+        "agents": ["architect", "evaluator"]
+      },
+      "code_gen_agents": {
+        "model": "claude-sonnet",
+        "agents": ["generator", "test-engineer", "code-reviewer", "security-reviewer", "ui-designer", "ui-standards-reviewer"]
+      },
+      "local_model": null
+    }
   },
   "verification": {
     "mode": null
@@ -100,6 +112,31 @@ Write `project-manifest.json` to the project root with populated project info an
 ```
 
 The `stack`, `evaluation`, and `verification` sections are filled in by the architect agent after the BRD is approved.
+
+The `execution.model_routing` section defaults to cloud-only (all Claude). The architect agent updates it during Round 4 (AI/LLM Model Selection). Example hybrid config:
+```json
+"model_routing": {
+  "strategy": "hybrid",
+  "reasoning_agents": {
+    "model": "claude-opus",
+    "agents": ["architect", "evaluator"]
+  },
+  "code_gen_agents": {
+    "model": "qwen3-coder-480b",
+    "provider": "openai-compatible",
+    "base_url": "http://localhost:8080/v1",
+    "agents": ["generator", "test-engineer", "code-reviewer", "security-reviewer", "ui-designer", "ui-standards-reviewer"]
+  },
+  "local_model": {
+    "name": "Qwen3-Coder-480B-A35B-Instruct",
+    "runtime": "vllm",
+    "quantization": null,
+    "gpu_vram_gb": 80,
+    "max_context_tokens": 131072,
+    "startup_command": "vllm serve Qwen/Qwen3-Coder-480B-A35B-Instruct --tensor-parallel-size 4"
+  }
+}
+```
 
 ## Step 3: Generate calibration-profile.json
 

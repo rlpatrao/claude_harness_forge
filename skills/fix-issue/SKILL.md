@@ -3,7 +3,6 @@ name: fix-issue
 description: Standard workflow for fixing a GitHub issue. Fetches issue details, creates a branch, implements the fix with tests, and prepares a PR.
 disable-model-invocation: true
 argument-hint: "[issue-number]"
-context: fork
 ---
 
 # Fix Issue Workflow

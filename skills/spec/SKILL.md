@@ -3,8 +3,6 @@ name: spec
 description: Decompose a BRD into epics, user stories, acceptance criteria, and a dependency graph with parallel groups for agent team execution.
 disable-model-invocation: true
 argument-hint: "[path-to-BRD]"
-context: fork
-agent: spec-writer
 ---
 
 # /spec — Spec Writing

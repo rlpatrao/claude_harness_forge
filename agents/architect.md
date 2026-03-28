@@ -59,14 +59,39 @@ Analyze the BRD's data characteristics (relational vs document, read-heavy vs wr
 2. Styling approach? (Tailwind / CSS Modules / Component library like MUI/shadcn)
 3. State management needs?
 
-### Round 4 — Deployment & Infrastructure
+### Round 4 — AI/LLM Model Selection
+
+Ask which models should power the forge's agents during the build. Present the routing strategy options:
+
+1. "Which model should power code generation agents (generator, test-engineer)?"
+   - A) Claude Sonnet (default — cloud API, high quality, costs money)
+   - B) Qwen3-Coder-480B-A35B-Instruct (local via vLLM/Ollama — free, strong code gen, needs GPU)
+   - C) DeepSeek-Coder-V3 (local alternative)
+   - D) Other local model (specify)
+
+2. "For reasoning-heavy agents (architect, evaluator), keep Claude Opus or also route to local?"
+   - A) Keep on Claude Opus (recommended — complex trade-off analysis needs strong reasoning)
+   - B) Route to local model too (local-only / air-gapped setup)
+
+3. "What's the model routing strategy?"
+   - A) **Cloud-only** — all agents use Claude API (simplest, best quality)
+   - B) **Hybrid** — reasoning agents on Claude, code gen on local (recommended when GPU available)
+   - C) **Local-only** — all agents use local model (air-gapped, cost-sensitive)
+
+**Challenge examples:**
+- "You chose local-only but the BRD has complex multi-service architecture requiring careful design trade-offs. The architect agent benefits from Opus-level reasoning. Consider hybrid."
+- "You chose Qwen3-Coder on CPU — inference will be extremely slow for a 480B model. Do you have GPU access, or should we use a smaller model?"
+
+Record the model routing config in `project-manifest.json` under `execution.model_routing`.
+
+### Round 5 — Deployment & Infrastructure
 
 1. Development environment? (Docker Compose / local dev servers / stub)
 2. Target deployment? (Containerized / serverless / PaaS / undecided)
 3. CI/CD requirements?
 4. External services/APIs to integrate? (Cross-reference with BRD)
 
-### Round 5 — Verification & Challenge
+### Round 6 — Verification & Challenge
 
 Present the full stack summary. Then list **concerns** — things that might not work based on the BRD requirements:
 

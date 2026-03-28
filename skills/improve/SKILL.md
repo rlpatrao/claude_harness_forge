@@ -3,7 +3,6 @@ name: improve
 description: Enhance existing features with new behavior, performance improvements, or UX changes. Story-driven with full SDLC enforcement including tests and code review.
 disable-model-invocation: true
 argument-hint: "[description or story-id]"
-context: fork
 ---
 
 # /improve — Feature Enhancement

@@ -2,7 +2,6 @@
 name: auto
 description: Autonomous build loop with Karpathy ratcheting, GAN evaluator, browser console capture, UI standards review, 8-gate ratchet, session chaining, and cross-project learnings. Iterates story groups until all features pass or stopping criteria met.
 argument-hint: "[--mode full|lean|solo|turbo] [--group GROUP_ID]"
-context: fork
 ---
 
 # Auto Skill

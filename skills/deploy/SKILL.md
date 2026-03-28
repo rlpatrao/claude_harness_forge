@@ -2,8 +2,6 @@
 name: deploy
 description: Generate Docker Compose stack, Dockerfiles, environment config, init.sh bootstrap script, and verify local deployment with health checks.
 argument-hint: "[--up]"
-context: fork
-agent: architect
 ---
 
 # Deploy Skill

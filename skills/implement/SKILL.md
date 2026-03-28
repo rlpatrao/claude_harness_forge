@@ -2,8 +2,6 @@
 name: implement
 description: Generate production code and tests for a story group using agent teams for parallel execution.
 argument-hint: "[group-id]"
-context: fork
-agent: generator
 ---
 
 # Implement Skill

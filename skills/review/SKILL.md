@@ -1,7 +1,6 @@
 ---
 name: review
 description: Run code review and security review concurrently. Checks quality principles, architecture compliance, test coverage, story traceability, and OWASP vulnerabilities.
-context: fork
 ---
 
 # Review Skill

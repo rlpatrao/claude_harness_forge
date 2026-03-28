@@ -2,8 +2,6 @@
 name: evaluate
 description: Run the application and verify sprint contract criteria via API tests, Playwright interaction, and schema validation.
 argument-hint: "[group-id]"
-context: fork
-agent: evaluator
 ---
 
 # Evaluate Skill

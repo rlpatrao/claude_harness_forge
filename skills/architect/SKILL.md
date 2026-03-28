@@ -2,8 +2,6 @@
 name: architect
 description: Interactive stack interrogation, design artifact generation, decision verification, and learnings persistence. Runs after BRD approval, before spec decomposition.
 argument-hint: "[--post-build]"
-context: fork
-agent: architect
 ---
 
 # Architect Skill
@@ -40,15 +38,16 @@ Read in order:
 
 Summarize relevant learnings to the human before starting questions.
 
-### Step 2 — Stack Interrogation (5 rounds)
+### Step 2 — Stack Interrogation (6 rounds)
 
 Conduct one round at a time. Wait for human response before proceeding.
 
 **Round 1 — Backend:** Present 2-3 options informed by BRD requirements. Challenge mismatches.
 **Round 2 — Database:** Analyze data patterns from BRD. Challenge schema-stack mismatches.
 **Round 3 — Frontend:** Framework, styling, state management.
-**Round 4 — Deployment:** Dev environment, target deployment, CI/CD, external services.
-**Round 5 — Verify & Challenge:** Summarize all decisions. List specific concerns based on BRD gaps.
+**Round 4 — AI/LLM Model Selection:** Which models power the forge agents? Options: cloud-only (Claude), hybrid (Claude for reasoning + local for code gen), or local-only. Supports Qwen3-Coder-480B, DeepSeek-Coder-V3, or custom. Records routing config in `project-manifest.json` under `execution.model_routing`.
+**Round 5 — Deployment:** Dev environment, target deployment, CI/CD, external services.
+**Round 6 — Verify & Challenge:** Summarize all decisions including model routing. List specific concerns based on BRD gaps.
 
 See `agents/architect.md` for detailed question templates and challenge examples.
 

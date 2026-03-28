@@ -3,7 +3,6 @@ name: refactor
 description: Refactor existing code for quality, performance, or maintainability. Enforces six quality principles, runs full verification, and gates on code review.
 disable-model-invocation: true
 argument-hint: "[file-or-module-path]"
-context: fork
 ---
 
 # /refactor — Code Refactoring

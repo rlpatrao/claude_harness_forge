@@ -54,7 +54,40 @@ Structured question bank for the architect's 5-round stack interrogation. Questi
 | Enterprise dashboard | React + shadcn/ui or MUI | Pre-built enterprise components |
 | Consumer app | React + Tailwind | Maximum design flexibility |
 
-## Round 4 — Deployment
+## Round 4 — AI/LLM Model Selection
+
+### Questions
+1. "Which model should power the code generation agents (generator, test-engineer)?"
+2. "For reasoning-heavy agents (architect, evaluator), keep Claude Opus or also route to local?"
+3. "If local: what's your GPU setup? (VRAM determines quantization and batch size)"
+
+### Options
+
+| Model | Type | Best For | Requirements | Notes |
+|-------|------|----------|-------------|-------|
+| Claude Opus (default) | Cloud API | Highest quality, complex reasoning | Anthropic API key | Default for architect, evaluator |
+| Claude Sonnet (default) | Cloud API | Good quality, faster, cheaper | Anthropic API key | Default for generator, reviewers |
+| Qwen3-Coder-480B-A35B-Instruct | Local (vLLM/Ollama) | Code gen, large context, free | ~24GB+ VRAM (A35B active params), vLLM or Ollama | Strong code generation, 480B total / 35B active MoE |
+| Qwen3-Coder-480B (full precision) | Local (vLLM) | Maximum local quality | 80GB+ VRAM (multi-GPU) | Best local option for complex code tasks |
+| DeepSeek-Coder-V3 | Local (vLLM) | Code gen alternative | ~24GB VRAM | Strong on benchmarks, alternative to Qwen |
+| CodeLlama-70B | Local (Ollama) | Code gen, lighter weight | ~48GB VRAM | Meta's code-specialized model |
+| Custom/Other | Local or API | User-specified | Varies | Must expose OpenAI-compatible API |
+
+### Routing Strategy Options
+
+| Strategy | Description | When to Use |
+|----------|-------------|-------------|
+| **Cloud-only** (default) | All agents use Claude API | Simple setup, best quality, costs money |
+| **Hybrid** | Reasoning agents (architect, evaluator) use Claude Opus; code gen agents (generator, test-engineer, reviewers) use local model | Balance quality + cost. Recommended when local GPU available |
+| **Local-only** | All agents use local model via OpenAI-compatible API | Air-gapped, cost-sensitive, or privacy-required |
+
+### Challenge Patterns
+
+- User picks local model but BRD has complex architectural decisions → "The architect agent needs strong reasoning for trade-off analysis. Consider keeping architect on Claude Opus and routing only generator/test-engineer to local."
+- User picks quantized model but BRD has large codebase → "Quantized models may struggle with 100K+ token contexts. Consider full-precision or cloud for integration-heavy stories."
+- User picks local-only but no GPU → "CPU inference on 480B params will be extremely slow. Consider hybrid strategy or smaller model."
+
+## Round 5 — Deployment
 
 ### Questions
 1. "Development environment?" (Docker Compose / local / stub)
@@ -70,7 +103,7 @@ Structured question bank for the architect's 5-round stack interrogation. Questi
 | Local dev servers | Single-service or rapid iteration | `verification.mode: "local"` |
 | Stub/mock | Serverless, external-only, no runnable backend | `verification.mode: "stub"` |
 
-## Round 5 — Verify & Challenge
+## Round 6 — Verify & Challenge
 
 ### Concern Patterns to Check
 

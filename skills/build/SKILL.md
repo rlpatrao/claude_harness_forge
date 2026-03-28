@@ -2,7 +2,6 @@
 name: build
 description: Full 9-phase SDLC pipeline. BRD → Architect → Spec → Design → Initialize → Auto → Post-build learnings. Human gates on phases 1-4.
 argument-hint: "[path-to-BRD] [--mode full|lean|solo|turbo]"
-context: fork
 ---
 
 # Build Skill
