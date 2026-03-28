@@ -355,14 +355,14 @@ The scaffold offers 25+ Claude Code plugins organized by compatibility:
 
 ```
 claude_harness_forge/
-  agents/           10 agent definitions (.md)
-  skills/           23 skills (16 task + 7 reference)
-  hooks/            14 Node.js enforcement hooks
+  agents/           11 agent definitions (.md)
+  skills/           36 skills (24 task + 12 reference)
+  hooks/            18 Node.js enforcement hooks
   evals/            Code reviewer regression tests (4 samples)
-  templates/        Docker, Playwright, env, init.sh templates
+  templates/        15 templates (Docker, Playwright, OTel, RAG, Temporal, model card, env)
   learnings/        Cross-project knowledge base
-  state/            Initial state file templates
-  scripts/          3 validation scripts
+  state/            7 initial state files
+  scripts/          4 validation scripts
   commands/         /scaffold command
   .claude-plugin/   Plugin manifest
 ```
@@ -371,10 +371,11 @@ claude_harness_forge/
 
 | File | Location After Scaffold | Purpose | Who Reads It |
 |------|------------------------|---------|-------------|
-| `architecture.md` | `.claude/architecture.md` | **Target app's layered architecture rules.** Defines the 6-layer hierarchy (Types→Config→Repository→Service→API→UI), one-way dependency rule, and verification commands. The `check-architecture` hook enforces these on every file save. | Hooks, generator, code-reviewer |
-| `program.md` | `.claude/program.md` | **Karpathy bridge — runtime control for the auto loop.** Contains BRD instructions (filled during /brd), constraints (TDD, coverage floor, model tiering), stopping criteria, self-healing policy, and pipeline status. Re-read by /auto at the start of every iteration. Humans edit this mid-run to steer the build. | /auto orchestrator (every iteration) |
+| `architecture.md` | `.claude/architecture.md` | **Target app's layered architecture rules.** Defines the 6-layer hierarchy (Types->Config->Repository->Service->API->UI), one-way dependency rule, and verification commands. The `check-architecture` hook enforces these on every file save. | Hooks, generator, code-reviewer |
+| `program.md` | `.claude/program.md` | **Karpathy bridge -- runtime control for the auto loop.** Contains BRD instructions (filled during /brd), constraints (TDD, coverage floor, model tiering), stopping criteria, self-healing policy, and pipeline status. Re-read by /auto at the start of every iteration. Humans edit this mid-run to steer the build. | /auto orchestrator (every iteration) |
 | `settings.json` | `.claude/settings.json` | **Hook wiring and permissions.** Maps PostToolUse events to enforcement hooks. | Claude Code runtime |
-| `forge-reference.md` | Project root (read-only reference) | **How the forge itself works.** System architecture diagram, GAN flow, 8-gate ratchet, execution modes, self-healing taxonomy. Not consumed by any agent — exists for human understanding. | Humans only |
+| `project-manifest.json` | `.claude/project-manifest.json` | **Central project configuration.** Includes `ai_native` (project type classification, activated pillars), `compliance` (regulatory requirements, model card config), `security` (OWASP profiles, tool permission scoping), and `observability` (OTel endpoints, token budget limits) sections. | All agents, hooks, /auto orchestrator |
+| `forge-reference.md` | Project root (read-only reference) | **How the forge itself works.** System architecture diagram, GAN flow, 11-gate ratchet, execution modes, self-healing taxonomy. Not consumed by any agent -- exists for human understanding. | Humans only |
 
 **Note:** `forge-reference.md` was previously named `design.md`, which was confusing because target projects also generate their own `specs/design/` artifacts. Renamed for clarity.
 
@@ -385,6 +386,8 @@ claude_harness_forge/
 - Docker + Docker Compose (for evaluation)
 - Python 3.12+ / Node.js 20+ (for generated projects)
 - Optional: vLLM or Ollama (for local LLM routing)
+- Optional: mutmut (Python mutation testing, for gate 9)
+- Optional: Stryker (TypeScript mutation testing, for gate 9)
 
 ## Based On
 
@@ -404,6 +407,13 @@ claude_harness_forge/
 - MetaGPT (2024) — structured artifacts between agents reduce hallucination cascading
 - Reflexion (Shinn et al., 2023) — verbal reinforcement learning from failure analysis
 - AlphaCode 2 (DeepMind, 2023) — verifier models more valuable than generator improvements
+
+### AI-Native and Safety Research (2025-2026)
+- [METR: Reward Hacking in RLHF](https://metr.org/) — spec gaming and reward hacking patterns in LLM agents (basis for gate 11)
+- [Meta: Mutation Testing at Scale](https://engineering.fb.com/) — mutation testing as a measure of test suite effectiveness (basis for gate 9)
+- [OWASP Agentic Top 10 (2025)](https://owasp.org/www-project-agentic-ai-top-10/) — ASI01-ASI10 security risks for agentic AI systems
+- [Memory in the Age of AI Agents (2025)](https://arxiv.org/) — survey on context management, memory architectures, and knowledge persistence for long-running agents
+- [AIDev Dataset (2025)](https://arxiv.org/) — benchmark dataset for AI-assisted software development evaluation
 
 ## License
 
