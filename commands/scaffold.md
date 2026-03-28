@@ -198,7 +198,7 @@ cp -r $PLUGIN_SOURCE/evals/ .claude/evals/
 cp $PLUGIN_SOURCE/architecture.md .claude/architecture.md
 cp $PLUGIN_SOURCE/program.md .claude/program.md
 cp $PLUGIN_SOURCE/settings.json .claude/settings.json
-cp $PLUGIN_SOURCE/design.md design.md
+cp $PLUGIN_SOURCE/forge-reference.md forge-reference.md
 
 # State files: only copy if not already present (preserve user data on re-scaffold)
 if [ ! -d ".claude/state" ]; then

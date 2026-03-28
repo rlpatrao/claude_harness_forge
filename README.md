@@ -309,6 +309,17 @@ claude_harness_forge/
   .claude-plugin/   Plugin manifest
 ```
 
+### Key Configuration Files (copied to target projects by /scaffold)
+
+| File | Location After Scaffold | Purpose | Who Reads It |
+|------|------------------------|---------|-------------|
+| `architecture.md` | `.claude/architecture.md` | **Target app's layered architecture rules.** Defines the 6-layer hierarchy (Types→Config→Repository→Service→API→UI), one-way dependency rule, and verification commands. The `check-architecture` hook enforces these on every file save. | Hooks, generator, code-reviewer |
+| `program.md` | `.claude/program.md` | **Karpathy bridge — runtime control for the auto loop.** Contains BRD instructions (filled during /brd), constraints (TDD, coverage floor, model tiering), stopping criteria, self-healing policy, and pipeline status. Re-read by /auto at the start of every iteration. Humans edit this mid-run to steer the build. | /auto orchestrator (every iteration) |
+| `settings.json` | `.claude/settings.json` | **Hook wiring and permissions.** Maps PostToolUse events to enforcement hooks. | Claude Code runtime |
+| `forge-reference.md` | Project root (read-only reference) | **How the forge itself works.** System architecture diagram, GAN flow, 8-gate ratchet, execution modes, self-healing taxonomy. Not consumed by any agent — exists for human understanding. | Humans only |
+
+**Note:** `forge-reference.md` was previously named `design.md`, which was confusing because target projects also generate their own `specs/design/` artifacts. Renamed for clarity.
+
 ## Requirements
 
 - Claude Code v2.1.32+ (agent teams support)
