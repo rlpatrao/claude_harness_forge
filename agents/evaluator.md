@@ -127,7 +127,30 @@ page.on('response', resp => {
 });
 ```
 
-If Claude in Chrome MCP tools are available (`read_console_messages`, `read_network_requests`), use those instead for richer capture (full stack traces, request/response bodies, timing data). Auto-detect tool availability.
+### Browser Verification Tool Priority
+
+The evaluator should auto-detect and use the richest available browser tools, in this order:
+
+**Priority 1 — Playwright MCP plugin** (recommended):
+If `mcp__plugin_playwright_playwright__*` tools are available, use them directly for all browser interactions:
+- `browser_navigate` — navigate to URLs
+- `browser_click`, `browser_fill_form`, `browser_select_option` — interact with elements
+- `browser_snapshot` — capture DOM for assertions
+- `browser_take_screenshot` — visual capture for UI standards review
+- `browser_console_messages` — read console errors, warnings, and logs
+- `browser_network_requests` — capture all network activity with status codes
+- `browser_evaluate` — run JavaScript in the page context (e.g., check React error boundaries)
+- `browser_wait_for` — wait for elements or network idle
+
+This is the richest option: full DOM snapshots, screenshot capture, console messages with stack traces, network request/response details, all without writing test files.
+
+**Priority 2 — Claude Chrome extension MCP tools:**
+If `read_console_messages` and `read_network_requests` tools are available (from Claude's Chrome extension), use those for real-browser capture with full stack traces and request/response bodies. Richer than Playwright listeners but requires a visible browser.
+
+**Priority 3 — Playwright listener injection** (fallback):
+If neither MCP option is available, instruct the test-engineer to wire Playwright listeners into E2E tests (the `page.on('console')` approach). This works in headless mode with zero dependencies.
+
+Auto-detect which tools are available at the start of each evaluation pass. Log which method is being used in the evaluator report.
 
 ### Evaluation Rules
 

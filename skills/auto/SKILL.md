@@ -265,7 +265,13 @@ During every Playwright check, the evaluator captures browser telemetry:
 - Network 4xx/5xx not in sprint contract `expected_errors` → FAIL
 - `console.warn` entries → WARN (logged, non-blocking)
 
-Browser errors are captured via Playwright's built-in `page.on('console')` and `page.on('pageerror')` listeners. If Claude in Chrome MCP tools are available, those are used instead for richer capture.
+Browser errors are captured using the richest available tool:
+
+1. **Playwright MCP plugin** (preferred): `browser_console_messages` and `browser_network_requests` provide full console output and network activity without writing test files. `browser_take_screenshot` captures visual state for UI review.
+2. **Chrome extension MCP**: `read_console_messages` and `read_network_requests` for real-browser capture with full stack traces.
+3. **Playwright listeners** (fallback): `page.on('console')` and `page.on('pageerror')` wired into E2E test files.
+
+The evaluator auto-detects which tools are available at the start of each evaluation pass.
 
 Browser errors produce structured failure JSON with `layer: "browser_console"` or `layer: "network"` and `error_type: "console_error"` or `"network_error"`, enabling targeted self-healing (generator fixes the exact file:line from the error).
 

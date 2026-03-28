@@ -125,6 +125,7 @@ For each entry in `playwright_checks`:
    - `browser_click` — click an element (use `getByRole`, `getByText`, or `getByLabel`; never CSS selectors).
    - `browser_fill_form` — fill form fields.
    - `browser_snapshot` — capture the DOM snapshot for assertion.
+   - `browser_take_screenshot` — capture visual state for UI standards review.
 
 2. Execute each step in the order specified. Do not reorder or skip steps.
 
@@ -136,6 +137,34 @@ For each entry in `playwright_checks`:
 4. Use `expect().toBeVisible()` for visibility assertions. Never use `waitForTimeout()` — if an element is not immediately visible, the check fails.
 
 5. Record each check as PASS or FAIL with a description of what was asserted and what was found.
+
+### Layer 2.5 — Browser Health Monitoring (during Playwright checks)
+
+After each Playwright interaction sequence, capture browser health:
+
+1. **Console errors:** Use `browser_console_messages` to read all console output. Any `error`-level messages that are not in the sprint contract's `expected_errors` list are FAIL.
+
+2. **Network failures:** Use `browser_network_requests` to capture all network activity. Any 4xx/5xx responses not in `expected_errors` are FAIL. Slow responses (>3s) are WARN.
+
+3. **JavaScript exceptions:** Use `browser_evaluate` to check `window.__REACT_ERROR_BOUNDARY_CAUGHT__` or similar error boundary flags.
+
+4. **Screenshots:** Use `browser_take_screenshot` at key interaction points for the ui-standards-reviewer to assess conformance.
+
+Write browser health results as structured failures (see evaluator agent for format). These feed directly into the self-healing loop — no separate pipeline.
+
+### Tool Detection
+
+At the start of the evaluation pass, detect which browser tools are available:
+
+```
+If mcp__plugin_playwright_playwright__browser_navigate exists:
+  → Use Playwright MCP tools (richest: DOM snapshots, screenshots, console, network)
+Else if read_console_messages exists:
+  → Use Chrome extension MCP tools (real browser, full stack traces)
+Else:
+  → Fall back to Playwright listener injection in E2E test files
+Log which method is active in the evaluator report.
+```
 
 ---
 
