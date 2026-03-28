@@ -2,15 +2,17 @@
 
 > GAN-inspired autonomous SDLC scaffold with browser-based verification, Karpathy ratcheting, cross-project learning, and local LLM support.
 
-A Claude Code plugin that merges the best of [claude_code_forge_v2](https://github.com/cwijayasundara/claude_code_forge_v2) (the "Forge") and [claude_harness_eng_v1](https://github.com/cwijayasundara/claude_harness_eng_v1) (the "Harness") into a unified autonomous development scaffold. Implements Anthropic and OpenAI harness engineering best practices for long-running application development.
+A Claude Code plugin for autonomous long-running application development. Born from merging two complementary philosophies — **the Forge** (template-rich SDLC scaffolding) and **the Harness** (adversarial verification engineering) — into a unified system that builds software the way a well-run engineering team would: rigorous requirements, challenged design decisions, parallel implementation, and independent verification.
+
+Implements best practices from Anthropic's harness design research, OpenAI's harness engineering, and recent multi-agent coding systems (SWE-agent, AgentCoder, MetaGPT, Reflexion).
 
 ---
 
-## Why This Exists: The Problem with Each Parent System
+## Why This Exists: Two Philosophies, Neither Complete
 
-### Forge v2 — Rich Templates, Weak Verification
+### The Forge Philosophy — Rich Templates, Weak Verification
 
-The Forge excels at **developer ergonomics and SDLC coverage**: Socratic BRD interviews, story templates, six quality principles, code reviewer evals, UI mockup generation, and a plugin-first onboarding model. It covers the full software development lifecycle from requirements to deployment.
+The Forge approach prioritizes **developer ergonomics and full SDLC coverage**. It provides Socratic BRD interviews with 5-dimension exploration, story templates with Given/When/Then acceptance criteria, six enforced quality principles, code reviewer regression tests (evals), UI mockup generation, and a plugin-first onboarding model where you clone once and scaffold into any project. It covers every phase from requirements elicitation to deployment.
 
 **But it has critical gaps:**
 
@@ -28,9 +30,9 @@ The Forge excels at **developer ergonomics and SDLC coverage**: Socratic BRD int
 
 The Forge builds fast but can't guarantee what it built actually works.
 
-### Harness v1 — Strong Verification, Bare Templates
+### The Harness Philosophy — Strong Verification, Bare Templates
 
-The Harness excels at **adversarial verification and quality enforcement**: GAN-style generator/evaluator split, sprint contracts, 3-layer verification (API + Playwright + browser console), Karpathy ratcheting with mode-dependent gates, session chaining for multi-hour builds, and cost-aware execution modes.
+The Harness approach prioritizes **adversarial verification and monotonic quality enforcement**. Inspired by GAN architectures, it structurally separates the agent that writes code (generator) from the agent that verifies it (evaluator) — eliminating self-evaluation bias. It introduces sprint contracts (machine-readable JSON defining exactly what "done" means), 3-layer verification (API curl checks + Playwright browser automation + browser console error capture), Karpathy-style ratcheting where quality metrics only move forward, session chaining for builds that span multiple context windows, and four execution modes that right-size cost to project complexity.
 
 **But it has critical gaps:**
 
@@ -47,11 +49,11 @@ The Harness excels at **adversarial verification and quality enforcement**: GAN-
 
 The Harness verifies well but starts from weaker foundations and costs more to run.
 
-### The Hybrid: Claude Harness Forge
+### Claude Harness Forge — The Merger
 
-The merged system uses the **Harness's adversarial verification architecture as the structural backbone** and the **Forge's rich templates, evals, and developer ergonomics as the flesh**.
+The merged system uses the **Harness's adversarial verification architecture as the structural backbone** and the **Forge's rich templates, evals, and developer ergonomics as the flesh**. Neither philosophy alone produces reliable autonomous software — you need both rigorous foundations and rigorous verification.
 
-| Capability | Forge v2 | Harness v1 | Harness Forge |
+| Capability | The Forge | The Harness | Harness Forge |
 |------------|----------|------------|---------------|
 | BRD process | Socratic 5-dimension | Minimal | **Forge's Socratic interview** |
 | Architect | Silent doc generator | No architect | **Interactive 6-round interrogation with challenges** |
@@ -265,11 +267,22 @@ claude_harness_forge/
 
 ## Based On
 
+### Parent Systems
+- [claude_code_forge_v2](https://github.com/cwijayasundara/claude_code_forge_v2) — "The Forge": template-rich SDLC scaffolding with Socratic BRD interviews, quality principles, code reviewer evals, and plugin-first onboarding
+- [claude_harness_eng_v1](https://github.com/cwijayasundara/claude_harness_eng_v1) — "The Harness": GAN-inspired adversarial verification with sprint contracts, Karpathy ratcheting, browser console capture, and session chaining
+
+### Harness Engineering Research
 - [Anthropic: Harness Design for Long-Running Application Development](https://www.anthropic.com/engineering/harness-design-long-running-apps)
 - [Anthropic: Effective Harnesses for Long-Running Agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)
 - [OpenAI: Harness Engineering](https://openai.com/index/harness-engineering/)
 - [Steve Krenzel: AI is Forcing Us to Write Good Code](https://bits.logic.inc/p/ai-is-forcing-us-to-write-good-code)
-- Research: SWE-agent, AgentCoder, MetaGPT, Reflexion, AlphaCode 2 (see merger plan for full bibliography)
+
+### Multi-Agent Coding Research
+- SWE-agent (Princeton, 2024) — agent-computer interfaces for automated software engineering
+- AgentCoder (2024) — adversarial programmer/test-designer/executor loop
+- MetaGPT (2024) — structured artifacts between agents reduce hallucination cascading
+- Reflexion (Shinn et al., 2023) — verbal reinforcement learning from failure analysis
+- AlphaCode 2 (DeepMind, 2023) — verifier models more valuable than generator improvements
 
 ## License
 
