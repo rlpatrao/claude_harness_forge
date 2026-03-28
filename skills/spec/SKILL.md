@@ -21,8 +21,25 @@ argument-hint: "[path-to-BRD]"
    - `epics.md` — epic summaries with story lists
    - `E{n}-S{n}.md` — individual story files with acceptance criteria
    - `dependency-graph.md` — hard dependencies + parallel groups
-4. Verify gate: every story has acceptance criteria, layer assignment, and group.
-5. Present epic summary and dependency graph for user review.
+4. **Generate `features.json`** in the project root. Create one entry per story with the schema from `.claude/templates/features-template.example.json`. All features start with `"passes": null` (unevaluated). This file is consumed by `/auto` for tracking.
+   ```json
+   [
+     {
+       "id": "E1-S1",
+       "category": "foundation",
+       "story": "Define shared types and enums",
+       "group": "A",
+       "description": "...",
+       "steps": ["..."],
+       "passes": null,
+       "last_evaluated": null,
+       "failure_reason": null,
+       "failure_layer": null
+     }
+   ]
+   ```
+5. Verify gate: every story has acceptance criteria, layer assignment, and group.
+6. Present epic summary and dependency graph for user review.
 
 ## Gate
 
