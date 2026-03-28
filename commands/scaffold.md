@@ -279,6 +279,7 @@ mkdir -p specs/reviews specs/test_artefacts sprint-contracts e2e
 
 ```bash
 echo '0' > .claude/state/coverage-baseline.txt
+echo '0' > .claude/state/mutation-baseline.txt
 echo '[]' > .claude/state/cost-log.json
 echo '{}' > .claude/state/eval-scores.json
 ```

@@ -82,37 +82,40 @@ if [ "$FORGE_MODE" = true ]; then
   # --- 2. Agent definitions ---
   echo ""
   echo "--- Agents (expect 10) ---"
-  check_file_count "agents" "*.md" 10 "Agent definitions"
+  check_file_count "agents" "*.md" 11 "Agent definitions"
   for agent in brd-creator architect spec-writer generator evaluator \
                ui-standards-reviewer code-reviewer security-reviewer \
-               test-engineer ui-designer; do
+               test-engineer ui-designer compliance-reviewer; do
     check_file "agents/$agent.md"
   done
 
   # --- 3. Skills ---
   echo ""
-  echo "--- Skills (expect >= 23 SKILL.md) ---"
+  echo "--- Skills (expect >= 36 SKILL.md) ---"
   skill_count=$(find skills -name "SKILL.md" 2>/dev/null | wc -l | tr -d ' ')
-  if [ "$skill_count" -ge 23 ]; then
+  if [ "$skill_count" -ge 36 ]; then
     pass "Skill definitions: $skill_count (>= 23)"
   else
-    fail "Skill definitions: $skill_count (expected >= 23)"
+    fail "Skill definitions: $skill_count (expected >= 36)"
   fi
 
   for skill in auto brd spec design implement evaluate build review test \
                deploy fix-issue refactor improve lint-drift cost code-gen \
-               spec-writing architecture ui-mockup testing evaluation stack-learnings architect; do
+               spec-writing architecture ui-mockup testing evaluation stack-learnings architect \
+               observe comply rag workflow resilience model-card context-budget tenant \
+               resilience-patterns rag-patterns agentic-ux compliance context-engineering; do
     check_file "skills/$skill/SKILL.md"
   done
 
   # --- 4. Hooks ---
   echo ""
-  echo "--- Hooks (expect 14) ---"
-  check_file_count "hooks" "*.js" 14 "Hook scripts"
+  echo "--- Hooks (expect 18) ---"
+  check_file_count "hooks" "*.js" 18 "Hook scripts"
   for hook in scope-directory protect-env detect-secrets lint-on-save typecheck \
              check-architecture check-function-length check-file-length \
              protect-pdfs pre-commit-gate sprint-contract-gate \
-             teammate-idle-check task-completed cost-tracker; do
+             teammate-idle-check task-completed cost-tracker \
+             token-budget prompt-injection-detect network-egress pii-scan; do
     check_file "hooks/$hook.js"
   done
 
@@ -201,7 +204,7 @@ else
   check_file_count ".claude/agents" "*.md" 10 "Agent definitions"
   for agent in brd-creator architect spec-writer generator evaluator \
                ui-standards-reviewer code-reviewer security-reviewer \
-               test-engineer ui-designer; do
+               test-engineer ui-designer compliance-reviewer; do
     check_file ".claude/agents/$agent.md"
   done
 
@@ -209,26 +212,29 @@ else
   echo ""
   echo "--- Skills (expect >= 23 directories) ---"
   skill_count=$(find .claude/skills -name "SKILL.md" 2>/dev/null | wc -l | tr -d ' ')
-  if [ "$skill_count" -ge 23 ]; then
+  if [ "$skill_count" -ge 36 ]; then
     pass "Skill definitions: $skill_count (>= 23)"
   else
-    fail "Skill definitions: $skill_count (expected >= 23)"
+    fail "Skill definitions: $skill_count (expected >= 36)"
   fi
 
   for skill in auto brd spec design implement evaluate build review test \
                deploy fix-issue refactor improve lint-drift cost code-gen \
-               spec-writing architecture ui-mockup testing evaluation stack-learnings architect; do
+               spec-writing architecture ui-mockup testing evaluation stack-learnings architect \
+               observe comply rag workflow resilience model-card context-budget tenant \
+               resilience-patterns rag-patterns agentic-ux compliance context-engineering; do
     check_file ".claude/skills/$skill/SKILL.md"
   done
 
   # --- 4. Hooks ---
   echo ""
-  echo "--- Hooks (expect 14) ---"
-  check_file_count ".claude/hooks" "*.js" 14 "Hook scripts"
+  echo "--- Hooks (expect 18) ---"
+  check_file_count ".claude/hooks" "*.js" 18 "Hook scripts"
   for hook in scope-directory protect-env detect-secrets lint-on-save typecheck \
              check-architecture check-function-length check-file-length \
              protect-pdfs pre-commit-gate sprint-contract-gate \
-             teammate-idle-check task-completed cost-tracker; do
+             teammate-idle-check task-completed cost-tracker \
+             token-budget prompt-injection-detect network-egress pii-scan; do
     check_file ".claude/hooks/$hook.js"
   done
 
