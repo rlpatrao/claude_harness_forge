@@ -38,16 +38,21 @@ Read in order:
 
 Summarize relevant learnings to the human before starting questions.
 
-### Step 2 — Stack Interrogation (6 rounds)
+### Step 2 — Stack Interrogation (up to 11 rounds)
 
-Conduct one round at a time. Wait for human response before proceeding.
+Conduct one round at a time. Wait for human response before proceeding. Rounds 7-9 are **conditional** — only activate if the BRD describes the relevant requirements (agentic system, ML, user data).
 
 **Round 1 — Backend:** Present 2-3 options informed by BRD requirements. Challenge mismatches.
 **Round 2 — Database:** Analyze data patterns from BRD. Challenge schema-stack mismatches.
 **Round 3 — Frontend:** Framework, styling, state management.
-**Round 4 — AI/LLM Model Selection:** Which models power the forge agents? Options: cloud-only (Claude), hybrid (Claude for reasoning + local for code gen), or local-only. Supports Qwen3-Coder-480B, DeepSeek-Coder-V3, or custom. Records routing config in `project-manifest.json` under `execution.model_routing`.
+**Round 4 — AI/LLM Model Selection:** Which models power the forge agents? Cloud-only, hybrid, or local-only routing.
 **Round 5 — Deployment:** Dev environment, target deployment, CI/CD, external services.
-**Round 6 — Verify & Challenge:** Summarize all decisions including model routing. List specific concerns based on BRD gaps.
+**Round 6 — Verification mode:** Docker/local/stub verification config.
+**Round 7 — Agentic Architecture** *(if BRD describes agents):* Agent count, protocols (MCP/A2A), communication pattern, framework, human oversight model.
+**Round 8 — AI/ML Pipeline** *(if BRD involves ML):* Models, training/inference, batch/real-time, RAG components, vector DB, monitoring.
+**Round 9 — Governance & Compliance** *(if BRD involves user data or AI decisions):* Regulations (GDPR/HIPAA/SOC2/AI Act), PII handling, fairness requirements, audit trail.
+**Round 10 — Context & Cost Budget:** Build budget, token strategy, prompt caching.
+**Round 11 — Verify & Challenge:** Summarize ALL decisions (including AI/compliance). List concerns.
 
 See `agents/architect.md` for detailed question templates and challenge examples.
 

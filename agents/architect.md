@@ -91,9 +91,124 @@ Record the model routing config in `project-manifest.json` under `execution.mode
 3. CI/CD requirements?
 4. External services/APIs to integrate? (Cross-reference with BRD)
 
-### Round 6 — Verification & Challenge
+### Round 7 — Agentic Architecture (conditional — if BRD describes an agentic solution)
 
-Present the full stack summary. Then list **concerns** — things that might not work based on the BRD requirements:
+Skip this round if the BRD describes a traditional web app with no autonomous agents. Activate if the BRD mentions: autonomous agents, copilots, chatbots with tool use, multi-agent coordination, or AI-driven workflows.
+
+1. "Is the application itself an agentic system? How many agents will it have?"
+   - A) No agents — traditional app (skip remaining questions)
+   - B) Single agent (copilot, chatbot with tools)
+   - C) Multi-agent system (coordinated specialists)
+
+2. "What protocols should agents use?"
+   - A) MCP (Model Context Protocol) — for tool access (recommended)
+   - B) A2A (Agent-to-Agent) — for agent discovery and delegation
+   - C) Both MCP + A2A
+   - D) Direct function calls (simplest, no protocol overhead)
+
+3. "What's the agent communication pattern?"
+   - A) Hub-and-spoke (orchestrator delegates to specialists)
+   - B) Hierarchical (manager → team leads → workers)
+   - C) Peer-to-peer mesh (agents negotiate directly)
+
+4. "What agent framework?"
+   - A) Claude Agent SDK (deepest MCP integration)
+   - B) LangGraph (graph-based orchestration, checkpointing)
+   - C) CrewAI (role-based teams)
+   - D) Custom (build from scratch)
+
+5. "What's the human oversight model?"
+   - A) Fully autonomous (agent acts, human reviews after)
+   - B) Human-in-the-loop (agent proposes, human approves)
+   - C) Human-on-the-loop (agent acts, human can intervene)
+
+**Challenge examples:**
+- "You chose multi-agent with peer-to-peer mesh but the BRD describes a simple 3-step workflow. Hub-and-spoke with one orchestrator is simpler and more testable."
+- "You chose A2A protocol but you only have 2 agents in the same codebase. Direct function calls are simpler — A2A is for cross-service agent discovery."
+- "You chose fully autonomous but the BRD involves financial decisions. Human-in-the-loop is safer for regulated domains."
+
+Record in `project-manifest.json` under `ai_native`.
+
+### Round 8 — AI/ML Pipeline (conditional — if BRD involves ML/AI features)
+
+Skip if no ML models in the BRD. Activate if the BRD mentions: model training, inference, predictions, recommendations, classification, embeddings, RAG, or vector search.
+
+1. "What ML models does the app use?"
+   - Training from scratch vs. fine-tuning vs. pre-trained inference only
+   - Model types (classification, regression, NLP, vision, embeddings)
+
+2. "Training or inference or both?"
+   - A) Training + inference (full pipeline)
+   - B) Inference only (use pre-trained or API)
+   - C) Fine-tuning + inference
+
+3. "Batch or real-time inference?"
+   - A) Real-time (per-request, <200ms target)
+   - B) Batch (scheduled, process N records)
+   - C) Both
+
+4. "Does the app need RAG (retrieval-augmented generation)?"
+   - If yes: vector DB, embedding model, chunking strategy, reranking
+   - Read `.claude/skills/rag-patterns/SKILL.md` for options
+
+5. "Model monitoring and versioning?"
+   - A) Simple (track accuracy over time)
+   - B) Full MLOps (model registry, A/B testing, drift detection, automated retraining)
+
+**Challenge examples:**
+- "You chose real-time inference but the model has 1B parameters. Consider batch processing or model distillation for <200ms latency."
+- "You chose training from scratch but have only 500 labeled samples. Consider transfer learning or few-shot approaches."
+
+Record in `project-manifest.json` under `ai_native.ml_models`.
+
+### Round 9 — Governance & Compliance (conditional — if BRD involves user data or AI decisions)
+
+Skip for internal tools with no user data. Activate if the BRD involves: user accounts, PII, financial data, health data, AI decisions about people, or the user mentions regulatory requirements.
+
+1. "What data regulations apply?"
+   - A) GDPR (EU users)
+   - B) HIPAA (health data)
+   - C) SOC 2 (enterprise SaaS)
+   - D) AI Act (EU AI regulation)
+   - E) None / not sure (still apply PII basics)
+
+2. "Does the AI make decisions that affect people?" (e.g., fraud flagging, loan scoring, content moderation)
+   - If yes: require fairness metrics, explainability, and audit trail
+   - Read `.claude/skills/compliance/SKILL.md` for requirements
+
+3. "What PII does the app handle?"
+   - List all personal data fields from the BRD's data model
+   - Flag any that need encryption, retention limits, or deletion capability
+
+4. "Audit trail requirements?"
+   - A) Full (every data access logged — regulated industries)
+   - B) Decision-only (AI decisions + human overrides logged)
+   - C) Minimal (error and security events only)
+
+Record in `project-manifest.json` under `compliance`.
+
+### Round 10 — Context & Cost Budget
+
+Always ask this round — applies to all projects.
+
+1. "What's the budget for this build?"
+   - Auto-suggest mode based on BRD complexity: small BRD → Solo/Lean, complex → Full
+   - Show estimated cost range per mode
+
+2. "Token budget strategy?"
+   - A) Optimize for quality (larger context, more retries — more expensive)
+   - B) Optimize for cost (progressive disclosure, aggressive caching — cheaper)
+   - C) Balanced (default)
+
+3. "Prompt caching?"
+   - A) Enabled (recommended — 90% cost reduction on cached prefixes)
+   - B) Disabled (simpler, for debugging)
+
+Record in `project-manifest.json` under `execution.context_budgets`.
+
+### Round 11 — Verification & Challenge
+
+Present the full stack summary **including any AI/agentic/compliance decisions from Rounds 7-10**. Then list **concerns** — things that might not work based on the BRD requirements:
 
 ```
 Stack Summary:

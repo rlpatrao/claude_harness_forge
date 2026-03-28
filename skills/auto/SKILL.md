@@ -169,18 +169,61 @@ When `strategy` is `hybrid` or `local-only`, and the provider is `openai-compati
 
 ## SECTION 5: Ratchet Gate (Step 5)
 
-After the agent team completes, run the ratchet gate. The ratchet is monotonic: progress never regresses. Eight sub-gates, mode-dependent:
+After the agent team completes, run the ratchet gate. The ratchet is monotonic: progress never regresses. Eleven sub-gates, mode-dependent:
 
-| Gate | Full | Lean | Solo | Turbo |
-|------|------|------|------|-------|
-| 1. Unit tests (pytest, vitest) | Yes | Yes | Yes | Yes (per commit) |
-| 2. Lint + types (ruff, mypy, tsc) | Yes | Yes | Yes | Yes (per commit) |
-| 3. Coverage >= baseline | Yes | Yes | Yes | Yes (per commit) |
-| 4. Architecture (files exist, schema validation) | Yes | Yes | No | Once at end |
-| 5. Evaluator (API + Playwright + Browser Console) | Yes | Yes | No | Once at end |
-| 6. Code reviewer (static quality + story traceability) | Yes | Yes | No | Once at end |
-| 7. UI standards review (SaaS/enterprise conformance) | Yes | No | No | Once at end |
-| 8. Security reviewer (OWASP scan) | Yes | No | No | Once at end |
+| Gate | Full | Lean | Solo | Turbo | Condition |
+|------|------|------|------|-------|-----------|
+| 1. Unit tests (pytest, vitest) | Yes | Yes | Yes | Per commit | Always |
+| 2. Lint + types (ruff, mypy, tsc) | Yes | Yes | Yes | Per commit | Always |
+| 3. Coverage >= baseline | Yes | Yes | Yes | Per commit | Always |
+| 4. Architecture (files exist, schema validation) | Yes | Yes | No | End only | Always |
+| 5. Evaluator (API + Playwright + Browser Console) | Yes | Yes | No | End only | Always |
+| 6. Code reviewer (static quality + story traceability) | Yes | Yes | No | End only | Always |
+| 7. UI standards review (SaaS/enterprise conformance) | Yes | No | No | End only | UI projects |
+| 8. Security reviewer (OWASP web + agentic top 10) | Yes | No | No | End only | Always |
+| 9. Mutation testing (mutmut/Stryker) | Yes | Yes | No | End only | Always |
+| 10. Compliance reviewer (bias, fairness, PII) | Yes | No | No | End only | ML projects only |
+| 11. Spec gaming detection | Yes | Yes | Yes | Per commit | Always |
+
+### Gate 9 — Mutation Testing
+
+Run after Gate 3 (coverage). Uses mutmut (Python) or Stryker (TypeScript) to inject small bugs and verify tests catch them.
+
+```bash
+# Python
+mutmut run --paths-to-mutate=src/ --tests-dir=tests/ --runner="pytest -x -q"
+# TypeScript
+npx stryker run
+```
+
+Ratchet the mutation score: if previous score was 72%, new code must maintain or exceed 72%. Read baseline from `.claude/state/mutation-baseline.txt` (created on first run if missing).
+
+If mutation score drops: FAIL. The generator must add tests that catch the surviving mutants.
+
+### Gate 10 — Compliance Review (ML projects only)
+
+Skip if `project-manifest.json` → `ai_native.type` is not `ml` or `agentic` and `compliance.model_card_required` is false.
+
+Spawn the `compliance-reviewer` agent. It checks:
+- Fairness metrics implemented and within thresholds
+- PII handling follows documented policy
+- Model card exists and is complete
+- Audit trail covers AI decisions
+- Data retention policy implemented
+
+If any BLOCK findings: FAIL. Generator must fix before proceeding.
+
+### Gate 11 — Specification Gaming Detection
+
+**Run in ALL modes** — this is the anti-gaming gate. Check after every commit:
+
+1. **Test count monotonicity:** Count tests before and after. If count decreased, FAIL. Agents must not delete tests to make suites pass.
+2. **No tautological assertions:** Scan test files for `expect(true).toBe(true)`, `assert True`, `expect(x).toBe(x)` patterns. FAIL if found.
+3. **Mock target validation:** For every mock/stub, verify the mocked interface matches the real implementation's signature. FAIL on phantom mocks.
+4. **Coverage source validation:** If coverage increased, verify it came from new production code being tested, not from adding trivial code or inflating test counts.
+5. **No test weakening:** If a test assertion changed from specific to generic (e.g., `toBe(42)` → `toBeTruthy()`), WARN.
+
+This gate exists because research shows frontier models actively game specifications (METR 2025, Anthropic reward hacking research). It cannot be disabled.
 
 ### Turbo Mode (for highly capable models)
 

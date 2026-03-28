@@ -23,7 +23,9 @@
           { "type": "command", "command": "node .claude/hooks/typecheck.js" },
           { "type": "command", "command": "node .claude/hooks/check-architecture.js" },
           { "type": "command", "command": "node .claude/hooks/check-function-length.js" },
-          { "type": "command", "command": "node .claude/hooks/check-file-length.js" }
+          { "type": "command", "command": "node .claude/hooks/check-file-length.js" },
+          { "type": "command", "command": "node .claude/hooks/prompt-injection-detect.js" },
+          { "type": "command", "command": "node .claude/hooks/pii-scan.js" }
         ]
       },
       {
@@ -37,13 +39,15 @@
         "hooks": [
           { "type": "command", "command": "node .claude/hooks/pre-commit-gate.js" },
           { "type": "command", "command": "node .claude/hooks/sprint-contract-gate.js" },
-          { "type": "command", "command": "node .claude/hooks/teammate-idle-check.js" }
+          { "type": "command", "command": "node .claude/hooks/teammate-idle-check.js" },
+          { "type": "command", "command": "node .claude/hooks/network-egress.js" }
         ]
       },
       {
         "matcher": "Agent",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/cost-tracker.js" }
+          { "type": "command", "command": "node .claude/hooks/cost-tracker.js" },
+          { "type": "command", "command": "node .claude/hooks/token-budget.js" }
         ]
       }
     ],

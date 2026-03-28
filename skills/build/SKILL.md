@@ -1,6 +1,6 @@
 ---
 name: build
-description: Full 9-phase SDLC pipeline. BRD → Architect → Spec → Design → Initialize → Auto → Post-build learnings. Human gates on phases 1-4.
+description: Full 12-phase SDLC pipeline. BRD → Architect (up to 11 rounds) → Spec → Design → Observe → Comply → Initialize → Auto (11 gates) → Post-build. Human gates on phases 1-4. Conditional phases 6-7 for AI-native projects.
 argument-hint: "[path-to-BRD] [--mode full|lean|solo|turbo]"
 ---
 
@@ -59,13 +59,15 @@ Skip this phase entirely for API-only projects (project_type = "api-only" in cal
 Create state files before entering the autonomous loop:
 
 1. `.claude/state/coverage-baseline.txt` — Write `0`
-2. `.claude/state/iteration-log.md` — Write header
-3. `.claude/state/cost-log.json` — Write `[]`
-4. `claude-progress.txt` — Write session 0 block:
+2. `.claude/state/mutation-baseline.txt` — Write `0`
+3. `.claude/state/iteration-log.md` — Write header
+4. `.claude/state/cost-log.json` — Write `[]`
+5. `claude-progress.txt` — Write session 0 block:
    ```
    === Session 0 ===
    date: {ISO 8601}
    mode: {mode}
+   model_routing: {from manifest}
    groups_completed: []
    groups_remaining: [all group IDs from dependency-graph.md]
    current_group: none
@@ -75,17 +77,31 @@ Create state files before entering the autonomous loop:
    next_action: Begin autonomous build with /auto
    ```
 
-### Phases 6-9 — Autonomous Execution
+### Phase 6 — Observability Scaffolding [AUTO, conditional]
 
-Run `/auto --mode {mode}` to enter the autonomous build loop. The `/auto` skill handles: sprint contracts, agent teams, 8-gate ratchet (including browser console capture and UI standards review), self-healing, and session chaining.
+Read `project-manifest.json` → `observability.otel_enabled`. If true, run `/observe` to scaffold OpenTelemetry instrumentation, structured logging, and monitoring dashboards.
 
-### Phase 10 — Post-Build
+Skip if `otel_enabled` is false or not set. Most projects can add this later.
+
+### Phase 7 — Compliance Setup [AUTO, conditional]
+
+Read `project-manifest.json` → `compliance.regulations` and `ai_native.type`. If regulations are specified or the project is ML/agentic, run `/comply` in setup mode to generate compliance requirements document and model card template.
+
+Skip for simple CRUD apps with no user data.
+
+### Phases 8-11 — Autonomous Execution
+
+Run `/auto --mode {mode}` to enter the autonomous build loop. The `/auto` skill handles: sprint contracts, agent teams, **11-gate ratchet** (including browser console capture, UI standards review, mutation testing, compliance review, and spec gaming detection), self-healing, and session chaining.
+
+### Phase 12 — Post-Build
 
 After `/auto` completes (all groups done or stopping criteria met):
 
 1. Run `/architect --post-build` to fill in learnings (verdict, patterns, recommendations)
-2. Generate `README.md` for the built application (describes the app, not the harness)
-3. Commit: `git add README.md && git commit -m "docs: add README"`
+2. Run `/comply` final review (if ML/agentic project)
+3. Run `/model-card` (if ML project)
+4. Generate `README.md` for the built application
+5. Commit: `git add README.md && git commit -m "docs: add README"`
 
 ---
 
@@ -93,10 +109,12 @@ After `/auto` completes (all groups done or stopping criteria met):
 
 | Mode | Gates | Cost Estimate | When to Use |
 |------|-------|---------------|-------------|
-| `full` | All 8 gates per group | $100-300 | Production apps, complex requirements |
-| `lean` | Gates 1-6 (skip UI standards + security) | $30-80 | Backend-heavy, internal tools |
-| `solo` | Gates 1-3 only (no evaluator) | $5-15 | Bug fixes, small features, prototyping |
-| `turbo` | Gates 1-3 per commit, 4-8 once at end | $30-50 | Well-specified + capable model |
+| `full` | All 11 gates per group | $100-300 | Production apps, complex requirements |
+| `lean` | Gates 1-6, 9, 11 (skip UI, security, compliance) | $30-80 | Backend-heavy, internal tools |
+| `solo` | Gates 1-3, 11 only | $5-15 | Bug fixes, small features, prototyping |
+| `turbo` | Gates 1-3, 11 per commit; 4-10 once at end | $30-50 | Well-specified + capable model |
+
+**Note:** Gate 11 (spec gaming detection) runs in ALL modes — it cannot be disabled. This prevents agents from gaming the verification system regardless of mode.
 
 ---
 
