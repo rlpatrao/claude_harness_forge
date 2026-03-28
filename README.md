@@ -204,42 +204,86 @@ The architect's Round 4 configures which models power the build agents:
 
 Supported local models: Qwen3-Coder-480B-A35B-Instruct, DeepSeek-Coder-V3, CodeLlama-70B, or any model exposing an OpenAI-compatible API (vLLM, Ollama).
 
-## Dogfooding: Self-Tested Pipeline
+## Dogfooding: How This Harness Tests and Heals Itself
 
-This harness was validated by running its own pipeline against a real test project: **a fraud detection SaaS** that scores credit card transactions for fraud using ML models and public datasets.
+A scaffold that tells others how to build software should be able to survive its own process. Claude Harness Forge uses a **built-in dogfooding mechanism** — a test project lives inside the repo (gitignored from distribution) that exercises the full pipeline against the harness's own skills, agents, and hooks. Every issue found is fixed in the harness immediately, then the pipeline is re-run to verify the fix. This is the same self-healing loop the harness uses for application code, applied to its own infrastructure.
+
+### The Dogfooding Process
+
+```
+1. Create a test project inside test-projects/ (gitignored)
+2. Run /scaffold against it using the forge as --plugin-dir
+3. Run validate-scaffold.sh — catch structural issues immediately
+4. Execute each pipeline phase: /brd -> /architect -> /spec -> /design -> /auto
+5. At each phase, document issues in forge-issues.md
+6. Fix each issue in the forge source (agents/, skills/, hooks/)
+7. Re-run the validation scripts to confirm the fix
+8. Commit the fix, continue the pipeline
+9. Repeat until the full pipeline completes without forge-level failures
+```
+
+This process is intentionally adversarial — the test project is a real application (not a toy), configured with non-default settings (local-only LLM routing instead of the default cloud-only) to exercise edge paths the happy path wouldn't touch.
 
 ### Test Project: Fraud Detection SaaS
 
-**Prompt:** _"Detecting fraud from set of credit card transactions; use public HF or Kaggle data"_
+**Starting prompt:** _"Detecting fraud from set of credit card transactions; use public HF or Kaggle data"_
 
-The pipeline was run end-to-end with local-only model routing (Qwen3-Coder-480B-A35B-Instruct):
+**Configuration:** Local-only model routing (Qwen3-Coder-480B-A35B-Instruct via vLLM) — deliberately chosen to stress-test the model routing path that cloud-only wouldn't exercise.
 
-| Phase | Result |
-|-------|--------|
-| **Scaffold** | 84 validations passed, 0 failed |
-| **BRD** | 864-line app spec + 8 feature specs (2,956 lines) covering ingestion, ML scoring, dashboard, alerts, user management, model monitoring, audit logging |
-| **Architect** | 6 design artifacts: architecture (Mermaid diagrams), API contracts (35+ endpoints), data models (Pydantic + TypeScript + SQL DDL for 8 tables), component map, folder structure, deployment config |
-| **Spec** | 33 stories across 8 epics, organized into 6 parallel dependency groups (A-F) |
-| **Design** | 6 interactive HTML mockups (dashboard, transactions, detail with SHAP charts, upload, alerts, login) |
-| **Auto Group A** | 62 production files generated (backend types, config, SQLAlchemy models, Alembic migrations, frontend TypeScript types, Vite/Tailwind config). 0 architecture violations. |
+The pipeline was run phase by phase, fixing the harness at each step:
 
-### Self-Improvement: 9 Issues Found and Fixed
+| Phase | What It Produced | Harness Issues Found |
+|-------|------------------|---------------------|
+| **Scaffold** | 84 validations passed. 10 agents, 23 skills, 14 hooks, 9 templates copied to `.claude/` | #1: Missing `design.md` copy. #2: Validator expects `init.sh` before architect. #3: No `mkdir -p .claude/` |
+| **BRD** | 864-line app spec + 8 feature specs (2,956 lines total). Covers ingestion, ML scoring, dashboard, alerts, user management, model monitoring, audit logging | None — BRD templates worked cleanly |
+| **Architect** | 6 design artifacts: architecture (Mermaid), API contracts (35+ endpoints), data models (Pydantic + TS + DDL for 8 tables), component map, folder structure, deployment config | #4: 14 skill files used unsupported frontmatter. #5: No LLM model selection round. #6: Progress file missing model routing |
+| **Spec** | 33 stories across 8 epics, organized into 6 parallel dependency groups (A-F). Dependency graph with critical path analysis | #9: Spec didn't generate `features.json` — auto loop would read an empty file |
+| **Design** | 6 interactive HTML mockups (152KB): dashboard with charts, transaction list with filters, SHAP waterfall detail view, CSV upload with progress, alert management, login | None — mockup templates worked cleanly |
+| **Auto Group A** | 62 production files: backend types/config/SQLAlchemy models/Alembic migrations + frontend TypeScript types/Vite config. 0 architecture violations, all gates passed | #7: `model_routing` config was dead — auto/implement/cost-tracker never read it. #8: Re-scaffold would overwrite state files |
 
-Running the pipeline against a real project exposed issues invisible in code review:
+### The 9 Issues: What Broke and Why
 
-| # | Issue | Category | Fix |
-|---|-------|----------|-----|
-| 1 | Scaffold doesn't copy `design.md` to project root | BUG | Added to Step 4 |
-| 2 | Validator expects `init.sh` before architect creates it | BUG | Added placeholder in Step 8 |
-| 3 | Scaffold assumes `.claude/` directory exists | BUG | Added `mkdir -p` |
-| 4 | 14 skill files use unsupported frontmatter attributes | BUG | Removed `context:` and `agent:` |
-| 5 | No AI/LLM model selection in architect flow | ENHANCEMENT | Added Round 4 (6 rounds total) |
-| 6 | `claude-progress.txt` missing model routing field | MINOR | Added to template |
-| 7 | **`model_routing` config was dead — nothing read it** | BUG | Wired auto, implement, cost-tracker to read manifest |
-| 8 | Re-scaffold overwrites user state files | BUG | Conditional copy (preserve existing) |
-| 9 | **Spec phase doesn't generate `features.json`** | BUG | Added Step 4 to spec skill |
+Each issue was found during dogfooding, fixed in the harness source, and verified by re-running the relevant validation:
 
-**Key discovery:** The biggest class of bug was **config-to-execution gaps** — manifest fields existed and were documented, but nothing in the execution pipeline actually read them. Issue #7 (model routing was dead config) and Issue #9 (features.json never generated) would have caused silent failures in production. These are invisible in structural code review but immediately obvious when running the pipeline.
+| # | Issue | Root Cause | How Dogfooding Found It | Fix |
+|---|-------|------------|-------------------------|-----|
+| 1 | Scaffold doesn't copy `design.md` | Scaffold Step 4 listed `architecture.md` and `program.md` but forgot `design.md` | `validate-scaffold.sh` reported `FAIL: design.md missing` on first run | Added `cp $PLUGIN_SOURCE/design.md design.md` to Step 4 |
+| 2 | Validator expects `init.sh` before architect creates it | Validator was written for post-architect state, but scaffold runs before architect | Scaffold validation failed immediately on a fresh project | Added placeholder `init.sh` in Step 8; architect replaces it later |
+| 3 | Scaffold assumes `.claude/` exists | Step 4 runs `cp -r` into `.claude/agents/` without creating the parent | Would fail on a truly empty target directory | Added `mkdir -p .claude` before copy operations |
+| 4 | 14 skill files use unsupported frontmatter | Skills had `context: fork` and `agent: generator` — valid YAML but not recognized by Claude Code's skill parser | IDE diagnostics showed warnings during architect skill edit | Removed unsupported attributes from all 14 SKILL.md files |
+| 5 | No LLM model selection in architect flow | Original design had 5 rounds; local/hybrid model routing was added later but never wired into the interrogation | Configuring the test project as "local-only" required manually editing the manifest — no interactive path existed | Added Round 4 (AI/LLM Model Selection) with cloud/hybrid/local-only strategies and challenge patterns |
+| 6 | `claude-progress.txt` missing model routing | Progress template was written before model routing existed | Session block didn't record which model ran it — impossible to audit | Added `model_routing:` field to the progress template |
+| 7 | **`model_routing` was dead config** | `project-manifest.json` had `execution.model_routing` with strategy, base_url, model name — but `auto/SKILL.md`, `implement/SKILL.md`, and `hooks/cost-tracker.js` never read it | The local-only test project had the config set correctly, but when simulating the auto loop, nothing would have routed agents to the local endpoint | Wired all three to read manifest: auto verifies local endpoint before first iteration, implement checks before spawning teams, cost-tracker logs $0 for local agents |
+| 8 | Re-scaffold overwrites user state | `cp -r state/` unconditionally copies initial state templates, destroying `learned-rules.md`, `failures.md`, `iteration-log.md` with accumulated project data | Noticed during second scaffold run that state files would be reset | Changed to conditional copy: only copy `state/` if the directory doesn't already exist |
+| 9 | **Spec doesn't generate `features.json`** | `build/SKILL.md` says "/spec outputs features.json" but `spec/SKILL.md` had no step for it. The file was initialized as `[]` by scaffold and never populated | After spec phase, `features.json` was still empty. The auto loop reads this file to track pass/fail — it would see 0 features and have nothing to work on | Added Step 4 to spec skill: generate one entry per story with the features-template schema |
+
+### What This Revealed
+
+**Config-to-execution gaps** were the dominant bug class. The harness documentation said the right things, the manifest had the right fields, the skills referenced them — but the actual execution code never read the config. Issues #7 and #9 would have caused **silent failures** in production: the model routing would default to cloud even when configured for local, and the auto loop would see an empty feature list and declare "nothing to do."
+
+These bugs are **invisible to code review** (the code is syntactically valid, the tests would pass, the architecture is clean) but **immediately obvious when you run the pipeline against a real project**. This is why dogfooding is not optional — it's the evaluator for the harness itself.
+
+### Running the Dogfood Test
+
+The test project lives in `test-projects/` (gitignored — not shipped with the harness):
+
+```bash
+# From the forge repo root:
+ls test-projects/fraud-detection-local/
+
+# Re-run validation at any time:
+bash scripts/validate-scaffold.sh    # 102 passed, 0 failed
+bash scripts/validate-evals.sh       # 10/10 BLOCK violations detected
+bash scripts/validate-gan-loop.sh    # Skipped (needs scaffolded project)
+```
+
+To run a fresh dogfood cycle on a new test project:
+```bash
+mkdir test-projects/my-test && cd test-projects/my-test
+# Follow scaffold steps from commands/scaffold.md
+# Run each phase, document issues in forge-issues.md
+# Fix issues in the forge source, re-validate
+```
 
 ### Plugin Ecosystem
 
