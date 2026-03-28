@@ -99,8 +99,17 @@ The merged system uses the **Harness's adversarial verification as the structura
 
 - **Generator-Evaluator separation** — the agent that writes code cannot evaluate it. Structural elimination of self-evaluation bias.
 - **Browser console error capture** — Playwright captures `console.error`, unhandled rejections, and failed network requests during UI verification. Frontend bugs feed directly into self-healing.
-- **Interactive architect** — conducts a 6-round stack interrogation informed by your BRD, challenges weak decisions, offers local LLM options, and persists learnings across projects.
-- **8-gate ratchet** — monotonic progress. Coverage never drops, tests never break, architecture never drifts. Quality only moves forward.
+- **Interactive architect** — conducts up to 11 rounds of stack interrogation informed by your BRD, challenges weak decisions, offers local LLM options, detects AI-native project types, and persists learnings across projects.
+- **11-gate ratchet** — monotonic progress. Coverage never drops, tests never break, architecture never drifts. Gates 9-11 add mutation testing, compliance review, and spec gaming detection. Quality only moves forward.
+- **OWASP Agentic Top 10** — security reviewer checks both traditional web vulnerabilities (OWASP Web Top 10) and agentic-specific threats (ASI01-ASI10): excessive agency, prompt injection, insecure tool use, insufficient access control, improper output handling, and more.
+- **Compliance reviewer** — dedicated agent for bias/fairness audits, PII detection, data privacy checks, regulatory compliance, and model card generation. Activated automatically for ML projects.
+- **Mutation testing** — gate 9 runs mutmut (Python) or Stryker (TypeScript) to verify tests actually catch regressions, not just cover lines.
+- **Spec gaming detection** — gate 11 detects reward hacking: tests that assert on trivial values, coverage inflated by dead code, mocked-out verification, hardcoded expected outputs. Runs in all modes and cannot be disabled.
+- **AI-native detection** — the architect analyzes the BRD and classifies the project as CRUD, ML, agentic, or RAG. Relevant pillars, architect rounds, and ratchet gates activate conditionally.
+- **RAG, workflow, and resilience scaffolding** — templates for retrieval-augmented generation pipelines, Temporal/Inngest workflow orchestration, and circuit breaker/retry/dead-letter patterns.
+- **Agentic UX patterns** — UI designer generates streaming status indicators, confidence displays, human-in-the-loop approval flows, and progressive disclosure for AI-powered interfaces.
+- **Context engineering** — `/context-budget` analyzes token usage across agents and recommends compression strategies. Manifest tracks context budgets per agent.
+- **Multi-tenancy** — `/tenant` scaffolds tenant isolation (schema-per-tenant, row-level security, or database-per-tenant) with routing middleware and tenant-aware test fixtures.
 - **Sprint contracts** — machine-readable JSON defining exactly what "done" means, negotiated between generator and evaluator before any code is written.
 - **4 execution modes** — Full ($100-300), Lean ($30-80), Solo ($5-15), Turbo ($30-50). Right-size cost to project complexity.
 - **Local LLM routing** — run all agents on Qwen3-Coder-480B, DeepSeek-Coder-V3, or any OpenAI-compatible local model. Zero API cost.
@@ -142,13 +151,13 @@ Phase 10: Post-build  -> Learnings + README generation
 
 `/build` runs all phases. Phases 1-4 pause for human approval. Phases 5+ run autonomously.
 
-## Commands (16)
+## Commands (24)
 
 | Command | Purpose |
 |---------|---------|
 | `/scaffold` | Initialize project with harness |
 | `/brd` | Socratic 5-dimension interview -> BRD |
-| `/architect` | 6-round stack interrogation + design artifacts |
+| `/architect` | Up to 11-round stack interrogation + design artifacts |
 | `/spec` | BRD -> stories + dependency graph + features.json |
 | `/design` | Architecture + UI mockups |
 | `/build` | Full 9-phase pipeline |
@@ -163,34 +172,46 @@ Phase 10: Post-build  -> Learnings + README generation
 | `/improve` | Feature enhancement |
 | `/lint-drift` | Entropy scanner for pattern drift |
 | `/cost` | Estimated API cost summary |
+| `/observe` | OpenTelemetry instrumentation + dashboards |
+| `/comply` | Compliance review (bias, fairness, PII, model cards) |
+| `/rag` | RAG pipeline scaffolding (chunking, embedding, retrieval) |
+| `/workflow` | Workflow orchestration scaffolding (Temporal/Inngest) |
+| `/resilience` | Circuit breaker, retry, and dead-letter patterns |
+| `/model-card` | Generate model card from training artifacts |
+| `/context-budget` | Analyze token usage and recommend compression |
+| `/tenant` | Multi-tenancy scaffolding (schema/row/DB isolation) |
 
-## Agents (10)
+## Agents (11)
 
 | Agent | Role | Model |
 |-------|------|-------|
 | brd-creator | Socratic BRD interview with 5-dimension exploration | Sonnet |
-| architect | Interactive stack decisions, LLM selection, design artifacts, learnings | Opus |
+| architect | Interactive stack decisions (up to 11 rounds), AI-native detection, design artifacts, learnings | Opus |
 | spec-writer | BRD -> epics, stories, dependency graph | Sonnet |
 | generator | Code + tests, agent teams, sprint contract negotiation | Sonnet |
-| evaluator | 3-layer verification + browser console capture | Opus |
+| evaluator | 3-layer verification + browser console + Playwright MCP | Opus |
 | ui-standards-reviewer | SaaS/enterprise conformance checklist (single-pass) | Sonnet |
 | code-reviewer | Quality principles, architecture, story traceability | Sonnet |
-| security-reviewer | OWASP top 10, injection, auth, secrets | Sonnet |
-| test-engineer | Test plans, cases, data, Playwright E2E | Sonnet |
-| ui-designer | React+Tailwind HTML mockups | Sonnet |
+| security-reviewer | OWASP Web Top 10 + OWASP Agentic Top 10 (ASI01-ASI10) | Sonnet |
+| test-engineer | Test plans, cases, data, Playwright E2E, mutation testing | Sonnet |
+| ui-designer | React+Tailwind HTML mockups, agentic UX patterns | Sonnet |
+| compliance-reviewer | Bias/fairness, PII, data privacy, regulatory compliance, model cards | Sonnet |
 
-## 8-Gate Ratchet
+## 11-Gate Ratchet
 
-| Gate | Full | Lean | Solo | Turbo |
-|------|------|------|------|-------|
-| 1. Unit tests | Yes | Yes | Yes | Per commit |
-| 2. Lint + types | Yes | Yes | Yes | Per commit |
-| 3. Coverage >= baseline | Yes | Yes | Yes | Per commit |
-| 4. Architecture checks | Yes | Yes | -- | End only |
-| 5. Evaluator (API + Playwright + Console) | Yes | Yes | -- | End only |
-| 6. Code reviewer | Yes | Yes | -- | End only |
-| 7. UI standards review | Yes | -- | -- | End only |
-| 8. Security reviewer | Yes | -- | -- | End only |
+| Gate | Full | Lean | Solo | Turbo | Condition |
+|------|------|------|------|-------|-----------|
+| 1. Unit tests | Yes | Yes | Yes | Per commit | Always |
+| 2. Lint + types | Yes | Yes | Yes | Per commit | Always |
+| 3. Coverage >= baseline | Yes | Yes | Yes | Per commit | Always |
+| 4. Architecture checks | Yes | Yes | -- | End only | Always |
+| 5. Evaluator (API + Playwright + Console) | Yes | Yes | -- | End only | Always |
+| 6. Code reviewer | Yes | Yes | -- | End only | Always |
+| 7. UI standards review | Yes | -- | -- | End only | UI projects |
+| 8. Security (Web + Agentic OWASP) | Yes | -- | -- | End only | Always |
+| 9. Mutation testing | Yes | Yes | -- | End only | Always |
+| 10. Compliance (bias, fairness, PII) | Yes | -- | -- | End only | ML projects |
+| 11. Spec gaming detection | Yes | Yes | Yes | Per commit | **Always (cannot disable)** |
 
 ## LLM Model Routing
 
@@ -203,6 +224,43 @@ The architect's Round 4 configures which models power the build agents:
 | **Local-only** | Local model | Local model | $0 API (GPU compute only) |
 
 Supported local models: Qwen3-Coder-480B-A35B-Instruct, DeepSeek-Coder-V3, CodeLlama-70B, or any model exposing an OpenAI-compatible API (vLLM, Ollama).
+
+## 15 Pillars for AI-Native Development
+
+| # | Pillar | What It Covers | Key Components |
+|---|--------|---------------|----------------|
+| 1 | LLM Agnosticism | Model-independent architecture | Cloud/hybrid/local routing, provider abstraction, fallback chains |
+| 2 | Protocol Compliance | Standard agent communication | MCP tool integration, A2A protocol support, schema validation |
+| 3 | Agentic Security | Threat modeling for AI systems | OWASP Agentic Top 10 (ASI01-ASI10), prompt injection defense, tool permission scoping |
+| 4 | Observability | Monitoring and tracing for AI workloads | OpenTelemetry instrumentation, token usage tracking, latency histograms, `/observe` command |
+| 5 | Evaluation | Continuous quality verification | 11-gate ratchet, mutation testing, spec gaming detection, behavioral verification |
+| 6 | Architect AI-Native Rounds | Project-type-aware design decisions | Rounds 7-10: agentic architecture, ML pipeline, governance/compliance, cost budgets |
+| 7 | Cross-Project Learning | Knowledge persistence across builds | Stack decisions, failure patterns, integration notes, learned rules |
+| 8 | CI/CD | Deployment and delivery pipelines | Docker Compose, init.sh, GitHub Actions templates, environment scaffolding |
+| 9 | Context Engineering | Token budget management | `/context-budget` analysis, per-agent token limits, compression strategies |
+| 10 | Resilience | Fault tolerance for distributed AI systems | Circuit breakers, retry with backoff, dead-letter queues, `/resilience` scaffolding |
+| 11 | RAG Patterns | Retrieval-augmented generation pipelines | Chunking strategies, embedding selection, retrieval evaluation, `/rag` scaffolding |
+| 12 | Agentic UX | AI-native user interface patterns | Streaming indicators, confidence displays, human-in-the-loop flows, progressive disclosure |
+| 13 | Workflow Orchestration | Long-running AI task management | Temporal/Inngest scaffolding, saga patterns, compensating transactions, `/workflow` command |
+| 14 | Ethics and Bias | Responsible AI development | Bias/fairness audits, PII detection, model cards, compliance reviewer agent, `/comply` command |
+| 15 | Multi-Tenancy | Tenant isolation for AI SaaS | Schema-per-tenant, row-level security, DB-per-tenant, tenant-aware routing, `/tenant` command |
+
+## AI-Native Detection
+
+The architect analyzes the BRD during Round 1 and classifies the project into one or more types. This classification determines which pillars, architect rounds, and ratchet gates activate.
+
+| Project Type | Detection Signals in BRD | Activated Pillars | Architect Rounds | Conditional Gates |
+|-------------|-------------------------|-------------------|-----------------|-------------------|
+| **CRUD** | REST/GraphQL APIs, user management, dashboards, forms | 1-2, 5, 7-8 | Rounds 1-6 (standard) | Gates 1-8 only |
+| **ML** | Training, inference, models, predictions, datasets, scoring | 1-2, 4-5, 7-8, 9, 11, 14 | Rounds 1-6 + Round 8 (ML pipeline) + Round 9 (governance) | Gates 1-10 (adds compliance) |
+| **Agentic** | Agents, tools, MCP, function calling, orchestration, autonomous | 1-5, 7-8, 9-10, 12-13 | Rounds 1-6 + Round 7 (agentic arch) + Round 10 (cost budget) | Gates 1-9, 11 (adds agentic security) |
+| **RAG** | Retrieval, embeddings, vector store, knowledge base, chunking | 1-2, 4-5, 7-8, 9, 11 | Rounds 1-6 + Round 7 (agentic arch) | Gates 1-9, 11 |
+
+**Notes:**
+- Projects can match multiple types (e.g., an agentic RAG system activates both agentic and RAG pillars).
+- Gate 11 (spec gaming detection) runs for ALL project types in ALL modes and cannot be disabled.
+- CRUD projects skip architect rounds 7-10 entirely, keeping the interrogation at 6 rounds.
+- The architect presents its classification to the user for confirmation before proceeding.
 
 ## Dogfooding: How This Harness Tests and Heals Itself
 
