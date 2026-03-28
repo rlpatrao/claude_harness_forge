@@ -112,22 +112,81 @@ Skip this round if the BRD describes a traditional web app with no autonomous ag
    - C) Peer-to-peer mesh (agents negotiate directly)
 
 4. "What agent framework?"
-   - A) Claude Agent SDK (deepest MCP integration)
-   - B) LangGraph (graph-based orchestration, checkpointing)
-   - C) CrewAI (role-based teams)
-   - D) Custom (build from scratch)
 
-5. "What's the human oversight model?"
+   Present this decision matrix — recommend based on BRD requirements:
+
+   | Framework | Best For | MCP | A2A | Checkpointing | Language | When to Recommend |
+   |-----------|----------|-----|-----|---------------|----------|-------------------|
+   | **A) Claude Agent SDK** | Claude-powered agents, deep tool use | Native (deepest) | Via MCP bridge | Via external store | Python | BRD uses Claude API, needs rich tool schemas, MCP servers |
+   | **B) LangGraph** | Stateful multi-agent, complex workflows | Via tools | Via tools | Native (SQLite/Postgres) | Python | BRD has complex state machines, needs crash recovery, long-running workflows |
+   | **C) CrewAI** | Role-based agent teams, task delegation | Native | Planned | Basic | Python | BRD describes team of specialists (researcher, writer, reviewer), sequential or parallel tasks |
+   | **D) OpenAI Agents SDK** | OpenAI-powered agents, handoffs | Built-in | No | No | Python | BRD uses OpenAI models, needs agent handoff patterns, guardrails |
+   | **E) Google ADK** | Gemini-powered, multi-modal | Via tools | Native | Via Temporal | Python | BRD uses Gemini, needs multi-modal (vision, audio), Google Cloud integration |
+   | **F) Semantic Kernel** | .NET/enterprise, Microsoft ecosystem | Via plugins | No | No | Python/C# | BRD is .NET enterprise, needs Azure integration, existing SK investment |
+   | **G) Smolagents (HuggingFace)** | Lightweight, open-source models | No | No | No | Python | BRD uses open-source models, wants minimal framework, code-agent pattern |
+   | **H) Custom (no framework)** | Simple 1-2 agent apps | Manual | Manual | Manual | Any | BRD has simple agent needs, team wants full control, avoid framework lock-in |
+
+   **What gets scaffolded per choice:**
+
+   - **Claude Agent SDK**: `agents/` dir with agent definitions (YAML), `tools/` with MCP tool schemas, `orchestrator.py` with agent loop, `claude_client.py` wrapper. MCP server exposure for external integration.
+   - **LangGraph**: `graph/` dir with StateGraph definitions, `nodes/` for agent nodes, `state.py` for typed state schema, `checkpointer.py` (SQLite or Postgres), human-in-the-loop interrupt nodes.
+   - **CrewAI**: `crew/` dir with agent role definitions, `tasks/` with task specs, `crew.py` orchestrator, `tools/` for custom tools. Sequential or parallel process config.
+   - **OpenAI Agents SDK**: `agents/` dir with agent definitions, `handoffs.py` for inter-agent transfers, `guardrails.py` for input/output validation, `runner.py` main loop.
+   - **Google ADK**: `agents/` with agent definitions, `tools/` with tool declarations, `sessions/` for session management, Temporal workflow definitions for orchestration.
+   - **Semantic Kernel**: `plugins/` dir with SK plugins, `planners/` with planning strategies, `kernel_config.py` setup, `agents/` with agent definitions.
+   - **Smolagents**: `agents/` with CodeAgent or ToolCallingAgent definitions, `tools/` with tool definitions, minimal orchestrator.
+   - **Custom**: `agents/base.py` abstract agent class, `agents/` concrete implementations, `tools/` function definitions, `orchestrator.py` hand-written loop, `llm_client.py` provider-agnostic wrapper.
+
+5. "What LLM powers the agents in the application?"
+
+   This is different from Round 4 (which model powers the forge's build agents). This is about the application's own agents.
+
+   - A) Claude (Anthropic API) — best reasoning, deepest tool use
+   - B) GPT-4/GPT-5 (OpenAI API) — strong general-purpose, function calling
+   - C) Gemini (Google API) — multi-modal, large context, grounding
+   - D) Open-source local (Qwen, DeepSeek, Llama via vLLM/Ollama) — privacy, cost, air-gapped
+   - E) Multiple (different models for different agents based on task)
+   - F) Model-agnostic (abstract via LiteLLM, let deployer choose)
+
+   **Recommend F (model-agnostic via LiteLLM) for most projects** unless the BRD specifically requires a single provider's unique features. Generate a `llm_client.py` that routes through LiteLLM so the app works with any provider.
+
+6. "What's the human oversight model?"
    - A) Fully autonomous (agent acts, human reviews after)
-   - B) Human-in-the-loop (agent proposes, human approves)
-   - C) Human-on-the-loop (agent acts, human can intervene)
+   - B) Human-in-the-loop (agent proposes, human approves before acting)
+   - C) Human-on-the-loop (agent acts, human can intervene/override)
+   - D) Tiered (routine actions autonomous, high-risk actions need approval)
+
+7. "What guardrails and safety mechanisms?"
+   - A) Input validation only (sanitize user prompts)
+   - B) Input + output validation (filter harmful/PII in responses)
+   - C) Full safety stack (input validation, output filtering, tool allowlists, rate limiting, audit logging)
+   - D) Custom safety layer (specify)
 
 **Challenge examples:**
+- "You chose Claude Agent SDK but the BRD requires Gemini multi-modal vision. Google ADK has native multi-modal support. Consider ADK or use Claude Agent SDK with a vision tool."
 - "You chose multi-agent with peer-to-peer mesh but the BRD describes a simple 3-step workflow. Hub-and-spoke with one orchestrator is simpler and more testable."
 - "You chose A2A protocol but you only have 2 agents in the same codebase. Direct function calls are simpler — A2A is for cross-service agent discovery."
 - "You chose fully autonomous but the BRD involves financial decisions. Human-in-the-loop is safer for regulated domains."
+- "You chose CrewAI but need durable checkpointing for a 4-hour workflow. LangGraph has native checkpoint support; CrewAI doesn't."
+- "You chose Custom but have 5 agents with complex state. A framework saves months of orchestration work — consider LangGraph."
+- "You picked a single LLM provider but the BRD says 'model-agnostic deployment'. Use LiteLLM so deployers can choose their provider."
 
-Record in `project-manifest.json` under `ai_native`.
+Record in `project-manifest.json` under `ai_native`:
+```json
+{
+  "ai_native": {
+    "type": "agentic",
+    "framework": "langgraph | claude-agent-sdk | crewai | openai-agents | google-adk | semantic-kernel | smolagents | custom",
+    "agent_count": 3,
+    "agent_llm": "litellm | claude | openai | gemini | local",
+    "protocols": ["mcp", "a2a"],
+    "communication_pattern": "hub-and-spoke | hierarchical | peer-to-peer",
+    "human_oversight": "autonomous | hitl | hotl | tiered",
+    "guardrails": "input | input-output | full-safety | custom",
+    "checkpointing": true
+  }
+}
+```
 
 ### Round 8 — AI/ML Pipeline (conditional — if BRD involves ML/AI features)
 

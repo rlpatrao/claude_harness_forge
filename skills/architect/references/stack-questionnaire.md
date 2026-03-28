@@ -87,6 +87,46 @@ Structured question bank for the architect's 5-round stack interrogation. Questi
 - User picks quantized model but BRD has large codebase → "Quantized models may struggle with 100K+ token contexts. Consider full-precision or cloud for integration-heavy stories."
 - User picks local-only but no GPU → "CPU inference on 480B params will be extremely slow. Consider hybrid strategy or smaller model."
 
+## Round 4.5 — Agent Framework Selection (conditional — agentic projects only)
+
+### Decision Matrix
+
+| Framework | Strengths | Weaknesses | Best For |
+|-----------|-----------|------------|----------|
+| **Claude Agent SDK** | Deepest MCP, rich tool schemas, Anthropic native | Claude-only, newer ecosystem | Claude-powered agents with complex tool use |
+| **LangGraph** | Native checkpointing, graph-based state, mature | Steeper learning curve, LangChain dependency | Complex multi-agent workflows needing crash recovery |
+| **CrewAI** | Intuitive role-based teams, sequential/parallel | No native checkpointing, less customizable | Team-of-specialists patterns (researcher → writer → reviewer) |
+| **OpenAI Agents SDK** | Clean handoff pattern, built-in guardrails | OpenAI-only, newer | OpenAI-powered with agent-to-agent handoffs |
+| **Google ADK** | Multi-modal native, A2A native, Google Cloud | Gemini-focused, newest | Multi-modal (vision+audio) agents, Google ecosystem |
+| **Semantic Kernel** | .NET + Python, Azure native, enterprise connectors | Heavier, less agentic-focused | Enterprise .NET, Azure AI integration |
+| **Smolagents** | Minimal, code-agent pattern, open-source friendly | Less mature, fewer features | Lightweight agents with open-source models |
+| **Custom** | Full control, no lock-in | Build everything yourself | Simple agents (1-2), unique requirements |
+
+### Recommendation Rules
+
+| BRD Signal | Recommended Framework | Reason |
+|------------|----------------------|--------|
+| "Uses Claude API" or "Anthropic" | Claude Agent SDK | Native integration, deepest MCP |
+| "Long-running workflow" or "crash recovery" | LangGraph | Native checkpointing with Postgres |
+| "Team of agents" or "researcher + writer" | CrewAI | Role-based team pattern built-in |
+| "Uses GPT" or "OpenAI" | OpenAI Agents SDK | Native integration, handoff pattern |
+| "Multi-modal" or "vision + audio" | Google ADK | Native multi-modal support |
+| ".NET" or "Azure" or "enterprise" | Semantic Kernel | Azure-native, enterprise connectors |
+| "Open-source models" or "lightweight" | Smolagents | Minimal overhead, HF ecosystem |
+| "Simple chatbot" or "1-2 agents" | Custom | Avoid framework overhead |
+| "Model-agnostic" or "deploy anywhere" | LangGraph or Custom + LiteLLM | Provider-independent |
+
+### LLM for Application Agents
+
+Separate from which model powers the forge (Round 4). This is which model the generated app's agents use.
+
+| Option | When to Recommend |
+|--------|-------------------|
+| **LiteLLM (model-agnostic)** | Default recommendation — deployer chooses provider. Generates `llm_client.py` routing through LiteLLM. |
+| **Single provider** | Only when BRD requires provider-specific features (Claude tool_use, GPT function_calling, Gemini grounding) |
+| **Multiple providers** | Different agents need different strengths (e.g., vision agent on Gemini, reasoning on Claude) |
+| **Local-only** | Air-gapped, privacy-required, cost-sensitive |
+
 ## Round 5 — Deployment
 
 ### Questions
