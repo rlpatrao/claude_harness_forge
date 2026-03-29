@@ -149,8 +149,11 @@ v1.0.0 was dogfooded by running its own pipeline against a fraud detection SaaS 
 ## How to Use
 
 ```bash
-# Clone
-git clone https://github.com/rlpatrao/claude_harness_forge.git ~/claude-harness-forge
+# Clone v1.0.0 specifically
+git clone --branch v1.0.0 https://github.com/rlpatrao/claude_harness_forge.git ~/claude-harness-forge
+
+# Or for latest (currently v2.0.0):
+# git clone https://github.com/rlpatrao/claude_harness_forge.git ~/claude-harness-forge
 
 # Create project and scaffold
 mkdir my-app && cd my-app
