@@ -295,6 +295,36 @@ bash scripts/validate-compliance.sh
 #### Gate 11 — Spec Gaming Detection (static)
 Already implemented.
 
+#### Gate 12 — E2E Playwright Test Files (MANDATORY)
+
+**The plan says write E2E tests in `e2e/`. Follow the plan.**
+
+After all groups are implemented, generate Playwright E2E test files:
+
+```
+e2e/
+  playwright.config.ts     # Config with webServer for backend + frontend
+  {feature-1}.spec.ts      # One spec per feature group
+  {feature-2}.spec.ts
+  error-handling.spec.ts   # Connection errors, API failures, empty states
+```
+
+Each spec must:
+- Navigate to the page
+- Interact with all UI elements for that feature
+- Assert expected outcomes
+- Capture console errors (fail if any non-favicon errors)
+- Test error states (backend down, invalid input)
+
+Run them:
+```bash
+cd e2e && npx playwright test --reporter=list
+```
+
+If tests fail: self-heal the application code (not the test unless the test is wrong). Then re-run.
+
+**This is not optional.** If the plan says "E2E tests", write E2E tests. Never skip a step in the plan because a different verification method was used. The plan is the contract.
+
 5. **On gate failure:**
    - Read the actual error output
    - Classify as forge or project issue
