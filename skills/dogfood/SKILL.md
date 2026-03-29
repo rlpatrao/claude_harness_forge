@@ -181,15 +181,102 @@ Read coverage percentage. If below baseline (from `.claude/state/coverage-baseli
 #### Gate 4 — Architecture (static analysis — no runtime needed)
 Grep for upward layer imports. Already implemented in previous steps.
 
-#### Gate 5 — Evaluator (requires running app)
+#### Gate 5 — Evaluator: Live App + Browser Verification (MANDATORY)
+
+**This gate starts the app, tests the API, opens a browser, interacts with the UI, and captures screenshots.** It is not optional — code that hasn't been seen running in a browser is not verified.
+
+##### Step 5a — Start the backend
 ```bash
-docker compose up -d
-# Wait for health check
-curl -sf http://localhost:8000/api/v1/health || echo "App not healthy"
-# Run API checks from sprint contract
-# Run Playwright if frontend is up
+cd {project-root}/backend
+source .venv/bin/activate
+
+# Initialize database (SQLite: just run migrations. PostgreSQL: docker compose up -d db first)
+alembic upgrade head
+
+# Start backend (background)
+nohup uvicorn app.main:app --host 0.0.0.0 --port 8000 > /tmp/dogfood-backend.log 2>&1 &
+sleep 3
+
+# Health check
+curl -sf http://localhost:8000/api/v1/health || { echo "FAIL: backend not healthy"; cat /tmp/dogfood-backend.log; }
 ```
-If Docker not available: SKIP with warning. Log that Gate 5 was not verified.
+
+If health check fails: read the log, self-heal (fix import errors, missing deps, config issues), retry. Up to 3 attempts.
+
+**IMPORTANT:** Use `--host 0.0.0.0` so both IPv4 and IPv6 `localhost` connections work.
+
+##### Step 5b — Start the frontend
+```bash
+cd {project-root}/frontend
+npm run dev -- --port 5173 &
+sleep 5
+```
+
+##### Step 5c — API Smoke Tests
+Test every API endpoint listed in `specs/design/api-contracts.md`:
+```bash
+# Health
+curl -sf http://localhost:8000/api/v1/health
+
+# Core CRUD (adapt to project — these are examples)
+curl -sf -X POST http://localhost:8000/api/v1/{resource} -H "Content-Type: application/json" -d '{...}'
+curl -sf http://localhost:8000/api/v1/{resource}
+```
+
+Log each response. Any 5xx is a FAIL → self-heal.
+
+##### Step 5d — Browser Verification via Playwright MCP
+
+**Use the Playwright MCP tools to interact with the UI like a real user.** All screenshots are saved to `{project-root}/dogfood-screenshots/`.
+
+```bash
+mkdir -p {project-root}/dogfood-screenshots
+```
+
+For each key page in the app:
+
+1. **Navigate:** `browser_navigate` to the page URL
+2. **Snapshot:** `browser_snapshot` to capture the DOM structure — verify expected elements are present
+3. **Interact:** `browser_fill_form` to fill inputs, `browser_click` to click buttons
+4. **Verify result:** `browser_snapshot` again — verify the action produced the expected change
+5. **Screenshot:** `browser_take_screenshot` — save to `dogfood-screenshots/{page}-{action}.png`
+6. **Console check:** `browser_console_messages` with level "error" — any errors are FAIL
+
+**Minimum interactions per project type:**
+
+| Project Type | Required Browser Tests |
+|-------------|----------------------|
+| CRUD | Navigate to main page, create an item, verify it appears in list, screenshot |
+| ML | Above + trigger inference, verify result displays, screenshot |
+| Agentic | Above + trigger agent action, verify agent output appears, verify HITL queue if present, screenshot |
+
+**Screenshot naming convention:**
+```
+dogfood-screenshots/
+  01-homepage-loaded.png
+  02-form-filled.png
+  03-item-created.png
+  04-list-updated.png
+  05-agent-response.png
+  06-history-page.png
+```
+
+**Every screenshot is evidence.** The dogfood report references these screenshots as proof that the UI works.
+
+##### Step 5e — Console Error Check (Layer 2.5)
+
+After all browser interactions:
+```
+browser_console_messages with level "error"
+```
+
+If any console errors (excluding favicon 404): **FAIL**. Fix the frontend code, reload, retry.
+
+##### Step 5f — Stop servers (after all groups complete)
+```bash
+pkill -f "uvicorn app.main" 2>/dev/null
+pkill -f "vite.*5173" 2>/dev/null
+```
 
 #### Gate 6-8 — Reviews (static analysis)
 Code reviewer, UI standards, security — these are agent-based reviews run by spawning reviewer agents.
@@ -277,6 +364,29 @@ Type: {type} | Mode: {mode} | Date: {ISO 8601}
 ## Compliance Summary
 | Check | Result |
 
+## Browser Verification (Gate 5)
+
+### API Smoke Tests
+| Endpoint | Method | Status | Response |
+|----------|--------|--------|----------|
+| /health | GET | {200/500} | {summary} |
+| /{resource} | POST | {201/500} | {summary} |
+| ... | | | |
+
+### Screenshots
+All screenshots saved to `dogfood-screenshots/`.
+
+| # | Screenshot | What It Shows | Pass/Fail |
+|---|-----------|---------------|-----------|
+| 1 | [01-homepage-loaded.png](dogfood-screenshots/01-homepage-loaded.png) | App loads, main UI visible | {PASS/FAIL} |
+| 2 | [02-form-filled.png](dogfood-screenshots/02-form-filled.png) | User input accepted | {PASS/FAIL} |
+| 3 | [03-action-result.png](dogfood-screenshots/03-action-result.png) | Action produces expected output | {PASS/FAIL} |
+| ... | | | |
+
+### Console Errors
+- Total errors: {N}
+- Errors (excluding favicon): {list or "none"}
+
 ## Metrics
 - Total files generated: {N}
 - Total tests: {N}
@@ -285,6 +395,8 @@ Type: {type} | Mode: {mode} | Date: {ISO 8601}
 - Project self-heal cycles: {N}
 - Groups completed: {N}/{total}
 - Groups blocked: {N}
+- Screenshots captured: {N}
+- Console errors: {N}
 ```
 
 ### Step 8 — Commit Forge Fixes
