@@ -1,12 +1,20 @@
-# Claude Harness Forge v2.0 — Session Summary
+# Claude Harness Forge v2.0.0 — Release Notes
 
-**Date:** 2026-03-27 to 2026-03-29
-**Starting point:** v1.0.0 (10 agents, 23 skills, 14 hooks, 8-gate ratchet)
-**Ending point:** v2.0.0 (11 agents, 37 skills, 18 hooks, 11-gate ratchet, 4 agentic patterns, 8 framework options)
+**Release Date:** 2026-03-29
+**Tag:** [v2.0.0](https://github.com/rlpatrao/claude_harness_forge/releases/tag/v2.0.0)
+**Previous:** [v1.0.0](RELEASE-v1.0.0.md) (10 agents, 23 skills, 14 hooks, 8-gate ratchet)
+
+```bash
+# Install v2.0.0
+git clone --branch v2.0.0 https://github.com/rlpatrao/claude_harness_forge.git ~/claude-harness-forge
+
+# Or latest (currently v2.0.0):
+git clone https://github.com/rlpatrao/claude_harness_forge.git ~/claude-harness-forge
+```
 
 ---
 
-## What Happened in This Session
+## What Changed from v1.0.0 to v2.0.0
 
 ### Phase 1: Read the Merger Plan and Audit the v1 Codebase
 
@@ -199,6 +207,31 @@ Ran `pytest` for real on the agentic project. **4 self-healing cycles:**
 
 ---
 
+### Phase 15: Vikings Chat — Full E2E Browser-Verified Dogfood
+
+The final dogfooding run: a simple 2-agent chat app (Ragnar Lothbrok and Lagertha debating Viking-era topics) to prove the forge can go from a one-line prompt to a working app verified in a real browser.
+
+**Prompt:** _"Create 2 agents acting like 2 characters in Vikings era and their discussion being shown on the UI"_
+
+**Result:** Full pipeline completed in a single agent run. Zero self-healing needed (learned rules from prior runs applied proactively). App started, browser opened via Playwright MCP, conversation generated, screenshots captured.
+
+| Verification | Result |
+|-------------|--------|
+| Unit tests (pytest) | **20 pass, 91% coverage** |
+| Lint (ruff) | **All checks passed** |
+| App starts (uvicorn) | **Healthy — 10 routes** |
+| Browser: page loads | **PASS** — "Vikings Chat" title, "Begin a Saga" heading |
+| Browser: topic input | **PASS** — accepts text, enables button |
+| Browser: Ragnar speaks | **PASS** — LLM generates in-character response |
+| Browser: Lagertha responds | **PASS** — alternating turn generation works |
+| Browser: history page | **PASS** — lists past conversations |
+| Console errors | **0** |
+| Screenshots captured | **2** (chat page, history page) in `dogfood-screenshots/` |
+
+Screenshots: [01-chat-ragnar-lagertha.png](test-projects/vikings-chat/dogfood-screenshots/01-chat-ragnar-lagertha.png), [02-history-page.png](test-projects/vikings-chat/dogfood-screenshots/02-history-page.png)
+
+---
+
 ## Achievements
 
 ### Quantitative
@@ -209,7 +242,7 @@ Ran `pytest` for real on the agentic project. **4 self-healing cycles:**
 | Task skills | 16 | 25 | +9 |
 | Reference skills | 7 | 12 | +5 |
 | Hooks | 14 | 18 | +4 |
-| Templates | 9 | 15 | +6 |
+| Templates | 9 | 17 | +8 |
 | Ratchet gates | 8 | 11 | +3 |
 | Architect rounds | 6 | 11 | +5 |
 | Build phases | 9 | 12 | +3 |
@@ -218,10 +251,11 @@ Ran `pytest` for real on the agentic project. **4 self-healing cycles:**
 | Agent frameworks supported | 0 | 8 | +8 |
 | Agentic architecture patterns | 0 | 4 | +4 |
 | Architecture layers | 6 | 7 | +1 |
-| Forge issues found & fixed | 0 | 16 | +16 |
-| Test project stories implemented | 0 | 30 | +30 |
-| Test project tests passing | 0 | 123 | +123 |
-| Test project code coverage | 0% | 68% | +68% |
+| Forge issues found & fixed | 0 | 18 | +18 |
+| Dogfood test projects | 0 | 4 | +4 |
+| Total stories implemented | 0 | 72 | +72 |
+| Total tests passing | 0 | 143 | +143 |
+| Browser-verified apps | 0 | 1 | +1 |
 
 ### Qualitative
 
@@ -241,34 +275,40 @@ Ran `pytest` for real on the agentic project. **4 self-healing cycles:**
 
 8. **Learned rules persist and accumulate.** The dogfooding process extracted 4 concrete rules (import paths, lazy DB init, dependency completeness, file placement) that will inform future code generation.
 
-### Commits in This Session
+9. **Browser-verified dogfooding.** The `/dogfood` command now starts the app, opens a browser via Playwright MCP, interacts with the UI, captures screenshots as evidence, and checks for console errors. Vikings Chat is the first app verified this way — Ragnar and Lagertha debating live in a browser.
 
-| # | Commit | Description |
-|---|--------|-------------|
-| 1 | fe66209 | Initial commit (103 files, 11,201 lines) |
-| 2 | 264de12 | Local LLM routing + frontmatter fix |
-| 3 | 1b66955 | Wire model routing through auto/implement/cost-tracker |
-| 4 | 274c4e7 | Fix scaffold: design.md, init.sh, state preservation |
-| 5 | d5ec4d3 | Fix spec: add features.json generation |
-| 6 | 8537c0d | Rewrite README with detailed comparison + dogfooding |
-| 7 | eddf2bb | Expand dogfooding section with mechanism + root causes |
-| 8 | a9a10c1 | Align README philosophy sections with merger plan |
-| 9 | 26800e3 | Reframe merger plan as philosophy unification |
-| 10 | c038a82 | Restructure README: philosophies first, repo links to references |
-| 11 | b4fc2e8 | Add Playwright MCP + Chrome extension to evaluator |
-| 12 | 1aba991 | Rename design.md to forge-reference.md |
-| 13 | f42e516 | **Implement all 15 pillars** (33 files, 5,860 lines) |
-| 14 | 39b067c | Update README for v2.0 |
-| 15 | 60cd294 | Fix compliance validation: guard grep on missing dirs |
-| 16 | 0cf20e7 | Fix scaffold + validation for v2 counts |
-| 17 | 0b19ccf | Fix compliance: regex, pipefail, directory guards |
-| 18 | dc491d1 | Expand architect Round 7 with 8 frameworks |
-| 19 | 0e46181 | Add 4 agentic architecture patterns to architecture.md |
-| 20 | f5ebd25 | Rewrite check-architecture hook for 7-layer + agents |
-| 21 | 3efc1c0 | Strengthen features.json format requirements |
-| 22 | f7d98b3 | Update README with agentic dogfooding results |
-| 23 | a5c5418 | Add /dogfood command for autonomous self-testing |
-| 24 | 5a8305a | Add mandatory runtime testing to /dogfood skill |
+### Dogfood Test Projects
+
+| Project | Type | Stories | Tests | Coverage | Browser Verified |
+|---------|------|---------|-------|----------|-----------------|
+| fraud-detection | ML (v1) | 4/33 (Group A) | — | — | No |
+| fraud-detection-local | ML (v1 local) | 4/33 (Group A) | — | — | No |
+| fraud-detection-v2 | ML (v2) | 7/34 (Group A) | 62 files | — | No |
+| fraud-agentic | Agentic | 30/30 (all groups) | 123 pass | 68% | No |
+| **vikings-chat** | **Agentic** | **12/12 (all groups)** | **20 pass** | **91%** | **Yes — screenshots** |
+
+### All Issues Found (18 total)
+
+| # | Issue | Version | Category |
+|---|-------|---------|----------|
+| 1 | Scaffold doesn't copy design.md | v1 | BUG |
+| 2 | Validator expects init.sh before architect | v1 | BUG |
+| 3 | Scaffold assumes .claude/ exists | v1 | BUG |
+| 4 | 14 skills use unsupported frontmatter | v1 | BUG |
+| 5 | No AI/LLM model selection in architect | v1 | ENHANCEMENT |
+| 6 | claude-progress.txt missing model_routing | v1 | MINOR |
+| 7 | model_routing config was dead | v1 | BUG |
+| 8 | Re-scaffold overwrites user state files | v1 | BUG |
+| 9 | Spec phase doesn't generate features.json | v1 | BUG |
+| 10 | Compliance crashes on missing directories | v2 | BUG |
+| 11 | Scaffold missing mutation-baseline.txt | v2 | BUG |
+| 12 | Skills don't reference template paths | v2 | MINOR |
+| 13 | Validation has stale v1 counts | v2 | BUG |
+| 14 | Credit card regex uses unsupported \s | v2 | BUG |
+| 15 | check-architecture.js missing agents layer | v2 | BUG |
+| 16 | features.json generated as dict not array | v2 | BUG |
+| 17 | pyproject.toml placed at wrong path | v2 | PROJECT |
+| 18 | CLAUDE.md not auto-created by scaffold sim | v2 | MINOR |
 
 ### Release
 
