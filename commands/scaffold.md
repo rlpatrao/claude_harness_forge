@@ -200,6 +200,9 @@ cp $PLUGIN_SOURCE/program.md .claude/program.md
 cp $PLUGIN_SOURCE/settings.json .claude/settings.json
 cp $PLUGIN_SOURCE/forge-reference.md forge-reference.md
 
+# Makefile — always generate (overwritten by /architect with stack-specific commands)
+cp $PLUGIN_SOURCE/templates/Makefile.template Makefile
+
 # State files: only copy if not already present (preserve user data on re-scaffold)
 if [ ! -d ".claude/state" ]; then
   cp -r $PLUGIN_SOURCE/state/ .claude/state/

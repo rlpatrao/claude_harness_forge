@@ -56,7 +56,17 @@ Conduct one round at a time. Wait for human response before proceeding. Rounds 7
 
 See `agents/architect.md` for detailed question templates and challenge examples.
 
-### Step 3 — Generate Design Artifacts
+### Step 3 — Generate Project README and Makefile
+
+**Immediately after stack confirmation** (not post-build), generate:
+
+1. **`README.md`** at project root — fill the template from `.claude/templates/README.project.template.md` with all stack decisions, setup instructions, run commands. Developers need this from day one to `make install && make dev`.
+
+2. **`Makefile`** at project root — fill from `.claude/templates/Makefile.template`. Must include: `install`, `dev`, `test`, `lint`, `typecheck`, `migrate`, `seed`, `docker-up`, `docker-down`, `clean`. Adapt commands to the chosen stack (e.g., `uv run pytest` vs `pytest`, `pnpm` vs `npm`).
+
+These are generated NOW, not post-build. A project without a README and Makefile is not usable.
+
+### Step 4 — Generate Design Artifacts
 
 After human confirms stack, generate all artifacts to `specs/design/`:
 - `architecture.md` — component diagram, tech choices with rationale

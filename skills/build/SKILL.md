@@ -100,8 +100,9 @@ After `/auto` completes (all groups done or stopping criteria met):
 1. Run `/architect --post-build` to fill in learnings (verdict, patterns, recommendations)
 2. Run `/comply` final review (if ML/agentic project)
 3. Run `/model-card` (if ML project)
-4. Generate `README.md` for the built application
-5. Commit: `git add README.md && git commit -m "docs: add README"`
+4. **Update `README.md`** — refresh with actual build results: test count, coverage %, features completed, agent descriptions (if agentic). The README skeleton was created by the architect in Phase 2; this step fills in the runtime metrics.
+5. **Verify `Makefile`** — run `make test` and `make lint` to confirm all targets work. Fix any broken targets.
+6. Commit: `git add README.md Makefile && git commit -m "docs: finalize README and Makefile"`
 
 ---
 
