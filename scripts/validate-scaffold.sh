@@ -81,7 +81,7 @@ if [ "$FORGE_MODE" = true ]; then
 
   # --- 2. Agent definitions ---
   echo ""
-  echo "--- Agents (expect 10) ---"
+  echo "--- Agents (expect 11) ---"
   check_file_count "agents" "*.md" 11 "Agent definitions"
   for agent in brd-creator architect spec-writer generator evaluator \
                ui-standards-reviewer code-reviewer security-reviewer \
@@ -204,8 +204,8 @@ else
 
   # --- 2. Agent definitions ---
   echo ""
-  echo "--- Agents (expect 10) ---"
-  check_file_count ".claude/agents" "*.md" 10 "Agent definitions"
+  echo "--- Agents (expect 11) ---"
+  check_file_count ".claude/agents" "*.md" 11 "Agent definitions"
   for agent in brd-creator architect spec-writer generator evaluator \
                ui-standards-reviewer code-reviewer security-reviewer \
                test-engineer ui-designer compliance-reviewer; do

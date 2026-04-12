@@ -10,7 +10,7 @@ GAN-inspired autonomous SDLC scaffold with browser-based verification, Karpathy 
 - `skills/` — 38 skills (27 task + 11 reference) — reference skills use `-patterns` suffix
 - `hooks/` — 19 Node.js enforcement hooks
 - `evals/` — Code reviewer regression tests
-- `templates/` — 15 templates (Docker, Playwright, OTel, RAG, Temporal, model card, env)
+- `templates/` — 17 templates (Docker, Playwright, OTel, RAG, Temporal, model card, env, findings report)
 - `learnings/` — Cross-project knowledge base
 - `state/` — Initial state files
 - `scripts/` — Validation scripts

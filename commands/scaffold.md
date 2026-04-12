@@ -261,7 +261,7 @@ Then ask: "Which language server do you want?" (auto-detect from stack if archit
 **Do NOT install** these (conflict with forge):
 - `feature-dev` — competes with forge's BRD → architect → spec → design pipeline
 - `frontend-design` — competes with forge's ui-designer + ui-standards-reviewer agents
-- `hookify` — dynamically generated hooks could collide with forge's 14 hooks
+- `hookify` — dynamically generated hooks could collide with forge's 19 hooks
 - `code-review` — duplicates forge's code-reviewer agent (produces competing review feedback)
 - `pr-review-toolkit` — same overlap as code-review
 
@@ -392,12 +392,12 @@ Print:
 ✓ Claude Harness Forge scaffolded successfully.
 
 Installed:
-  10 agents     → .claude/agents/
-  23 skills     → .claude/skills/
-  14 hooks      → .claude/hooks/
-  9 templates   → .claude/templates/
+  11 agents     → .claude/agents/
+  38 skills     → .claude/skills/
+  19 hooks      → .claude/hooks/
+  17 templates  → .claude/templates/
   4 evals       → .claude/evals/
-  6 state files → .claude/state/
+  8 state files → .claude/state/
 
 Project type: {type}
 Stack decisions: Deferred to /architect (run after /brd)
@@ -440,13 +440,13 @@ One-way dependencies only. See `.claude/architecture.md` for full rules.
 | Session recovery | `claude-progress.txt` |
 | Feature tracking | `features.json` |
 | Learned rules | `.claude/state/learned-rules.md` |
-| Cost estimates | `.claude/state/cost-log.json` (or run `/cost`) |
+| Cost estimates | `.claude/state/cost-log.json` (or run `/context-budget --summary`) |
 | Stack learnings | `.claude/learnings/stack-decisions/` |
 | BRD changelog | `specs/brd/changelog.md` |
 | Research findings | `specs/brd/research/` |
 | Harness findings log | `.claude/state/harness-findings-log.json` |
 
-## Agents (10)
+## Agents (11)
 
 | Agent | Role | Model |
 |-------|------|-------|
@@ -460,8 +460,9 @@ One-way dependencies only. See `.claude/architecture.md` for full rules.
 | security-reviewer | OWASP top 10, injection, auth, secrets | Sonnet |
 | test-engineer | Test plans, cases, Playwright E2E | Sonnet |
 | ui-designer | React+Tailwind mockups | Sonnet |
+| compliance-reviewer | Bias, fairness, PII, regulatory compliance | Sonnet |
 
-## Ratchet Gates (8)
+## Ratchet Gates (11)
 
 | Gate | Full | Lean | Solo | Turbo |
 |------|------|------|------|-------|
@@ -473,6 +474,9 @@ One-way dependencies only. See `.claude/architecture.md` for full rules.
 | 6. Code reviewer | ✓ | ✓ | — | End only |
 | 7. UI standards review | ✓ | — | — | End only |
 | 8. Security reviewer | ✓ | — | — | End only |
+| 9. Mutation testing | ✓ | ✓ | — | End only |
+| 10. Compliance (bias, fairness, PII) | ✓ | — | — | End only |
+| 11. Spec gaming detection | ✓ | ✓ | ✓ | Per commit |
 
 ## Git Workflow
 

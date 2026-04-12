@@ -64,7 +64,7 @@ Trace the change through the project artifacts. Check each of these and report w
 |----------|----------|--------------|
 | Epics & stories | `specs/features.json` | Search for stories referencing affected BRD sections |
 | Design docs | `specs/design/` | Search for references to changed requirements |
-| UI mockups | `specs/mockups/` | Check if mockup covers affected feature |
+| UI mockups | `specs/design/mockups/` | Check if mockup covers affected feature |
 | Test plans | `specs/tests/` | Search for test cases covering affected behavior |
 | Test code | `tests/` | Search for test files testing affected stories |
 | Implementation | `src/` | Search for code implementing affected stories |

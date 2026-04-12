@@ -648,7 +648,7 @@ OR logic with priority (check in order):
    2. Run `/architect --post-build` — fills in verdict, patterns, and recommendations in the stack decision record. Updates integration notes for any external APIs used.
    3. Generate `README.md` for the built application (see below)
    4. Commit: `git add README.md && git commit -m "docs: add README with architecture, setup, and API reference"`
-   5. Print estimated cost summary (same as `/cost` output)
+   5. Print estimated cost summary (same as `/context-budget --summary` output)
    6. Exit
 
 ### README Generation (on completion)

@@ -170,16 +170,18 @@ Phase 10: Post-build  -> Learnings + README generation
 | `/fix-issue` | GitHub issue workflow |
 | `/refactor` | Quality-driven refactoring |
 | `/improve` | Feature enhancement |
+| `/change` | BRD change management with version tracking and cascade |
 | `/lint-drift` | Entropy scanner for pattern drift |
-| `/cost` | Estimated API cost summary |
 | `/observe` | OpenTelemetry instrumentation + dashboards |
 | `/comply` | Compliance review (bias, fairness, PII, model cards) |
 | `/rag` | RAG pipeline scaffolding (chunking, embedding, retrieval) |
 | `/workflow` | Workflow orchestration scaffolding (Temporal/Inngest) |
 | `/resilience` | Circuit breaker, retry, and dead-letter patterns |
 | `/model-card` | Generate model card from training artifacts |
-| `/context-budget` | Analyze token usage and recommend compression |
+| `/context-budget` | Token usage analysis + cost summary (--summary for quick overview) |
+| `/report-findings` | Opt-in anonymized findings reporter to forge GitHub |
 | `/tenant` | Multi-tenancy scaffolding (schema/row/DB isolation) |
+| `/dogfood` | Self-test the forge by running the full pipeline |
 
 ## Agents (11)
 

@@ -40,11 +40,12 @@ Based on:
          |                  |                    |
          v                  v                    v
 +---------------------------------------------------------------------+
-|                   AGENT LAYER (10 agents)                            |
+|                   AGENT LAYER (11 agents)                            |
 |                                                                      |
 |  PLANNING: brd-creator / architect / spec-writer / ui-designer       |
 |  GAN CORE: generator / evaluator                                     |
 |  REVIEW:   code-reviewer / security-reviewer / ui-standards-reviewer |
+|           / compliance-reviewer                                      |
 |  TESTING:  test-engineer                                             |
 |                                                                      |
 |  Model tiering: Opus for judgment (architect, evaluator)             |
@@ -53,14 +54,16 @@ Based on:
          |                  |                    |
          v                  v                    v
 +---------------------------------------------------------------------+
-|                 ENFORCEMENT LAYER (14 hooks)                         |
+|                 ENFORCEMENT LAYER (19 hooks)                         |
 |                                                                      |
 |  Security: scope-directory | protect-env | detect-secrets            |
+|            prompt-injection-detect | pii-scan | network-egress       |
 |  Quality:  lint-on-save | typecheck | check-architecture             |
 |            check-function-length | check-file-length                 |
 |  Gates:    pre-commit-gate | sprint-contract-gate | protect-pdfs     |
 |  Teams:    teammate-idle-check                                       |
-|  Info:     task-completed | cost-tracker                             |
+|  Info:     task-completed | cost-tracker | token-budget               |
+|            findings-collector                                         |
 +--------+------------------+--------------------+--------------------+
          |                  |                    |
          v                  v                    v
@@ -73,6 +76,9 @@ Based on:
 |  Gate 6:   Code reviewer (static quality)         [full/lean]        |
 |  Gate 7:   UI standards review (conformance)      [full only]        |
 |  Gate 8:   Security reviewer (OWASP)              [full only]        |
+|  Gate 9:   Mutation testing                       [full/lean]        |
+|  Gate 10:  Compliance (bias, fairness, PII)       [full only]        |
+|  Gate 11:  Spec gaming detection                  [all modes]        |
 +--------+------------------+--------------------+--------------------+
          |                  |                    |
          v                  v                    v
