@@ -1,5 +1,5 @@
 ---
-name: compliance
+name: comply-patterns
 description: Reference patterns for AI compliance — OWASP Agentic Top 10, bias detection, fairness testing, PII scanning, GDPR/HIPAA/SOC2 checklists, model cards, and content filtering.
 ---
 

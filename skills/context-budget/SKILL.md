@@ -1,6 +1,6 @@
 ---
 name: context-budget
-description: Analyze and optimize token usage — cost per agent, per story, per gate, cache hit rates, and recommendations for context reduction.
+description: Analyze and optimize token usage — cost summary, cost per agent, per story, per gate, cache hit rates, and recommendations for context reduction. Use --summary for a quick cost overview.
 ---
 
 # Context Budget Skill
@@ -10,7 +10,8 @@ Analyze token consumption across the build and recommend optimizations to reduce
 ## Usage
 
 ```
-/context-budget
+/context-budget                # full analysis + recommendations
+/context-budget --summary      # quick cost summary only (replaces former /cost)
 ```
 
 Run anytime during or after a build.
@@ -124,6 +125,47 @@ Print report to console (not saved to file):
 - Estimated remaining tokens: X
 - Projected total cost: $X.XX
 ```
+
+---
+
+## Quick Summary Mode (`--summary`)
+
+When invoked with `--summary`, skip Steps 3-7 and print only a compact cost overview:
+
+```
+Mode: {mode} (budget: ${low}-${high})
+Model routing: {strategy} ({local_model_name if applicable})
+Agent spawns: {count}
+Estimated total: ${amount} ({pct}% of budget ceiling)
+Breakdown: Opus {n} spawns (${amount}), Sonnet {n} spawns (${amount}), Local {n} spawns ($0.00)
+Top consumers: {agent1} (${amount}), {agent2} (${amount}), {agent3} (${amount})
+```
+
+Also read `execution.model_routing` from `project-manifest.json` and display the routing strategy. When `strategy` is `local-only`, show:
+```
+Model routing: local-only (Qwen3-Coder-480B-A35B-Instruct via vLLM)
+Estimated API cost: $0.00 (all local)
+Note: Local inference has compute cost (GPU time) not tracked here.
+```
+
+### Estimation Method
+
+| Model | Input $/1M tokens | Output $/1M tokens | Avg input | Avg output |
+|-------|-------------------|--------------------|-----------|-----------  |
+| Opus | $15 | $75 | 15K tokens | 5K tokens |
+| Sonnet | $3 | $15 | 10K tokens | 3K tokens |
+| Local | $0 | $0 | N/A | N/A |
+
+**Caveat:** These are rough directional estimates, not actual billing. Token counts are approximated. Actual costs depend on prompt caching, system prompt sharing, and output length variation.
+
+### Budget Ranges by Mode
+
+| Mode | Low | High |
+|------|-----|------|
+| Full | $100 | $300 |
+| Lean | $30 | $80 |
+| Solo | $5 | $15 |
+| Turbo | $30 | $50 |
 
 ---
 

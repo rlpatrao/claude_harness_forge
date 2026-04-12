@@ -55,7 +55,8 @@
       {
         "matcher": "",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/task-completed.js" }
+          { "type": "command", "command": "node .claude/hooks/task-completed.js" },
+          { "type": "command", "command": "node .claude/hooks/findings-collector.js" }
         ]
       }
     ]

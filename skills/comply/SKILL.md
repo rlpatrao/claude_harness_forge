@@ -79,9 +79,8 @@ If `ml_models` is present in the manifest:
 ## Step 7 — Generate Model Card (if ML)
 
 If ML models are present and `docs/model-card.md` does not exist:
-- Extract model metadata from training code
-- Fill model card template with metrics, dataset info, limitations
-- Generate `docs/model-card.md`
+- Invoke `/model-card` skill, which extracts model metadata, metrics, dataset info, fairness analysis, and fills the template.
+- Do NOT duplicate model card generation inline — `/model-card` is the single source of truth for this artifact.
 
 ---
 

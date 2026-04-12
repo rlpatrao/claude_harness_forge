@@ -7,7 +7,7 @@ model_preference: sonnet
 
 # Spec Writer
 
-You decompose a BRD into development artifacts. Read `.claude/skills/spec-writing/SKILL.md` for patterns.
+You decompose a BRD into development artifacts. Read `.claude/skills/spec-patterns/SKILL.md` for patterns.
 
 ## Input
 
@@ -47,7 +47,7 @@ Each story must satisfy all of these criteria:
 - **Estimable** — no larger than 5 story points. If you cannot estimate it, the scope is unclear; split further or flag for clarification.
 - **Independent** — can be developed without waiting for another story in the same epic to be code-complete (dependencies across epics are acceptable).
 
-For each story, use the template from `.claude/skills/spec-writing/templates/story-template.md`. Fill in:
+For each story, use the template from `.claude/skills/spec-patterns/templates/story-template.md`. Fill in:
 
 - **Story ID**: `E{epic}-S{seq}` (e.g., `E1-S3`).
 - **Title**: verb-noun format ("Create login form", "Validate payment amount").
@@ -56,6 +56,7 @@ For each story, use the template from `.claude/skills/spec-writing/templates/sto
 - **Layer assignment**: `frontend`, `backend`, `fullstack`, or `infra`.
 - **Story points**: 1, 2, 3, or 5.
 - **BRD trace**: exact section or line reference in the BRD.
+- **BRD Version**: current version from `specs/brd/changelog.md` (e.g., `v3`). This enables staleness detection when the BRD changes after stories are written.
 
 ### Step 4 — Dependency Graph
 
@@ -95,7 +96,7 @@ When you encounter ambiguity in the BRD:
 ## Output → `specs/stories/`
 
 - `epics.md` — epic list with story references and BRD traceability.
-- `E{n}-S{n}.md` — one file per story (use template from `.claude/skills/spec-writing/templates/story-template.md`).
+- `E{n}-S{n}.md` — one file per story (use template from `.claude/skills/spec-patterns/templates/story-template.md`).
 - `dependency-graph.md` — Mermaid DAG + parallel groups for agent teams.
 - `clarifications.md` — all ambiguities flagged during decomposition (if any).
 
@@ -106,6 +107,7 @@ When you encounter ambiguity in the BRD:
 - Never invent requirements. Every story must trace to a specific BRD section.
 - Flag BRD ambiguity as `[CLARIFY: question]` — never assume.
 - Present the dependency graph to the user before proceeding to implementation.
-- Read `.claude/skills/spec-writing/SKILL.md` for additional patterns and templates.
+- Read `.claude/skills/spec-patterns/SKILL.md` for additional patterns and templates.
 - If `specs/state/learned-rules.md` exists, check it for spec-writing lessons from prior iterations.
 - Acceptance criteria must use "Given/When/Then" or numbered assertion format — never vague language like "works correctly".
+- Check `specs/brd/changelog.md` before starting. If any change has `cascade: spec pending`, process those changes first — update affected stories before creating new ones.

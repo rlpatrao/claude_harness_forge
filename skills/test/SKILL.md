@@ -23,8 +23,8 @@ argument-hint: "[--plan-only | --e2e-only]"
 
 ## Steps
 
-1. Read `.claude/skills/testing/SKILL.md` for test patterns.
-2. Read `.claude/skills/testing/references/playwright.md` for Playwright patterns.
+1. Read `.claude/skills/test-patterns/SKILL.md` for test patterns.
+2. Read `.claude/skills/test-patterns/references/playwright.md` for Playwright patterns.
 3. Spawn `test-engineer` agent.
 4. Agent generates to `specs/test_artefacts/`:
    - `test-plan.md` — strategy, scope, environments
@@ -33,7 +33,7 @@ argument-hint: "[--plan-only | --e2e-only]"
    - `e2e/flows/` — Playwright test files
 5. Copy Playwright config template:
    ```bash
-   cp .claude/skills/testing/templates/playwright.config.ts playwright.config.ts
+   cp .claude/skills/test-patterns/templates/playwright.config.ts playwright.config.ts
    ```
 6. Install Playwright browsers:
    ```bash

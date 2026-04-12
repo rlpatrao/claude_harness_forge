@@ -344,7 +344,7 @@ Spawn `ui-standards-reviewer` agent for every frontend page in the current group
 
 1. Take screenshots at 1280px and 375px widths via Playwright
 2. Read `calibration-profile.json` for project type and UI standards config
-3. Run the conformance checklist (see `.claude/skills/evaluation/references/ui-standards-checklist.md`)
+3. Run the conformance checklist (see `.claude/skills/evaluate-patterns/references/ui-standards-checklist.md`)
 4. Report PASS/FAIL per check with specific fix instructions for FAILs
 
 **This is a single pass, not an iterative loop.** If checks fail, the fix instructions are sent to the generator via the normal self-healing loop (max 3 attempts). No scoring, no plateau detection, no originality judgment.
@@ -516,6 +516,22 @@ After each agent team completes (before the ratchet gate):
 
 Amendments are a signal that the implementation discovered a design gap. They must be incorporated before evaluation, not deferred.
 
+### Changelog Integration
+
+When an amendment is detected and processed:
+1. Read `specs/brd/changelog.md` to get the current version.
+2. Append a new entry:
+
+```markdown
+## v{N} — {date}
+- **Change:** {amendment description}
+- **Reason:** Auto-detected during implementation — design gap discovered by generator/evaluator
+- **Impact:** {affected artifacts}
+- **Cascade:** design done | implement in-progress
+```
+
+3. This ensures auto-detected amendments are visible in the same changelog as user-requested changes.
+
 ---
 
 ## SECTION 9: UI Standards Review (Frontend Groups Only, Full Mode)
@@ -548,7 +564,7 @@ For each frontend page in the current group:
 
 1. **Screenshot** — Take screenshots at desktop (1280px) and mobile (375px, if `responsive_required`) widths using Playwright.
 2. **Spawn `ui-standards-reviewer`** with screenshots + calibration profile.
-3. **Reviewer runs the checklist** from `.claude/skills/evaluation/references/ui-standards-checklist.md`, filtered by project type.
+3. **Reviewer runs the checklist** from `.claude/skills/evaluate-patterns/references/ui-standards-checklist.md`, filtered by project type.
 4. **PASS** — all required checks pass → record result, continue to next page.
 5. **FAIL** — one or more required checks fail → send fix instructions to generator via normal self-healing loop.
 
@@ -702,3 +718,12 @@ Append to `.claude/state/learned-rules.md`:
 - **Ignoring browser console errors:** Layer 2.5 browser console capture runs during EVERY Playwright check. If the evaluator skips console monitoring, silent frontend bugs accumulate. Ensure Playwright listeners are wired in every E2E test.
 - **Treating UI standards as optional:** In Full mode, Gate 7 (UI standards) is not advisory — it's a blocking gate. Failed conformance checks must be fixed through self-healing before the group can pass.
 - **Not running post-build learnings:** After the build completes, the architect must be invoked with `--post-build` to fill in verdict and patterns. Skipping this breaks the cross-project knowledge loop.
+
+---
+
+## SECTION 14: Post-Build Actions
+
+After all groups pass and the build is complete:
+
+1. **Report findings** — if `findings_reporting.enabled` in manifest, prompt: "Build complete. Report findings to the forge? Run `/report-findings` to review and submit."
+2. **Changelog summary** — if `specs/brd/changelog.md` has entries beyond v1, display: "This build processed {N} requirement changes (v1 → v{M}). See `specs/brd/changelog.md` for the full history."

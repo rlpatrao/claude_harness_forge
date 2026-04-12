@@ -34,8 +34,8 @@ A unified scaffold with 103 files and 11,201 lines of content.
 | Component | Count | Details |
 |-----------|-------|---------|
 | **Agents** | 10 | brd-creator, architect, spec-writer, generator, evaluator, ui-standards-reviewer, code-reviewer, security-reviewer, test-engineer, ui-designer |
-| **Task Skills** | 16 | /brd, /architect, /spec, /design, /implement, /evaluate, /review, /test, /deploy, /build, /auto, /fix-issue, /refactor, /improve, /lint-drift, /cost |
-| **Reference Skills** | 7 | code-gen, spec-writing, architecture, ui-mockup, testing, evaluation, stack-learnings |
+| **Task Skills** | 15 | /brd, /architect, /spec, /design, /implement, /evaluate, /review, /test, /deploy, /build, /auto, /fix-issue, /refactor, /improve, /lint-drift |
+| **Reference Skills** | 7 | code-gen, spec-patterns, architect-patterns, ui-mockup, test-patterns, evaluate-patterns, stack-learnings |
 | **Hooks** | 14 | scope-directory, protect-env, detect-secrets, lint-on-save, typecheck, check-architecture, check-function-length, check-file-length, protect-pdfs, pre-commit-gate, sprint-contract-gate, teammate-idle-check, task-completed, cost-tracker |
 | **Templates** | 9 | Docker Compose, Dockerfiles (backend + frontend), .env.example, init.sh, features-template, sprint-contract, Playwright config |
 | **Evals** | 4 samples | bad-dead-code, bad-long-function, bad-test-quality, bad-upward-import |

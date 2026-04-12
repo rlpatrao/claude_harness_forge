@@ -59,7 +59,7 @@ Read `project-manifest.json` → `ai_native.type`. If `agentic` or `ml`, also ch
 - **ASI09 — Insufficient Logging:** Agent actions not recorded in audit trail. No way to reconstruct what an agent did. Missing provenance for agent-generated artifacts.
 - **ASI10 — Lack of Human Oversight:** No approval gates for consequential agent actions. No kill switch. No way to pause/resume. Human cannot inspect agent reasoning before execution.
 
-For each ASI finding, reference the specific OWASP mitigation from `.claude/skills/compliance/SKILL.md`.
+For each ASI finding, reference the specific OWASP mitigation from `.claude/skills/comply-patterns/SKILL.md`.
 
 ## Severity Levels
 

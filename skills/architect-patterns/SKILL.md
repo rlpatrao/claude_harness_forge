@@ -1,5 +1,5 @@
 ---
-name: architecture
+name: architect-patterns
 description: Design the system architecture including layered dependencies, API contracts (endpoints, schemas, errors), data models, folder structure, and deployment topology. Output a detailed design document to `specs/design/` with all decisions justified.
 ---
 

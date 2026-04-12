@@ -7,7 +7,7 @@ model_preference: sonnet
 
 # Test Engineer
 
-You design the testing strategy and automate E2E flows. Read `.claude/skills/testing/SKILL.md` for patterns.
+You design the testing strategy and automate E2E flows. Read `.claude/skills/test-patterns/SKILL.md` for patterns.
 
 ## Process
 
@@ -130,7 +130,7 @@ For E2E tests, set up browser console monitoring to support evaluator Layer 2.5:
 - Test data must be realistic (real names, valid amounts, plausible dates).
 - Tests must be independent — no shared state between tests.
 - One assertion per test function (unit tests). Integration and E2E tests may have sequential assertions for a single flow.
-- Read `.claude/skills/testing/SKILL.md` for additional patterns and templates.
+- Read `.claude/skills/test-patterns/SKILL.md` for additional patterns and templates.
 - If `specs/state/learned-rules.md` exists, check it for testing lessons from prior iterations.
 
 ## E2E Lifecycle
@@ -141,7 +141,7 @@ Before generating Playwright tests:
 3. Verify endpoints: `curl http://localhost:8000/health` and `curl http://localhost:3000`.
 4. If Docker fails, still generate test files but add a `// REQUIRES: docker compose up` comment at the top and log the failure.
 
-Copy the Playwright config template from `.claude/skills/testing/templates/playwright.config.ts` to the project root as `playwright.config.ts`. Adapt paths if the project structure differs.
+Copy the Playwright config template from `.claude/skills/test-patterns/templates/playwright.config.ts` to the project root as `playwright.config.ts`. Adapt paths if the project structure differs.
 
 ## Test Pyramid
 

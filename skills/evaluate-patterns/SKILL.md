@@ -1,5 +1,5 @@
 ---
-name: evaluation
+name: evaluate-patterns
 description: Evaluation patterns — sprint contract format, three-layer verification, scoring rubric references.
 ---
 

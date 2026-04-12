@@ -91,31 +91,32 @@ if [ "$FORGE_MODE" = true ]; then
 
   # --- 3. Skills ---
   echo ""
-  echo "--- Skills (expect >= 36 SKILL.md) ---"
+  echo "--- Skills (expect >= 38 SKILL.md) ---"
   skill_count=$(find skills -name "SKILL.md" 2>/dev/null | wc -l | tr -d ' ')
-  if [ "$skill_count" -ge 36 ]; then
-    pass "Skill definitions: $skill_count (>= 23)"
+  if [ "$skill_count" -ge 38 ]; then
+    pass "Skill definitions: $skill_count (>= 38)"
   else
-    fail "Skill definitions: $skill_count (expected >= 36)"
+    fail "Skill definitions: $skill_count (expected >= 38)"
   fi
 
   for skill in auto brd spec design implement evaluate build review test \
-               deploy fix-issue refactor improve lint-drift cost code-gen \
-               spec-writing architecture ui-mockup testing evaluation stack-learnings architect \
+               deploy fix-issue refactor improve lint-drift code-gen \
+               spec-patterns architect-patterns ui-mockup test-patterns evaluate-patterns stack-learnings architect \
                observe comply rag workflow resilience model-card context-budget tenant \
-               resilience-patterns rag-patterns agentic-ux compliance context-engineering; do
+               resilience-patterns rag-patterns agentic-ux comply-patterns context-engineering \
+               report-findings change dogfood; do
     check_file "skills/$skill/SKILL.md"
   done
 
   # --- 4. Hooks ---
   echo ""
-  echo "--- Hooks (expect 18) ---"
-  check_file_count "hooks" "*.js" 18 "Hook scripts"
+  echo "--- Hooks (expect 19) ---"
+  check_file_count "hooks" "*.js" 19 "Hook scripts"
   for hook in scope-directory protect-env detect-secrets lint-on-save typecheck \
              check-architecture check-function-length check-file-length \
              protect-pdfs pre-commit-gate sprint-contract-gate \
              teammate-idle-check task-completed cost-tracker \
-             token-budget prompt-injection-detect network-egress pii-scan; do
+             token-budget prompt-injection-detect network-egress pii-scan findings-collector; do
     check_file "hooks/$hook.js"
   done
 
@@ -127,6 +128,7 @@ if [ "$FORGE_MODE" = true ]; then
              sprint-contract.json playwright.config.template.ts init-sh.template; do
     check_file "templates/$tpl"
   done
+    check_file "templates/harness-findings.template.md"
 
   # --- 6. Configuration ---
   echo ""
@@ -156,6 +158,8 @@ if [ "$FORGE_MODE" = true ]; then
   check_file "state/coverage-baseline.txt"
   check_file "state/cost-log.json"
   check_file "state/eval-scores.json"
+  check_file "state/harness-findings-log.json"
+  check_file "state/changelog-template.md"
 
   # --- 9. Learnings ---
   echo ""
@@ -210,31 +214,32 @@ else
 
   # --- 3. Skills ---
   echo ""
-  echo "--- Skills (expect >= 23 directories) ---"
+  echo "--- Skills (expect >= 38 directories) ---"
   skill_count=$(find .claude/skills -name "SKILL.md" 2>/dev/null | wc -l | tr -d ' ')
-  if [ "$skill_count" -ge 36 ]; then
-    pass "Skill definitions: $skill_count (>= 23)"
+  if [ "$skill_count" -ge 38 ]; then
+    pass "Skill definitions: $skill_count (>= 38)"
   else
-    fail "Skill definitions: $skill_count (expected >= 36)"
+    fail "Skill definitions: $skill_count (expected >= 38)"
   fi
 
   for skill in auto brd spec design implement evaluate build review test \
-               deploy fix-issue refactor improve lint-drift cost code-gen \
-               spec-writing architecture ui-mockup testing evaluation stack-learnings architect \
+               deploy fix-issue refactor improve lint-drift code-gen \
+               spec-patterns architect-patterns ui-mockup test-patterns evaluate-patterns stack-learnings architect \
                observe comply rag workflow resilience model-card context-budget tenant \
-               resilience-patterns rag-patterns agentic-ux compliance context-engineering; do
+               resilience-patterns rag-patterns agentic-ux comply-patterns context-engineering \
+               report-findings change dogfood; do
     check_file ".claude/skills/$skill/SKILL.md"
   done
 
   # --- 4. Hooks ---
   echo ""
-  echo "--- Hooks (expect 18) ---"
-  check_file_count ".claude/hooks" "*.js" 18 "Hook scripts"
+  echo "--- Hooks (expect 19) ---"
+  check_file_count ".claude/hooks" "*.js" 19 "Hook scripts"
   for hook in scope-directory protect-env detect-secrets lint-on-save typecheck \
              check-architecture check-function-length check-file-length \
              protect-pdfs pre-commit-gate sprint-contract-gate \
              teammate-idle-check task-completed cost-tracker \
-             token-budget prompt-injection-detect network-egress pii-scan; do
+             token-budget prompt-injection-detect network-egress pii-scan findings-collector; do
     check_file ".claude/hooks/$hook.js"
   done
 
@@ -297,6 +302,8 @@ else
   check_file ".claude/state/coverage-baseline.txt"
   check_file ".claude/state/cost-log.json"
   check_file ".claude/state/eval-scores.json"
+  check_file ".claude/state/harness-findings-log.json"
+  check_file ".claude/state/changelog-template.md"
 
   # --- 10. Learnings ---
   echo ""

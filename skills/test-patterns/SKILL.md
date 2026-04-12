@@ -1,5 +1,5 @@
 ---
-name: testing
+name: test-patterns
 description: Test planning, test case design, test data generation, and Playwright E2E automation. Use when creating test plans, writing test cases, generating test data, setting up Playwright, or automating end-to-end tests.
 ---
 

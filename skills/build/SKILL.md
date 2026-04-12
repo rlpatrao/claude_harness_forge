@@ -77,6 +77,21 @@ Create state files before entering the autonomous loop:
    next_action: Begin autonomous build with /auto
    ```
 
+### Phase 5b — Initialize Changelog
+
+Create `specs/brd/changelog.md` from `.claude/state/changelog-template.md` (replace `{date}` with today's date). This tracks all requirement changes throughout the project.
+
+### Phase 5c — Findings Reporting Consent
+
+Ask: "Would you like to help improve the forge? When enabled, the harness collects anonymized findings (no secrets, PII, or project code) and lets you review + submit them as GitHub issues. You always review everything before it's sent. Enable findings reporting?"
+
+If yes: add `findings_reporting` block to `project-manifest.json` with `enabled: true`, `target_repo: "rlpatrao/claude-harness-forge"`, categories list, `last_reported: null`.
+If no: add the block with `enabled: false`.
+
+### Phase 5d — Check Unreported Findings
+
+If `.claude/state/harness-findings-log.json` has unreported entries from a prior session, offer: "There are unreported findings from a previous build. Run `/report-findings` now?"
+
 ### Phase 6 — Observability Scaffolding [AUTO, conditional]
 
 Read `project-manifest.json` → `observability.otel_enabled`. If true, run `/observe` to scaffold OpenTelemetry instrumentation, structured logging, and monitoring dashboards.
@@ -103,6 +118,10 @@ After `/auto` completes (all groups done or stopping criteria met):
 4. **Update `README.md`** — refresh with actual build results: test count, coverage %, features completed, agent descriptions (if agentic). The README skeleton was created by the architect in Phase 2; this step fills in the runtime metrics.
 5. **Verify `Makefile`** — run `make test` and `make lint` to confirm all targets work. Fix any broken targets.
 6. Commit: `git add README.md Makefile && git commit -m "docs: finalize README and Makefile"`
+
+### Phase 12b — Report Findings
+
+If `findings_reporting.enabled` is `true` in manifest, run `/report-findings`. The user reviews and confirms before any submission.
 
 ---
 

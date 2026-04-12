@@ -15,8 +15,9 @@ argument-hint: "[path-to-BRD]"
 
 ## Steps
 
-1. Read `.claude/skills/spec-writing/SKILL.md` for decomposition patterns.
+1. Read `.claude/skills/spec-patterns/SKILL.md` for decomposition patterns.
 2. Spawn `spec-writer` agent with the BRD as input.
+   - Pass the current BRD version (from `specs/brd/changelog.md` or `specs/brd/app_spec.md` frontmatter) to the agent. Stories must include `BRD Version: v{N}` in their frontmatter.
 3. Agent writes output to `specs/stories/`:
    - `epics.md` — epic summaries with story lists
    - `E{n}-S{n}.md` — individual story files with acceptance criteria

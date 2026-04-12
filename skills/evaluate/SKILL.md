@@ -34,7 +34,7 @@ Before running `/evaluate`, verify:
 
 ### Step 1 — Load Evaluation Patterns
 
-Read `.claude/skills/evaluation/SKILL.md` for project-specific evaluation patterns, custom assertion helpers, and any environment-specific overrides.
+Read `.claude/skills/evaluate-patterns/SKILL.md` for project-specific evaluation patterns, custom assertion helpers, and any environment-specific overrides.
 
 ### Step 2 — Load Sprint Contract
 

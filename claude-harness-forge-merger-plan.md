@@ -311,11 +311,11 @@ Note: Phase 2 (`/architect`) now subsumes the stack questions that were previous
 | # | Skill | Source | Content |
 |---|-------|--------|---------|
 | 1 | `code-gen` | Merge | Forge's quality principles + patterns + testing rules + agent-team-setup example + Harness's API integration patterns (404 lines — external API wrappers, LLM integration, structured logging, exception taxonomy) |
-| 2 | `spec-writing` | Forge | BRD decomposition patterns + story template |
-| 3 | `architecture` | Merge | Forge's API patterns + folder structure template + Harness's `project-manifest.json`-driven overrides |
+| 2 | `spec-patterns` | Forge | BRD decomposition patterns + story template |
+| 3 | `architect-patterns` | Merge | Forge's API patterns + folder structure template + Harness's `project-manifest.json`-driven overrides |
 | 4 | `ui-mockup` | Forge | Design system, page template |
-| 5 | `testing` | Merge | Forge's test-case template + Harness's richer Playwright patterns (120 lines vs 57) and test-data fixtures (108 lines vs 56) |
-| 6 | `evaluation` | Harness (new) | Sprint contract schema, scoring rubric, scoring examples, Playwright verification patterns |
+| 5 | `test-patterns` | Merge | Forge's test-case template + Harness's richer Playwright patterns (120 lines vs 57) and test-data fixtures (108 lines vs 56) |
+| 6 | `evaluate-patterns` | Harness (new) | Sprint contract schema, scoring rubric, scoring examples, Playwright verification patterns |
 | 7 | `stack-learnings` | **NEW** | Cross-project stack decision index, common failure patterns, integration notes. Read by architect at start of every new project. |
 
 **Removed:** Forge's `deployment` reference skill is folded into the `deploy` task skill (templates are included directly). Forge's `build/references/error-recovery.md` is merged into `auto` skill's self-healing section.
@@ -354,15 +354,15 @@ Take the union of both hook sets. Where both have the same hook, take the richer
 ```
 skills/brd/templates/app_spec.md              (243 lines)
 skills/brd/templates/feature_spec.md          (322 lines)
-skills/architecture/references/api-patterns.md (134 lines)
-skills/architecture/templates/folder-structure.md (161 lines)
+skills/architect-patterns/references/api-patterns.md (134 lines)
+skills/architect-patterns/templates/folder-structure.md (161 lines)
 skills/auto/references/state-schema.md         (103 lines)
 skills/code-gen/examples/agent-team-setup.md   (52 lines)
 skills/code-gen/references/patterns.md         (79 lines)
 skills/code-gen/references/quality-principles.md (78 lines)
 skills/code-gen/references/testing-rules.md    (52 lines)
-skills/spec-writing/templates/story-template.md (51 lines)
-skills/testing/examples/test-case-template.md  (92 lines)
+skills/spec-patterns/templates/story-template.md (51 lines)
+skills/test-patterns/examples/test-case-template.md  (92 lines)
 skills/ui-mockup/templates/page-template.html  (exists in Forge only)
 skills/deployment/templates/docker-compose.yml
 skills/deployment/templates/Dockerfile.backend.dev
@@ -374,10 +374,10 @@ skills/deployment/templates/.env.example
 
 ```
 skills/code-gen/references/api-integration-patterns.md (404 lines)
-skills/evaluation/references/contract-schema.json (157 lines)
-skills/evaluation/references/playwright-patterns.md (120 lines)
-skills/evaluation/references/ui-standards-checklist.md (replaces scoring-examples.md)
-skills/evaluation/references/standards-by-project-type.md (replaces scoring-rubric.md)
+skills/evaluate-patterns/references/contract-schema.json (157 lines)
+skills/evaluate-patterns/references/playwright-patterns.md (120 lines)
+skills/evaluate-patterns/references/ui-standards-checklist.md (replaces scoring-examples.md)
+skills/evaluate-patterns/references/standards-by-project-type.md (replaces scoring-rubric.md)
 templates/features-template.json
 templates/features-template.example.json
 templates/sprint-contract.json
@@ -401,8 +401,8 @@ evals/samples/bad-upward-import.ts
 
 | File | Winner | Why |
 |------|--------|-----|
-| `testing/references/playwright.md` | Harness (120 vs 57 lines) | More patterns |
-| `testing/references/test-data.md` | Harness (108 vs 56 lines) | More fixtures |
+| `test-patterns/references/playwright.md` | Harness (120 vs 57 lines) | More patterns |
+| `test-patterns/references/test-data.md` | Harness (108 vs 56 lines) | More fixtures |
 
 ---
 

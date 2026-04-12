@@ -207,6 +207,9 @@ cp $PLUGIN_SOURCE/templates/Makefile.template Makefile
 if [ ! -d ".claude/state" ]; then
   cp -r $PLUGIN_SOURCE/state/ .claude/state/
 fi
+
+# Create BRD research and changelog directories
+mkdir -p specs/brd/research
 ```
 
 ## Step 5: Install Plugins (based on question 3)
@@ -430,15 +433,18 @@ One-way dependencies only. See `.claude/architecture.md` for full rules.
 |------|-------|
 | Architecture rules | `.claude/architecture.md` |
 | Quality principles | `.claude/skills/code-gen/SKILL.md` |
-| Testing patterns | `.claude/skills/testing/SKILL.md` |
-| Sprint contract format | `.claude/skills/evaluation/references/contract-schema.json` |
-| UI standards checklist | `.claude/skills/evaluation/references/ui-standards-checklist.md` |
+| Testing patterns | `.claude/skills/test-patterns/SKILL.md` |
+| Sprint contract format | `.claude/skills/evaluate-patterns/references/contract-schema.json` |
+| UI standards checklist | `.claude/skills/evaluate-patterns/references/ui-standards-checklist.md` |
 | Human control knobs | `.claude/program.md` |
 | Session recovery | `claude-progress.txt` |
 | Feature tracking | `features.json` |
 | Learned rules | `.claude/state/learned-rules.md` |
 | Cost estimates | `.claude/state/cost-log.json` (or run `/cost`) |
 | Stack learnings | `.claude/learnings/stack-decisions/` |
+| BRD changelog | `specs/brd/changelog.md` |
+| Research findings | `specs/brd/research/` |
+| Harness findings log | `.claude/state/harness-findings-log.json` |
 
 ## Agents (10)
 
