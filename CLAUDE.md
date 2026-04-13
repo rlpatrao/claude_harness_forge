@@ -32,7 +32,7 @@ GAN-inspired autonomous SDLC scaffold with browser-based verification, Karpathy 
 | ui-designer | React+Tailwind HTML mockups, agentic UX patterns | Sonnet |
 | **compliance-reviewer** | Bias/fairness, PII, data privacy, regulatory compliance, model cards | Sonnet |
 
-## 11-Gate Ratchet
+## 12-Gate Ratchet
 
 | Gate | Full | Lean | Solo | Turbo | Condition |
 |------|------|------|------|-------|-----------|
@@ -47,6 +47,7 @@ GAN-inspired autonomous SDLC scaffold with browser-based verification, Karpathy 
 | 9. Mutation testing | Yes | Yes | -- | End only | Always |
 | 10. Compliance (bias, fairness, PII) | Yes | -- | -- | End only | ML projects |
 | 11. Spec gaming detection | Yes | Yes | Yes | Per commit | **Always (cannot disable)** |
+| 12. Smoke launch (real data) | Yes | Yes | Yes | Per commit | **Always (cannot disable)** |
 
 ## Key Design Decisions
 
@@ -54,7 +55,7 @@ GAN-inspired autonomous SDLC scaffold with browser-based verification, Karpathy 
 2. **Browser verification:** Playwright MCP > Chrome extension MCP > Playwright listeners (auto-detected).
 3. **Interactive architect:** Up to 11 rounds — backend, DB, frontend, LLM routing, deployment, verification, agentic architecture, ML pipeline, governance, cost budget, final challenge.
 4. **AI-native detection:** Architect detects if the app is CRUD, ML, agentic, or RAG from the BRD and activates relevant pillars (compliance, observability, RAG scaffolding, workflow orchestration).
-5. **11-gate ratchet:** Gates 1-8 (original) + mutation testing + compliance + spec gaming detection. Gate 11 runs in ALL modes.
+5. **12-gate ratchet:** Gates 1-8 (original) + mutation testing + compliance + spec gaming detection + smoke launch. Gates 11-12 run in ALL modes and cannot be disabled.
 6. **15 pillars:** LLM agnosticism, protocol compliance (MCP/A2A), security (OWASP Agentic), observability (OTel), evaluation, architect AI-native rounds, cross-project learning, CI/CD, context engineering, resilience, RAG patterns, agentic UX, workflow orchestration, ethics/bias, multi-tenancy.
 7. **Local LLM support:** Cloud-only, hybrid, or local-only routing (Qwen3-Coder, DeepSeek, any OpenAI-compatible).
 8. **Change management:** `/change` skill logs requirement changes to `specs/brd/changelog.md` with version tracking, runs impact analysis, and cascades updates through only the affected downstream artifacts.

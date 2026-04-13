@@ -62,6 +62,7 @@ Also check:
 - **Meaningful assertions** — tests that call functions without asserting on results are a BLOCK. Look for tests that only check `assert result is not None` when they should check specific values.
 - **Edge cases** — each function with branching logic should have tests for the happy path, at least one error path, and boundary values.
 - **Test isolation** — tests must not depend on execution order or shared mutable state.
+- **Real data coverage** — at least one E2E or integration test must load real production data (actual config files, data files, maps, models), not only synthetic fixtures. Flag as WARN if all tests use only inline/synthetic test data and the app loads data from files at runtime.
 
 ### Step 5 — Story Traceability
 

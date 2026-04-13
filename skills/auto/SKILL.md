@@ -186,6 +186,7 @@ After the agent team completes, run the ratchet gate. The ratchet is monotonic: 
 | 9. Mutation testing (mutmut/Stryker) | Yes | Yes | No | End only | Always |
 | 10. Compliance reviewer (bias, fairness, PII) | Yes | No | No | End only | ML projects only |
 | 11. Spec gaming detection | Yes | Yes | Yes | Per commit | Always |
+| 12. Smoke launch (real data) | Yes | Yes | Yes | Per commit | Always |
 
 ### Gate 9 — Mutation Testing
 
@@ -226,6 +227,35 @@ If any BLOCK findings: FAIL. Generator must fix before proceeding.
 5. **No test weakening:** If a test assertion changed from specific to generic (e.g., `toBe(42)` → `toBeTruthy()`), WARN.
 
 This gate exists because research shows frontier models actively game specifications (METR 2025, Anthropic reward hacking research). It cannot be disabled.
+
+### Gate 12 — Smoke Launch (Real Data Integration)
+
+**Run in ALL modes after every group.** This gate verifies the application actually starts and runs with real production data. It exists because tests using synthetic fixtures routinely pass while the app crashes on launch (see learnings/failure-patterns/common-failures.md, pattern F1).
+
+**For web apps (api_base_url set in manifest):**
+1. Verify Docker stack is healthy: `docker compose ps`
+2. Hit health endpoint: `curl -sf {api_base_url}/health`
+3. If UI exists: load homepage via Playwright, check for no console errors
+
+**For CLI apps / libraries / non-web projects (no api_base_url):**
+1. Import the main module: `python3 -c "import {module}; print('OK')"` or equivalent
+2. Load real production data (config files, data files, maps, models — whatever the app reads at startup)
+3. Exercise the main code path headlessly for N iterations:
+   ```bash
+   python3 -c "
+   from {module} import MainClass, DataLoader
+   data = DataLoader.from_file()  # REAL file, not test fixture
+   app = MainClass(data)
+   for _ in range(100):
+       app.update()
+   print('Smoke launch: OK')
+   "
+   ```
+
+**For all project types:**
+- If the smoke launch crashes: **FAIL**. Read the traceback, fix the code, retry (up to 3 attempts).
+- The key distinction: unit tests verify logic with controlled inputs. Smoke launch verifies the app doesn't crash with real-world data (files with unequal row lengths, large datasets, production configs with unexpected values).
+- This gate cannot be skipped. Code that hasn't been seen running is not verified.
 
 ### Turbo Mode (for highly capable models)
 

@@ -33,7 +33,29 @@ You are the Evaluator — the skeptic in the GAN-inspired Claude Harness Engine 
   - `local`: App runs as local processes. Use configured `backend_url` and `frontend_url`. Read error context from process stdout/stderr.
   - `stub`: Mock server auto-generated from `api-contracts.schema.json`. Layer 1 checks run against stub. Layer 2 skipped if no frontend available.
 
-### Health-Check Retry
+### Non-Web Projects (CLI apps, libraries, games, scripts)
+
+If `project-manifest.json` has no `api_base_url` and no `ui_base_url` (or both are null), the project is non-web. Skip Layer 1 (API) and Layer 2 (Playwright) and instead run **Smoke Launch Verification**:
+
+1. **Import check:** `python3 -c "import {module}; print('OK')"` or equivalent for the project's language.
+2. **Real-data launch:** Load actual production data files (not test fixtures) and exercise the main code path:
+   ```bash
+   python3 -c "
+   from {module} import MainClass, DataLoader
+   data = DataLoader.from_file()  # REAL production data
+   app = MainClass(data)
+   for _ in range(100):
+       app.update()
+   print('Smoke launch: OK')
+   "
+   ```
+3. **Adapt to project type:** For a game, run 100 ticks. For a CLI tool, process sample input. For a library, call the main public API with realistic arguments.
+
+If the smoke launch crashes: **FAIL** with `failure_layer: "smoke_launch"` and the full traceback as `failure_reason`.
+
+This exists because unit tests routinely pass against small synthetic fixtures while the real app crashes on production data (pattern F1 in learnings/failure-patterns/common-failures.md).
+
+### Health-Check Retry (Web Projects)
 
 Before running ANY Layer 1 or Layer 2 check, verify the app is reachable:
 

@@ -463,7 +463,7 @@ One-way dependencies only. See `.claude/architecture.md` for full rules.
 | ui-designer | React+Tailwind mockups | Sonnet |
 | compliance-reviewer | Bias, fairness, PII, regulatory compliance | Sonnet |
 
-## Ratchet Gates (11)
+## Ratchet Gates (12)
 
 | Gate | Full | Lean | Solo | Turbo |
 |------|------|------|------|-------|
@@ -478,6 +478,7 @@ One-way dependencies only. See `.claude/architecture.md` for full rules.
 | 9. Mutation testing | ✓ | ✓ | — | End only |
 | 10. Compliance (bias, fairness, PII) | ✓ | — | — | End only |
 | 11. Spec gaming detection | ✓ | ✓ | ✓ | Per commit |
+| 12. Smoke launch (real data) | ✓ | ✓ | ✓ | Per commit |
 
 ## Git Workflow
 

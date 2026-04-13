@@ -79,6 +79,7 @@ Based on:
 |  Gate 9:   Mutation testing                       [full/lean]        |
 |  Gate 10:  Compliance (bias, fairness, PII)       [full only]        |
 |  Gate 11:  Spec gaming detection                  [all modes]        |
+|  Gate 12:  Smoke launch (real data)               [all modes]        |
 +--------+------------------+--------------------+--------------------+
          |                  |                    |
          v                  v                    v
