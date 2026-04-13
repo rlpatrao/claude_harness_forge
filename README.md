@@ -100,7 +100,7 @@ The merged system uses the **Harness's adversarial verification as the structura
 - **Generator-Evaluator separation** — the agent that writes code cannot evaluate it. Structural elimination of self-evaluation bias.
 - **Browser console error capture** — Playwright captures `console.error`, unhandled rejections, and failed network requests during UI verification. Frontend bugs feed directly into self-healing.
 - **Interactive architect** — conducts up to 11 rounds of stack interrogation informed by your BRD, challenges weak decisions, offers local LLM options, detects AI-native project types, and persists learnings across projects.
-- **11-gate ratchet** — monotonic progress. Coverage never drops, tests never break, architecture never drifts. Gates 9-11 add mutation testing, compliance review, and spec gaming detection. Quality only moves forward.
+- **12-gate ratchet** — monotonic progress. Coverage never drops, tests never break, architecture never drifts. Gates 9-12 add mutation testing, compliance review, spec gaming detection, and smoke launch with real data. Quality only moves forward.
 - **OWASP Agentic Top 10** — security reviewer checks both traditional web vulnerabilities (OWASP Web Top 10) and agentic-specific threats (ASI01-ASI10): excessive agency, prompt injection, insecure tool use, insufficient access control, improper output handling, and more.
 - **Compliance reviewer** — dedicated agent for bias/fairness audits, PII detection, data privacy checks, regulatory compliance, and model card generation. Activated automatically for ML projects.
 - **Mutation testing** — gate 9 runs mutmut (Python) or Stryker (TypeScript) to verify tests actually catch regressions, not just cover lines.
@@ -114,7 +114,15 @@ The merged system uses the **Harness's adversarial verification as the structura
 - **4 execution modes** — Full ($100-300), Lean ($30-80), Solo ($5-15), Turbo ($30-50). Right-size cost to project complexity.
 - **Local LLM routing** — run all agents on Qwen3-Coder-480B, DeepSeek-Coder-V3, or any OpenAI-compatible local model. Zero API cost.
 - **Cross-project learning** — stack decisions, failure patterns, and integration notes persist across all projects built with this harness.
-- **Self-tested** — this harness was dogfooded by building a fraud detection SaaS through its own pipeline, finding and fixing 9 issues in the process.
+- **Self-tested** — dogfooded across 6 test projects (fraud detection SaaS, ML fraud v2, agentic fraud, Vikings chat, Pac-Man CLI, Task Manager). 18+ forge issues found and fixed. Both mandatory scenarios (web + CLI) proven with browser verification and PTY testing.
+- **BRD change management** — `/change` skill logs requirement changes to `specs/brd/changelog.md` with version tracking, runs impact analysis on affected stories/design/code, and cascades updates through only the affected downstream artifacts.
+- **Internet research** — BRD creator and architect agents have WebSearch/WebFetch and proactively offer to research when requirements are high-level or technology choices involve rapidly evolving domains. Results saved to `specs/brd/research/`.
+- **Self-improving feedback** — opt-in `/report-findings` collects anonymized build findings (no secrets/PII/code) and lets users review + submit as GitHub issues. `findings-collector.js` hook captures findings passively during builds.
+- **Status dashboard** — `/status` generates a terminal-friendly ASCII dashboard showing per-group story progress (spec'd/coded/unit-tested/E2E-verified), quality ratchet metrics, blockers, and recent activity. Auto-displayed after each group verdict and phase transition.
+- **PTY-based E2E for CLI apps** — terminal applications tested via pseudo-terminal: launch app, send keystrokes, verify rendered output, confirm clean exit. Proven on Pac-Man CLI dogfood (75 tests).
+- **Gate 12: Smoke Launch** — every group runs the app with real production data (not test fixtures). Catches the #1 false-green pattern: tests pass on synthetic data, app crashes on launch. Cannot be disabled.
+- **Test planning phase** — Phase 3.5 runs the test-engineer to generate test-plan.md, test-cases.md, traceability-matrix.md, and fixtures.json. Every test traces back to a BRD requirement.
+- **Naming standardization** — reference skills use `-patterns` suffix (architect-patterns, spec-patterns, test-patterns, evaluate-patterns, comply-patterns) for instant clarity on execution vs reference.
 
 ## Quick Start
 
@@ -137,21 +145,22 @@ claude
 > /build
 ```
 
-## 9-Phase Pipeline
+## 10-Phase Pipeline
 
 ```
-Phase 1: /brd        -> Socratic interview -> BRD              [HUMAN APPROVAL]
-Phase 2: /architect   -> Stack interrogation -> Design artifacts [HUMAN APPROVAL]
-Phase 3: /spec        -> Stories + dependency graph             [HUMAN APPROVAL]
-Phase 4: /design      -> UI mockups                            [HUMAN APPROVAL]
-Phase 5: Initialize state
-Phases 6-9: /auto     -> Autonomous ratcheting build loop
-Phase 10: Post-build  -> Learnings + README generation
+Phase 1:   /brd        -> Socratic interview -> BRD              [HUMAN APPROVAL]
+Phase 2:   /architect   -> Stack interrogation -> Design artifacts [HUMAN APPROVAL]
+Phase 3:   /spec        -> Stories + dependency graph             [HUMAN APPROVAL]
+Phase 3.5: /test        -> Test plan + test cases + traceability  [AUTO]
+Phase 4:   /design      -> UI mockups                            [HUMAN APPROVAL]
+Phase 5:   Initialize state + changelog + findings consent
+Phases 6-9: /auto      -> Autonomous ratcheting build loop
+Phase 10:  Post-build   -> Learnings + README + findings report + final status
 ```
 
 `/build` runs all phases. Phases 1-4 pause for human approval. Phases 5+ run autonomously.
 
-## Commands (24)
+## Commands (28)
 
 | Command | Purpose |
 |---------|---------|
@@ -200,7 +209,7 @@ Phase 10: Post-build  -> Learnings + README generation
 | ui-designer | React+Tailwind HTML mockups, agentic UX patterns | Sonnet |
 | compliance-reviewer | Bias/fairness, PII, data privacy, regulatory compliance, model cards | Sonnet |
 
-## 11-Gate Ratchet
+## 12-Gate Ratchet
 
 | Gate | Full | Lean | Solo | Turbo | Condition |
 |------|------|------|------|-------|-----------|
@@ -215,6 +224,7 @@ Phase 10: Post-build  -> Learnings + README generation
 | 9. Mutation testing | Yes | Yes | -- | End only | Always |
 | 10. Compliance (bias, fairness, PII) | Yes | -- | -- | End only | ML projects |
 | 11. Spec gaming detection | Yes | Yes | Yes | Per commit | **Always (cannot disable)** |
+| 12. Smoke launch (real data) | Yes | Yes | Yes | Per commit | **Always (cannot disable)** |
 
 ## LLM Model Routing
 
@@ -346,6 +356,22 @@ mkdir test-projects/my-test && cd test-projects/my-test
 # Fix issues in the forge source, re-validate
 ```
 
+### April 2026 Dogfooding: Two More Test Projects
+
+**Pac-Man CLI (terminal game):**
+- Proved the non-web E2E pipeline: PTY-based testing that launches the curses game, sends keystrokes, verifies rendered output
+- Found forge bug F1: 68 tests passed on 5x5 synthetic mazes but game crashed on real 28x31 maze (rows of unequal length). Led to Gate 12 (Smoke Launch) and mandatory real-data E2E testing.
+- 75 tests: 54 unit + 16 headless E2E + 5 PTY E2E
+
+**Task Manager (web CRUD app):**
+- Proved the full Playwright MCP browser verification pipeline end-to-end
+- All 8 MCP tools exercised: browser_navigate, browser_snapshot, browser_fill_form, browser_click, browser_take_screenshot, browser_console_messages, browser_network_requests, browser_handle_dialog
+- 6 browser scenarios verified: app loads, create task, edit task, filter by status, delete with confirmation, network health check
+- 3 screenshots captured as evidence, 0 console errors, all API requests 2xx
+- 14 backend tests + 6 browser E2E scenarios
+
+Both mandatory dogfood scenarios (web + CLI) must pass before any forge release.
+
 ### Plugin Ecosystem
 
 The scaffold offers 25+ Claude Code plugins organized by compatibility:
@@ -359,12 +385,12 @@ The scaffold offers 25+ Claude Code plugins organized by compatibility:
 ```
 claude_harness_forge/
   agents/           11 agent definitions (.md)
-  skills/           36 skills (24 task + 12 reference)
-  hooks/            18 Node.js enforcement hooks
+  skills/           39 skills (28 task + 11 reference) — reference skills use -patterns suffix
+  hooks/            19 Node.js enforcement hooks
   evals/            Code reviewer regression tests (4 samples)
-  templates/        15 templates (Docker, Playwright, OTel, RAG, Temporal, model card, env)
-  learnings/        Cross-project knowledge base
-  state/            7 initial state files
+  templates/        17 templates (Docker, Playwright, OTel, RAG, Temporal, model card, env, findings report)
+  learnings/        Cross-project knowledge base (with first failure pattern F1)
+  state/            8 initial state files
   scripts/          4 validation scripts
   commands/         /scaffold command
   .claude-plugin/   Plugin manifest
