@@ -152,19 +152,70 @@ After each Playwright interaction sequence, capture browser health:
 
 Write browser health results as structured failures (see evaluator agent for format). These feed directly into the self-healing loop — no separate pipeline.
 
-### Tool Detection
+### Tool Detection and Fallback Chain
 
-At the start of the evaluation pass, detect which browser tools are available:
+At the start of the evaluation pass, detect available browser tools and log the active method.
 
+**Detection sequence:**
+1. Attempt `mcp__plugin_playwright_playwright__browser_tabs` — if it returns without error, Playwright MCP is available (Priority 1)
+2. Attempt `mcp__claude-in-chrome__tabs_context_mcp` — if it returns, Chrome extension is available (Priority 2)
+3. If neither: fall back to Playwright listener injection in E2E test files (Priority 3)
+
+Log in evaluator report header:
 ```
-If mcp__plugin_playwright_playwright__browser_navigate exists:
-  → Use Playwright MCP tools (richest: DOM snapshots, screenshots, console, network)
-Else if read_console_messages exists:
-  → Use Chrome extension MCP tools (real browser, full stack traces)
-Else:
-  → Fall back to Playwright listener injection in E2E test files
-Log which method is active in the evaluator report.
+Browser verification: Playwright MCP ✓ | Chrome Extension ✗ | Listeners (fallback) ✗
+Active method: Playwright MCP
 ```
+
+**Mandatory execution per page (Priority 1 — Playwright MCP):**
+```
+1. browser_navigate → {ui_base_url}/{page}
+2. browser_wait_for → network idle or specific element
+3. browser_snapshot → verify expected elements in DOM
+4. browser_fill_form / browser_click → execute interaction
+5. browser_snapshot → verify action produced expected result
+6. browser_take_screenshot → save to specs/reviews/screenshots/{group}-{story}-{step}.png
+7. browser_console_messages → check for errors
+8. browser_network_requests → check for 4xx/5xx
+```
+
+**Mandatory execution (Priority 2 — Chrome extension):**
+```
+1. mcp__claude-in-chrome__navigate → page URL
+2. mcp__claude-in-chrome__read_page → verify content
+3. mcp__claude-in-chrome__form_input / find + click → interact
+4. mcp__claude-in-chrome__read_page → verify result
+5. mcp__claude-in-chrome__computer → screenshot
+6. mcp__claude-in-chrome__read_console_messages → check errors
+7. mcp__claude-in-chrome__read_network_requests → check failures
+```
+
+**Mandatory execution (Priority 3 — Playwright listeners):**
+```
+1. Generate E2E test files with page.on('console') + page.on('response') listeners
+2. Run: npx playwright test --reporter=json --output=specs/reviews/playwright-results/
+3. Parse JSON for failures, console errors, network errors
+4. Extract screenshots from test artifacts
+```
+
+### Browser Verification Is Not Optional
+
+If `ui_base_url` is set in `project-manifest.json`, at least one browser verification method MUST succeed. If all three priorities fail:
+- FAIL the gate with `failure_layer: "infrastructure"`
+- `failure_reason: "No browser verification method available. Playwright MCP: {error}. Chrome extension: {error}. Listeners: {error}."`
+- Do NOT silently skip browser checks and pass the gate
+
+### Screenshot Evidence
+
+Every browser interaction MUST produce a screenshot. Screenshots are saved to:
+```
+specs/reviews/screenshots/
+  {group}-{story}-01-page-loaded.png
+  {group}-{story}-02-form-filled.png
+  {group}-{story}-03-action-result.png
+```
+
+If Priority 3 (listeners) is active and screenshots cannot be captured, log: `WARN: No screenshot evidence — running in headless listener mode`
 
 ---
 

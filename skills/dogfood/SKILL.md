@@ -467,6 +467,37 @@ git commit -m "fix: {summary} (found during /dogfood)"
 git push
 ```
 
+## Mandatory Dogfood Scenarios
+
+The forge must be dogfooded with at least two project types to verify both verification pipelines:
+
+### 1. Web App (proves Playwright MCP + Chrome extension pipeline)
+```
+/dogfood "Build a task manager" --type crud --mode lean
+```
+Verifies:
+- API checks via curl against running backend
+- Browser verification via Playwright MCP or Chrome extension
+- Screenshot capture saved to disk
+- Console error detection during UI interaction
+- Network request monitoring for 4xx/5xx
+- Full evaluator report with Layer 1 + 2 + 2.5 results
+
+**This is the only way to prove Gate 5 actually works.** A dogfood run that skips browser verification (because the project has no UI) does not test the most critical verification path.
+
+### 2. CLI / Non-Web App (proves PTY E2E + smoke launch pipeline)
+```
+/dogfood "Build a terminal game" --type crud --mode lean
+```
+Verifies:
+- PTY-based E2E tests (launch in terminal, send keystrokes, verify output)
+- Smoke launch with real production data (Gate 12)
+- Non-web evaluator path works
+
+### Release Gating
+
+Before any forge release, BOTH scenarios must have passed in the most recent dogfood run. A release with only CLI dogfooding or only web dogfooding is incomplete — it leaves an entire verification pipeline unproven.
+
 ## Gotchas
 
 - **Don't stop to ask the human.** The whole point of dogfooding is autonomous execution. If something is ambiguous, make a decision, log it, and continue.
@@ -475,3 +506,4 @@ git push
 - **Don't skip groups.** Even if a group fails, attempt all groups to find as many forge issues as possible.
 - **Log everything.** The dogfood report is the primary output — it's the forge's test results.
 - **Classify correctly.** A forge issue vs project issue distinction is critical. Forge issues get committed to the forge repo. Project issues are just self-healing data.
+- **Browser verification is not optional for web apps.** If the dogfood project has a UI and browser verification was skipped (no MCP available, Docker not running), the dogfood run is INCOMPLETE. Log it prominently in the report and fix the verification pipeline before releasing.

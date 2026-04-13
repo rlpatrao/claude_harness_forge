@@ -172,7 +172,76 @@ If `read_console_messages` and `read_network_requests` tools are available (from
 **Priority 3 — Playwright listener injection** (fallback):
 If neither MCP option is available, instruct the test-engineer to wire Playwright listeners into E2E tests (the `page.on('console')` approach). This works in headless mode with zero dependencies.
 
-Auto-detect which tools are available at the start of each evaluation pass. Log which method is being used in the evaluator report.
+### MCP Tool Detection and Execution Steps
+
+At the start of each evaluation pass, detect which browser tools are available and log the method in the evaluator report.
+
+**Step 1 — Detect available tools:**
+
+Check for Playwright MCP tools by attempting to list tabs or snapshot:
+```
+Try: mcp__plugin_playwright_playwright__browser_tabs
+  → If available: use Playwright MCP (Priority 1)
+Try: mcp__claude-in-chrome__tabs_context_mcp
+  → If available: use Chrome extension MCP (Priority 2)
+Otherwise: fall back to Playwright listener injection (Priority 3)
+```
+
+Log in evaluator report: `Browser verification method: Playwright MCP | Chrome Extension | Playwright Listeners`
+
+**Step 2 — For each page/endpoint in the sprint contract:**
+
+Using Priority 1 (Playwright MCP):
+```
+1. browser_navigate → {ui_base_url}/{page}
+2. browser_wait_for → page load / network idle
+3. browser_snapshot → capture DOM, verify expected elements exist
+4. browser_fill_form / browser_click → interact (fill inputs, click buttons)
+5. browser_snapshot → verify the action produced expected change
+6. browser_take_screenshot → save to specs/reviews/screenshots/{page}-{action}.png
+7. browser_console_messages → check for errors (FAIL if any non-ignorable)
+8. browser_network_requests → check for 4xx/5xx not in expected_errors
+```
+
+Using Priority 2 (Chrome extension):
+```
+1. mcp__claude-in-chrome__navigate → {ui_base_url}/{page}
+2. mcp__claude-in-chrome__read_page → verify expected content
+3. mcp__claude-in-chrome__form_input / find + click → interact
+4. mcp__claude-in-chrome__read_page → verify result
+5. mcp__claude-in-chrome__computer → take screenshot
+6. mcp__claude-in-chrome__read_console_messages → check for errors
+7. mcp__claude-in-chrome__read_network_requests → check for failures
+```
+
+Using Priority 3 (Playwright listeners):
+```
+1. Generate/update E2E test files with page.on('console') listeners
+2. Run: npx playwright test --reporter=json
+3. Parse JSON report for failures
+4. Extract console/network errors from listener output
+```
+
+**Step 3 — Screenshot evidence:**
+
+Every browser verification MUST produce screenshots saved to `specs/reviews/screenshots/`. Naming convention:
+```
+specs/reviews/screenshots/
+  {group}-{story}-01-page-loaded.png
+  {group}-{story}-02-form-filled.png
+  {group}-{story}-03-action-result.png
+```
+
+If screenshots cannot be captured (Priority 3 fallback): log `WARN: No screenshot evidence — using Playwright listener fallback`.
+
+**Step 4 — Failure handling:**
+
+If an MCP tool call fails (timeout, extension not responding, tool not found):
+1. Log the failure: `WARN: {tool} failed with {error}`
+2. Fall back to next priority
+3. If all priorities fail: FAIL the gate with `failure_layer: "infrastructure"` and `failure_reason: "No browser verification method available"`
+
+Do NOT silently skip browser verification. If the project has a UI (`ui_base_url` is set), browser verification is mandatory.
 
 ### Evaluation Rules
 
