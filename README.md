@@ -294,67 +294,33 @@ A scaffold that tells others how to build software should be able to survive its
 9. Repeat until the full pipeline completes without forge-level failures
 ```
 
-This process is intentionally adversarial — the test project is a real application (not a toy), configured with non-default settings (local-only LLM routing instead of the default cloud-only) to exercise edge paths the happy path wouldn't touch.
+This process is intentionally adversarial — test projects use non-default settings (local-only LLM routing, CLI apps, agentic architectures) to exercise edge paths the happy path wouldn't touch.
 
-### Test Project: Fraud Detection SaaS
+### Dogfood Results: 6 Projects, 18+ Issues Fixed
 
-**Starting prompt:** _"Detecting fraud from set of credit card transactions; use public HF or Kaggle data"_
+| Project | Type | Tests | Key Finding |
+|---------|------|-------|-------------|
+| Fraud Detection | ML SaaS | — | 9 config-to-execution gaps (manifest fields existed but pipeline never read them) |
+| Fraud Detection v2 | ML | — | 7 more issues (compliance crash, stale counts, regex compat) |
+| Agentic Fraud | Agentic | 123 | 4 self-healing cycles (wrong import paths, lazy DB engine) |
+| Vikings Chat | Web + LLM | 20 | First browser-verified dogfood (Playwright MCP screenshots) |
+| **Pac-Man CLI** | Terminal game | **75** | Pattern F1: tests pass on synthetic data, app crashes on real data. Led to Gate 12 (Smoke Launch) |
+| **Task Manager** | Web CRUD | **14 + 6 E2E** | Full Playwright MCP pipeline proven (8 tools, 3 screenshots, 0 console errors) |
 
-**Configuration:** Local-only model routing (Qwen3-Coder-480B-A35B-Instruct via vLLM) — deliberately chosen to stress-test the model routing path that cloud-only wouldn't exercise.
+Both mandatory dogfood scenarios (web + CLI) must pass before any forge release.
 
-The pipeline was run phase by phase, fixing the harness at each step:
-
-| Phase | What It Produced | Harness Issues Found |
-|-------|------------------|---------------------|
-| **Scaffold** | 84 validations passed. 10 agents, 23 skills, 14 hooks, 9 templates copied to `.claude/` | #1: Missing `design.md` copy. #2: Validator expects `init.sh` before architect. #3: No `mkdir -p .claude/` |
-| **BRD** | 864-line app spec + 8 feature specs (2,956 lines total). Covers ingestion, ML scoring, dashboard, alerts, user management, model monitoring, audit logging | None — BRD templates worked cleanly |
-| **Architect** | 6 design artifacts: architecture (Mermaid), API contracts (35+ endpoints), data models (Pydantic + TS + DDL for 8 tables), component map, folder structure, deployment config | #4: 14 skill files used unsupported frontmatter. #5: No LLM model selection round. #6: Progress file missing model routing |
-| **Spec** | 33 stories across 8 epics, organized into 6 parallel dependency groups (A-F). Dependency graph with critical path analysis | #9: Spec didn't generate `features.json` — auto loop would read an empty file |
-| **Design** | 6 interactive HTML mockups (152KB): dashboard with charts, transaction list with filters, SHAP waterfall detail view, CSV upload with progress, alert management, login | None — mockup templates worked cleanly |
-| **Auto Group A** | 62 production files: backend types/config/SQLAlchemy models/Alembic migrations + frontend TypeScript types/Vite config. 0 architecture violations, all gates passed | #7: `model_routing` config was dead — auto/implement/cost-tracker never read it. #8: Re-scaffold would overwrite state files |
-
-### The 9 Issues: What Broke and Why
-
-Each issue was found during dogfooding, fixed in the harness source, and verified by re-running the relevant validation:
-
-| # | Issue | Root Cause | How Dogfooding Found It | Fix |
-|---|-------|------------|-------------------------|-----|
-| 1 | Scaffold doesn't copy `design.md` | Scaffold Step 4 listed `architecture.md` and `program.md` but forgot `design.md` | `validate-scaffold.sh` reported `FAIL: design.md missing` on first run | Added `cp $PLUGIN_SOURCE/design.md design.md` to Step 4 |
-| 2 | Validator expects `init.sh` before architect creates it | Validator was written for post-architect state, but scaffold runs before architect | Scaffold validation failed immediately on a fresh project | Added placeholder `init.sh` in Step 8; architect replaces it later |
-| 3 | Scaffold assumes `.claude/` exists | Step 4 runs `cp -r` into `.claude/agents/` without creating the parent | Would fail on a truly empty target directory | Added `mkdir -p .claude` before copy operations |
-| 4 | 14 skill files use unsupported frontmatter | Skills had `context: fork` and `agent: generator` — valid YAML but not recognized by Claude Code's skill parser | IDE diagnostics showed warnings during architect skill edit | Removed unsupported attributes from all 14 SKILL.md files |
-| 5 | No LLM model selection in architect flow | Original design had 5 rounds; local/hybrid model routing was added later but never wired into the interrogation | Configuring the test project as "local-only" required manually editing the manifest — no interactive path existed | Added Round 4 (AI/LLM Model Selection) with cloud/hybrid/local-only strategies and challenge patterns |
-| 6 | `claude-progress.txt` missing model routing | Progress template was written before model routing existed | Session block didn't record which model ran it — impossible to audit | Added `model_routing:` field to the progress template |
-| 7 | **`model_routing` was dead config** | `project-manifest.json` had `execution.model_routing` with strategy, base_url, model name — but `auto/SKILL.md`, `implement/SKILL.md`, and `hooks/cost-tracker.js` never read it | The local-only test project had the config set correctly, but when simulating the auto loop, nothing would have routed agents to the local endpoint | Wired all three to read manifest: auto verifies local endpoint before first iteration, implement checks before spawning teams, cost-tracker logs $0 for local agents |
-| 8 | Re-scaffold overwrites user state | `cp -r state/` unconditionally copies initial state templates, destroying `learned-rules.md`, `failures.md`, `iteration-log.md` with accumulated project data | Noticed during second scaffold run that state files would be reset | Changed to conditional copy: only copy `state/` if the directory doesn't already exist |
-| 9 | **Spec doesn't generate `features.json`** | `build/SKILL.md` says "/spec outputs features.json" but `spec/SKILL.md` had no step for it. The file was initialized as `[]` by scaffold and never populated | After spec phase, `features.json` was still empty. The auto loop reads this file to track pass/fail — it would see 0 features and have nothing to work on | Added Step 4 to spec skill: generate one entry per story with the features-template schema |
-
-### What This Revealed
-
-**Config-to-execution gaps** were the dominant bug class. The harness documentation said the right things, the manifest had the right fields, the skills referenced them — but the actual execution code never read the config. Issues #7 and #9 would have caused **silent failures** in production: the model routing would default to cloud even when configured for local, and the auto loop would see an empty feature list and declare "nothing to do."
-
-These bugs are **invisible to code review** (the code is syntactically valid, the tests would pass, the architecture is clean) but **immediately obvious when you run the pipeline against a real project**. This is why dogfooding is not optional — it's the evaluator for the harness itself.
-
-### Running the Dogfood Test
-
-The test project lives in `test-projects/` (gitignored — not shipped with the harness):
+### Running a Dogfood
 
 ```bash
-# From the forge repo root:
-ls test-projects/fraud-detection-local/
-
-# Re-run validation at any time:
-bash scripts/validate-scaffold.sh    # 102 passed, 0 failed
-bash scripts/validate-evals.sh       # 10/10 BLOCK violations detected
-bash scripts/validate-gan-loop.sh    # Skipped (needs scaffolded project)
+# Inside the forge repo:
+/dogfood "Build a task manager" --type crud --mode lean    # web app
+/dogfood "Build a terminal game" --type crud --mode lean   # CLI app
 ```
 
-To run a fresh dogfood cycle on a new test project:
+Test projects live in `test-projects/` (gitignored). Validation:
 ```bash
-mkdir test-projects/my-test && cd test-projects/my-test
-# Follow scaffold steps from commands/scaffold.md
-# Run each phase, document issues in forge-issues.md
-# Fix issues in the forge source, re-validate
+bash scripts/validate-scaffold.sh    # 129 passed, 0 failed
+bash scripts/validate-evals.sh       # 10/10 BLOCK violations detected
 ```
 
 ### April 2026 Dogfooding: Two More Test Projects
