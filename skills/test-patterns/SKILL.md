@@ -10,8 +10,30 @@ description: Test planning, test case design, test data generation, and Playwrig
 ```
 Unit Tests (pytest/vitest)     — Fast, isolated, run on every save
 Integration Tests (pytest)     — API endpoints + DB, run on commit
-E2E Tests (Playwright)         — Full user flows, run before merge
+E2E Tests (Playwright)         — Full user flows in browser, run before merge
+E2E Tests (PTY)                — Full user flows in terminal (CLI apps), run before merge
 ```
+
+## CLI / Terminal App E2E (PTY-based)
+
+For non-web projects (CLI tools, terminal games, scripts), use PTY-based E2E testing instead of Playwright. Uses only Python stdlib (`pty`, `os`, `subprocess`, `select`, `fcntl`).
+
+**Pattern:**
+1. Launch the app in a pseudo-terminal via `pty.openpty()` + `subprocess.Popen`
+2. Set terminal size via `fcntl.ioctl(fd, termios.TIOCSWINSZ, struct.pack('HHHH', rows, cols, 0, 0))`
+3. Send keystrokes by writing to the master fd: `os.write(master, b'\n')` for ENTER, `os.write(master, b'\x1b[A')` for arrow keys
+4. Read screen output via `select.select([master], [], [], timeout)` + `os.read(master, 4096)`
+5. Assert expected text appears in output (menu items, game elements, status messages)
+6. Always kill the process in `try/finally` — never leave zombies
+
+**Required test scenarios for CLI apps:**
+- App launches and shows initial screen
+- User input is accepted and produces visible response
+- App exits cleanly (return code 0, terminal state restored)
+- At least one full user workflow (start → interact → complete → exit)
+- Real production data loaded (not just test fixtures)
+
+**Skip on Windows:** `pytest.mark.skipif(sys.platform == 'win32', reason='PTY not available')`
 
 ## Test Case Design
 

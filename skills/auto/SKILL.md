@@ -238,6 +238,10 @@ This gate exists because research shows frontier models actively game specificat
 3. If UI exists: load homepage via Playwright, check for no console errors
 
 **For CLI apps / libraries / non-web projects (no api_base_url):**
+
+Two sub-checks (both required):
+
+**12a. Headless smoke launch:**
 1. Import the main module: `python3 -c "import {module}; print('OK')"` or equivalent
 2. Load real production data (config files, data files, maps, models — whatever the app reads at startup)
 3. Exercise the main code path headlessly for N iterations:
@@ -251,6 +255,15 @@ This gate exists because research shows frontier models actively game specificat
    print('Smoke launch: OK')
    "
    ```
+
+**12b. PTY-based E2E (for interactive CLI apps):**
+If the app has a terminal UI (curses, prompt_toolkit, rich, etc.), run PTY-based E2E tests that launch the actual app in a pseudo-terminal, send keystrokes, and verify rendered output. See `.claude/skills/test-patterns/SKILL.md` for the PTY testing pattern.
+
+Required scenarios:
+- App launches and shows initial screen (verify expected text in PTY output)
+- User input is accepted (send keystrokes, read response)
+- App exits cleanly on quit command (return code 0)
+- Full user workflow exercised (start → interact → complete → exit)
 
 **For all project types:**
 - If the smoke launch crashes: **FAIL**. Read the traceback, fix the code, retry (up to 3 attempts).
