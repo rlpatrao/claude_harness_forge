@@ -325,6 +325,33 @@ If tests fail: self-heal the application code (not the test unless the test is w
 
 **This is not optional.** If the plan says "E2E tests", write E2E tests. Never skip a step in the plan because a different verification method was used. The plan is the contract.
 
+#### Gate 13 — Smoke Launch (MANDATORY)
+
+**Actually launch the application and verify it doesn't crash.** This catches the #1 false-green pattern: tests pass against test fixtures but the app crashes with real data.
+
+For web apps:
+```bash
+# Start backend + frontend, hit health endpoint, load homepage in Playwright
+curl -sf http://localhost:8000/health
+```
+
+For CLI apps:
+```bash
+# Import and run the main entry point headlessly (no interactive terminal needed)
+python3 -c "
+from {module} import main_class, data_loader
+data = data_loader.from_file()  # Load REAL production data, not test fixtures
+app = main_class(data)
+for _ in range(100):  # Run N ticks / iterations
+    app.update()
+print('Smoke launch: OK')
+"
+```
+
+**Key rule: E2E tests MUST exercise real production data, not just small test fixtures.** If the app loads a maze from a file, the E2E test must load that same file. If the app reads a config, the test must use the real config. Synthetic test data catches logic bugs; real data catches integration bugs (wrong dimensions, missing fields, encoding issues, path mismatches).
+
+This gate exists because of a dogfooding finding: 68 unit+E2E tests passed but the game crashed on launch because tests used small 5x5 mazes while the real 28x31 maze had rows of unequal length. The IndexError only appeared in the render path with real data.
+
 5. **On gate failure:**
    - Read the actual error output
    - Classify as forge or project issue

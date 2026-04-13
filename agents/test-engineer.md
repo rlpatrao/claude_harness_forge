@@ -128,6 +128,7 @@ For E2E tests, set up browser console monitoring to support evaluator Layer 2.5:
 - Playwright selectors: `getByRole()`, `getByLabel()`, `getByText()` — never CSS classes.
 - No `waitForTimeout()` — use `toBeVisible()` or `waitForResponse()`.
 - Test data must be realistic (real names, valid amounts, plausible dates).
+- **E2E tests must use real production data, not just small test fixtures.** If the app loads data from a file (maze, config, dataset), at least one E2E test must load the actual production file and exercise the full path. Tests that only use synthetic fixtures miss integration bugs (wrong dimensions, missing fields, encoding issues).
 - Tests must be independent — no shared state between tests.
 - One assertion per test function (unit tests). Integration and E2E tests may have sequential assertions for a single flow.
 - Read `.claude/skills/test-patterns/SKILL.md` for additional patterns and templates.
