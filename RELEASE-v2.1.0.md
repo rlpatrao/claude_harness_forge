@@ -5,10 +5,11 @@
 
 ## What Changed from v2.0.0 to v2.1.0
 
-### New Skills (+3)
+### New Skills (+4)
 - `/change` — BRD change management with version tracking, impact analysis, and selective cascade through spec/design/implementation
 - `/report-findings` — opt-in self-improving feedback loop. Collects anonymized harness findings, user reviews + confirms, submits as GitHub issues. `findings-collector.js` hook captures findings passively.
 - `/status` — terminal ASCII dashboard showing per-group story progress (spec'd/coded/unit-tested/E2E-verified), quality ratchet, blockers, recent activity. Auto-displayed at every checkpoint.
+- `/upgrade` — in-place forge upgrade. Pulls latest from GitHub, replaces forge-owned files (agents, skills, hooks, evals, templates), preserves all project state, merges config, shows detailed status report. Supports `--check` (dry-run) and `--version` (specific tag). No more manual git clone + re-scaffold.
 
 ### Removed Skills (-1)
 - `/cost` — merged into `/context-budget --summary`
@@ -82,6 +83,13 @@ The test-engineer agent was never called in the build pipeline. Now:
 ### New Template (+1)
 - `harness-findings.template.md` — findings report format
 
+### In-Place Upgrade Support
+- `/upgrade` skill pulls latest forge from GitHub, upgrades in place
+- `forge_version` tracking added to `project-manifest.json` during scaffold
+- File categories: replace (forge-owned), preserve (state), merge (config), never-touch (project code)
+- `--check` mode for dry-run, `--version` for specific tags
+- No more manual git clone + restart + re-scaffold
+
 ### First Failure Pattern Documented
 - `learnings/failure-patterns/common-failures.md` now has pattern F1: synthetic-only testing false green
 
@@ -91,8 +99,8 @@ The test-engineer agent was never called in the build pipeline. Now:
 
 | Metric | v2.0.0 | v2.1.0 | Delta |
 |--------|--------|--------|-------|
-| Skills (total) | 36 | 39 | +3 (net: +3 new, -1 removed) |
-| Task skills | 25 | 28 | +3 |
+| Skills (total) | 36 | 40 | +4 (net: +4 new, -1 removed) |
+| Task skills | 25 | 29 | +4 |
 | Reference skills | 11 | 11 | 0 (renamed, not added) |
 | Hooks | 18 | 19 | +1 |
 | Ratchet gates | 11 | 12 | +1 |

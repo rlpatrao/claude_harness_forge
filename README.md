@@ -386,7 +386,7 @@ The scaffold offers 25+ Claude Code plugins organized by compatibility:
 ```
 claude_harness_forge/
   agents/           11 agent definitions (.md)
-  skills/           39 skills (28 task + 11 reference) — reference skills use -patterns suffix
+  skills/           40 skills (29 task + 11 reference) — reference skills use -patterns suffix
   hooks/            19 Node.js enforcement hooks
   evals/            Code reviewer regression tests (4 samples)
   templates/        17 templates (Docker, Playwright, OTel, RAG, Temporal, model card, env, findings report)
@@ -444,6 +444,54 @@ claude_harness_forge/
 - [OWASP Agentic Top 10 (2025)](https://owasp.org/www-project-agentic-ai-top-10/) — ASI01-ASI10 security risks for agentic AI systems
 - [Memory in the Age of AI Agents (2025)](https://arxiv.org/) — survey on context management, memory architectures, and knowledge persistence for long-running agents
 - [AIDev Dataset (2025)](https://arxiv.org/) — benchmark dataset for AI-assisted software development evaluation
+
+## Release History
+
+### [v2.1.0](RELEASE-v2.1.0.md) — April 2026
+
+The **testing and upgrade** release. Focused on closing E2E verification gaps and making the forge upgradable.
+
+- **`/upgrade`** — in-place forge upgrade. Pull latest from GitHub, replace forge files, preserve project state, merge config, show status report. No more manual git clone + re-scaffold.
+- **Gate 12: Smoke Launch** — app must start with real production data. Catches the #1 false-green: tests pass on fixtures, app crashes on launch. Cannot be disabled.
+- **Phase 3.5: Test Planning** — test-engineer generates test-plan.md, test-cases.md, traceability-matrix.md. Every test traces to a BRD requirement.
+- **`/change`** — BRD change management with version tracking and selective cascade
+- **`/report-findings`** — opt-in self-improving feedback to forge GitHub
+- **`/status`** — terminal ASCII dashboard for project health
+- **Internet research** — BRD creator and architect offer to WebSearch for latest patterns
+- **PTY-based E2E** — CLI/terminal apps tested via pseudo-terminal
+- **Concrete MCP pipeline** — step-by-step Playwright MCP + Chrome extension instructions with mandatory screenshot evidence
+- **Naming standardization** — reference skills renamed to `-patterns` suffix
+- Dogfooded on Pac-Man CLI (75 tests) + Task Manager web app (full Playwright MCP verification)
+
+### [v2.0.0](RELEASE-v2.0.0.md) — March 2026
+
+The **15 pillars** release. Expanded from 8-gate to 11-gate ratchet, added AI-native project detection, and implemented all 15 enterprise development pillars.
+
+- 11 agents, 36 skills, 18 hooks, 17 templates
+- 11-gate ratchet (mutation testing, compliance, spec gaming detection)
+- 11-round architect (agentic architecture, ML pipeline, governance, cost budget)
+- Compliance reviewer agent (bias, fairness, PII, regulatory)
+- OWASP Agentic Top 10 (ASI01-ASI10)
+- Local LLM routing (cloud/hybrid/local-only)
+- RAG, workflow, resilience, multi-tenancy scaffolding
+- OpenTelemetry observability
+- Context engineering and cost tracking
+- Dogfooded on 4 projects (fraud detection, ML fraud v2, agentic fraud, Vikings chat)
+- 18 forge issues found and fixed
+- 72 stories implemented, 143 tests passing
+
+### [v1.0.0](RELEASE-v1.0.0.md) — March 2026
+
+The **merger** release. Unified the Forge (template-rich SDLC) and Harness (adversarial verification) into a single system.
+
+- 10 agents, 23 skills, 14 hooks, 9 templates
+- GAN-inspired generator/evaluator separation
+- 8-gate Karpathy ratchet
+- Sprint contracts and session chaining
+- 4 execution modes (Full/Lean/Solo/Turbo)
+- Socratic BRD interview + interactive architect
+- Cross-project learning
+- Plugin-first onboarding via /scaffold
 
 ## License
 
