@@ -61,6 +61,8 @@ At the start of EVERY iteration — including the first — read these files in 
 
 If `claude-progress.txt` indicates a `current_group` that is not yet complete, resume that group. Otherwise, select the next unfinished group in dependency order.
 
+Run `/status` to display current project state before resuming the build loop.
+
 ---
 
 ## SECTION 3: Sprint Contract Negotiation (Steps 2-3)
@@ -376,6 +378,8 @@ Execute these steps in order:
 4. **Update iteration-log.md:** Append entry with group ID, timestamp, verdict, and summary.
 5. **Update coverage-baseline.txt:** Write the new coverage percentage (ratchet up).
 6. **Next group:** Return to SECTION 2 (context recovery) for the next iteration.
+
+Run `/status` to update and display `specs/status.md` with current project health.
 
 ### On FAIL — Self-Healing Loop (Max 3 Attempts)
 
@@ -727,3 +731,4 @@ After all groups pass and the build is complete:
 
 1. **Report findings** — if `findings_reporting.enabled` in manifest, prompt: "Build complete. Report findings to the forge? Run `/report-findings` to review and submit."
 2. **Changelog summary** — if `specs/brd/changelog.md` has entries beyond v1, display: "This build processed {N} requirement changes (v1 → v{M}). See `specs/brd/changelog.md` for the full history."
+3. **Final status** — run `/status` to display the final project dashboard.

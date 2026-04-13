@@ -180,6 +180,7 @@ Phase 10: Post-build  -> Learnings + README generation
 | `/model-card` | Generate model card from training artifacts |
 | `/context-budget` | Token usage analysis + cost summary (--summary for quick overview) |
 | `/report-findings` | Opt-in anonymized findings reporter to forge GitHub |
+| `/status` | Terminal dashboard — stories spec'd, coded, unit-tested, E2E-verified |
 | `/tenant` | Multi-tenancy scaffolding (schema/row/DB isolation) |
 | `/dogfood` | Self-test the forge by running the full pipeline |
 

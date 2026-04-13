@@ -32,6 +32,8 @@ Run `/brd` with the provided requirements document (or start the Socratic interv
 
 Do NOT proceed without a clear "yes" or "approved" from the user.
 
+Run `/status` to display current project progress.
+
 ### Phase 2 — Architecture & Stack [HUMAN APPROVAL]
 
 Run `/architect`. The architect agent reads the approved BRD, conducts an interactive 5-round stack interrogation with the human, generates design artifacts, and verifies completeness.
@@ -40,11 +42,15 @@ Outputs: `specs/design/architecture.md`, `api-contracts.md`, `api-contracts.sche
 
 **Stop and wait for explicit human approval.** Present the architect's verification summary and any concerns. Ask: "Approve architecture to proceed to Phase 3 (Stories)?"
 
+Run `/status` to display current project progress.
+
 ### Phase 3 — Story Specification [HUMAN APPROVAL]
 
 Run `/spec` using the approved BRD and architecture. Outputs are written to `specs/stories/` and `features.json`.
 
 **Stop and wait for explicit human approval.** Present story count, dependency groups, and feature list. Ask: "Approve stories to proceed to Phase 4 (UI Design)?"
+
+Run `/status` to display current project progress.
 
 ### Phase 4 — UI Mockups [HUMAN APPROVAL]
 
@@ -53,6 +59,8 @@ Spawn `ui-designer` agent to create interactive React+Tailwind HTML mockups in `
 Skip this phase entirely for API-only projects (project_type = "api-only" in calibration-profile.json).
 
 **Stop and wait for explicit human approval.** Present mockup file list. Ask: "Approve mockups to proceed to autonomous build?"
+
+Run `/status` to display current project progress.
 
 ### Phase 5 — Initialize State
 
@@ -122,6 +130,10 @@ After `/auto` completes (all groups done or stopping criteria met):
 ### Phase 12b — Report Findings
 
 If `findings_reporting.enabled` is `true` in manifest, run `/report-findings`. The user reviews and confirms before any submission.
+
+### Phase 12c — Final Status
+
+Run `/status` to display the final project dashboard with all metrics.
 
 ---
 

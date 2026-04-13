@@ -7,7 +7,7 @@ GAN-inspired autonomous SDLC scaffold with browser-based verification, Karpathy 
 ## Repo Structure
 
 - `agents/` — 11 agents
-- `skills/` — 38 skills (27 task + 11 reference) — reference skills use `-patterns` suffix
+- `skills/` — 39 skills (28 task + 11 reference) — reference skills use `-patterns` suffix
 - `hooks/` — 19 Node.js enforcement hooks
 - `evals/` — Code reviewer regression tests
 - `templates/` — 17 templates (Docker, Playwright, OTel, RAG, Temporal, model card, env, findings report)

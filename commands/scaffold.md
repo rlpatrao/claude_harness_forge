@@ -393,7 +393,7 @@ Print:
 
 Installed:
   11 agents     → .claude/agents/
-  38 skills     → .claude/skills/
+  39 skills     → .claude/skills/
   19 hooks      → .claude/hooks/
   17 templates  → .claude/templates/
   4 evals       → .claude/evals/
@@ -445,6 +445,7 @@ One-way dependencies only. See `.claude/architecture.md` for full rules.
 | BRD changelog | `specs/brd/changelog.md` |
 | Research findings | `specs/brd/research/` |
 | Harness findings log | `.claude/state/harness-findings-log.json` |
+| Project status dashboard | `specs/status.md` |
 
 ## Agents (11)
 
