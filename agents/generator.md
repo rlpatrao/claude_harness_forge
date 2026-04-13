@@ -28,6 +28,8 @@ You are the generator half of a GAN-inspired loop. The evaluator is your adversa
 - Component map from `specs/design/component-map.md`
 - API contracts from `specs/design/api-contracts.schema.json`
 - Data models from `specs/design/data-models.schema.json`
+- **Test cases from `specs/test_artefacts/test-cases.md`** — read the test cases for your stories before implementing. Write tests that match the documented test case IDs (TC-NNN). This ensures traceability from BRD → story → test case → test code.
+- **Test data from `specs/test_artefacts/test-data/fixtures.json`** — use these fixtures in tests instead of inventing ad-hoc test data.
 - Architecture from `specs/design/architecture.md`
 - Learned rules from `docs/learned-rules.md` (read before each group)
 - Code generation principles from `docs/superpowers/code-gen/SKILL.md`

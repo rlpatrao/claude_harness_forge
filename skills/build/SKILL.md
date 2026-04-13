@@ -52,6 +52,19 @@ Run `/spec` using the approved BRD and architecture. Outputs are written to `spe
 
 Run `/status` to display current project progress.
 
+### Phase 3.5 — Test Planning [AUTO]
+
+Run `/test --plan-only` to generate test artifacts from the approved BRD and stories. The test-engineer agent reads every acceptance criterion and produces:
+
+- `specs/test_artefacts/test-plan.md` — test strategy (pyramid, environments, tools, coverage targets, risk areas)
+- `specs/test_artefacts/test-cases.md` — every test case mapped to a BRD requirement with steps and expected results
+- `specs/test_artefacts/test-data/fixtures.json` — realistic test data for seeding and edge cases
+- `specs/test_artefacts/traceability-matrix.md` — BRD requirement → story → test case → test file mapping
+
+**Verification:** Every BRD requirement must have at least one test case. Every story's acceptance criteria must map to test cases. If the traceability matrix has gaps, the test-engineer must fill them before proceeding.
+
+This phase is NOT optional. Tests without BRD traceability are ad-hoc — they might cover features by accident but nobody can answer "which test verifies requirement X?"
+
 ### Phase 4 — UI Mockups [HUMAN APPROVAL]
 
 Spawn `ui-designer` agent to create interactive React+Tailwind HTML mockups in `specs/design/mockups/`. Architecture artifacts from Phase 2 are already complete — this phase only adds visual mockups.

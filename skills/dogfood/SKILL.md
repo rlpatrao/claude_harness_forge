@@ -96,6 +96,7 @@ Execute all 12 phases sequentially. At each phase:
 | 1. BRD | `specs/brd/app_spec.md` + feature specs | Template missing or malformed |
 | 2. Architect | `specs/design/*.md` + manifest updated | Architect skill missing round, design artifact template broken |
 | 3. Spec | `specs/stories/E*.md` or `{G}-*.md` + `features.json` (array) | features.json is dict, stories missing acceptance criteria |
+| 3.5. Test Planning | `specs/test_artefacts/test-plan.md` + `test-cases.md` + `traceability-matrix.md` + `test-data/fixtures.json` | Test cases not mapped to BRD, missing traceability |
 | 4. Design | `specs/design/mockups/*.html` | Mockup template broken |
 | 5. State init | All state files exist | Scaffold missing state file |
 | 6. Observe | `backend/*/telemetry.py`, `monitoring/*` | OTel template broken |

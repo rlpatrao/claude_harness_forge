@@ -73,7 +73,7 @@ Sprint contracts define the verifiable done-criteria for a group. Two-step propo
 
 Spawn generator as a subagent with this prompt:
 
-> Read stories [list IDs for this group], `specs/design/api-contracts.md`, `specs/design/component-map.md`. Propose a sprint contract for group {ID}. Include: api_checks, playwright_checks, design_checks, architecture_checks, features list. Write the contract to `sprint-contracts/{group}.json`.
+> Read stories [list IDs for this group], `specs/design/api-contracts.md`, `specs/design/component-map.md`, `specs/test_artefacts/test-cases.md` (for test cases mapped to this group's stories), and `specs/test_artefacts/traceability-matrix.md` (for BRD traceability). Propose a sprint contract for group {ID}. Include: api_checks, playwright_checks, design_checks, architecture_checks, features list. Each check must trace to a test case ID from test-cases.md. Write the contract to `sprint-contracts/{group}.json`.
 
 The generator produces a draft contract based on the story acceptance criteria and the architecture design.
 
