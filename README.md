@@ -160,7 +160,7 @@ Phase 10:  Post-build   -> Learnings + README + findings report + final status
 
 `/build` runs all phases. Phases 1-4 pause for human approval. Phases 5+ run autonomously.
 
-## Commands (28)
+## Commands (29)
 
 | Command | Purpose |
 |---------|---------|
@@ -192,6 +192,7 @@ Phase 10:  Post-build   -> Learnings + README + findings report + final status
 | `/status` | Terminal dashboard — stories spec'd, coded, unit-tested, E2E-verified |
 | `/tenant` | Multi-tenancy scaffolding (schema/row/DB isolation) |
 | `/dogfood` | Self-test the forge by running the full pipeline |
+| `/upgrade` | Pull latest forge from GitHub and upgrade in place |
 
 ## Agents (11)
 

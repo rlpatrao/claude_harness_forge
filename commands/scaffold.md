@@ -111,6 +111,19 @@ Write `project-manifest.json` to the project root with populated project info an
 }
 ```
 
+Add forge version tracking to `project-manifest.json`:
+```json
+{
+  "forge_version": {
+    "version": "{from plugin.json}",
+    "sha": "{from git rev-parse --short HEAD of plugin source}",
+    "scaffolded_at": "{ISO timestamp}",
+    "upgraded_at": null
+  }
+}
+```
+This enables `/upgrade` to detect which version is installed and what changed.
+
 The `stack`, `evaluation`, and `verification` sections are filled in by the architect agent after the BRD is approved.
 
 The `execution.model_routing` section defaults to cloud-only (all Claude). The architect agent updates it during Round 4 (AI/LLM Model Selection). Example hybrid config:
@@ -393,7 +406,7 @@ Print:
 
 Installed:
   11 agents     → .claude/agents/
-  39 skills     → .claude/skills/
+  40 skills     → .claude/skills/
   19 hooks      → .claude/hooks/
   17 templates  → .claude/templates/
   4 evals       → .claude/evals/
