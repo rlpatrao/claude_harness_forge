@@ -3,6 +3,24 @@
 **Release Date:** 2026-04-13
 **Previous:** [v2.0.0](RELEASE-v2.0.0.md) (11 agents, 36 skills, 18 hooks, 11-gate ratchet)
 
+## Summary: Issues Found and Solutions Built
+
+| # | Issue / Challenge | Solution |
+|---|---|---|
+| 1 | Upgrading a scaffolded project requires manual git clone, restart Claude with --plugin-dir, re-run /scaffold which re-asks all questions | **`/upgrade`** — pulls latest forge from GitHub, replaces forge-owned files, preserves project state, merges config, shows status report. One command, zero questions. |
+| 2 | Tests pass on synthetic fixtures but app crashes on launch with real data (false green) | **Gate 12: Smoke Launch** — app must actually start with real production data every group. Cannot be disabled. Found via Pac-Man dogfood where 68 tests passed but game crashed on the real maze. |
+| 3 | Test-engineer agent existed but was never called in the pipeline. Tests had zero traceability to BRD requirements | **Phase 3.5: Test Planning** — generates test-plan.md, test-cases.md, traceability-matrix.md, fixtures.json. Every test traces: BRD requirement → story → test case → test file. |
+| 4 | No way to track requirement changes mid-build. BRD treated as immutable after approval, changes get lost | **`/change`** — logs changes to `specs/brd/changelog.md` with version bump, runs impact analysis, cascades updates through only the affected stories/design/code. |
+| 5 | Forge improves only through manual feedback. Most findings from builds are never reported | **`/report-findings`** — opt-in, anonymized. Hook collects findings passively; user reviews everything before submitting as GitHub issues to the forge repo. |
+| 6 | No single view of project health. Progress scattered across 5+ files | **`/status`** — terminal ASCII dashboard showing per-group story progress (spec'd/coded/unit-tested/E2E-verified), quality ratchet, blockers, recent activity. Auto-displayed at every checkpoint. |
+| 7 | BRD creator and architect make decisions based on training data only. Can't look up latest patterns or compare current technologies | **Internet research** — WebSearch/WebFetch added to both agents. Proactively offer to research when requirements are high-level or tech choices involve rapidly evolving domains. Results saved to `specs/brd/research/`. |
+| 8 | CLI/terminal apps had no E2E verification. Gate 5 assumed web apps only | **PTY-based E2E** — launch app in pseudo-terminal, send keystrokes, read screen output, verify renders, confirm clean exit. Proven on Pac-Man CLI (5 PTY tests). |
+| 9 | Evaluator said "use Playwright MCP" but had no concrete steps. Browser verification silently skipped if tools unavailable | **Concrete MCP pipeline** — step-by-step detection sequence (Playwright MCP → Chrome extension → listener fallback). Mandatory screenshots. Silent skip → FAIL. |
+| 10 | Reference skills named inconsistently (architecture, spec-writing, testing, evaluation, compliance) — unclear which are executable vs reference | **Naming standardization** — all reference skills renamed to `-patterns` suffix (architect-patterns, spec-patterns, test-patterns, evaluate-patterns, comply-patterns). |
+| 11 | Only web apps had been dogfooded. No proof the CLI or full browser MCP pipeline actually worked | **Two new dogfood projects** — Pac-Man CLI (75 tests, PTY E2E) proved the non-web pipeline. Task Manager (14 backend + 6 browser scenarios, 8 MCP tools, 3 screenshots) proved the full Playwright MCP pipeline. Both mandatory before release. |
+
+---
+
 ## What Changed from v2.0.0 to v2.1.0
 
 ### New Skills (+4)
