@@ -77,6 +77,30 @@ Every implementation file should map to a story:
 - No unsafe dynamic code evaluation without explicit justification.
 - Authentication/authorization checks present on protected endpoints.
 
+### Step 7 — Pattern Safety Checks
+
+These checks catch recurring bugs found through dogfooding and user reports (see learnings/failure-patterns/).
+
+**URL Safety:**
+- Flag any URL comparison that doesn't normalize first (ports, schemes, trailing slashes, subdomains). Look for `===`, `==`, `.includes()`, `startsWith()` on URL strings without prior normalization via `new URL()` or `urllib.parse`.
+- WARN: "URL comparison without normalization — will fail on default ports, trailing slashes, or scheme differences"
+
+**Contract Consistency:**
+- When code produces metadata (e.g., `meta["key"] = value`), verify downstream consumers use the same keys. Grep for `.get("key")` or `["key"]` patterns and confirm producer keys match consumer keys.
+- WARN: "Metadata key mismatch between producer and consumer — {producer_key} vs {consumer_key}"
+
+**Retry Hygiene:**
+- Any retry/error handler must clear error state before retrying. Look for try/catch blocks that retry without resetting state variables, clearing error flags, or dismissing UI error messages.
+- WARN: "Retry handler does not clear error state before retrying"
+
+**Dual Code Path Detection:**
+- When streaming and non-streaming variants of the same logic exist (e.g., `handleStream()` and `handleSync()`), verify both use the same variable names, same error handling, same response format. Changes to one must be mirrored in the other.
+- WARN: "Dual code paths (streaming/non-streaming) with divergent logic — changes to one must be mirrored"
+
+**Interface Compatibility:**
+- When a function signature changes, grep for ALL callers to verify they match the new signature. New implementations must be compatible with all existing call sites.
+- BLOCK: "Function signature changed but {n} callers still use old signature"
+
 ## Severity
 
 - **BLOCK**: Must fix before merge. Architecture violations, coverage below 80%, bare exceptions, security issues, files over 300 lines, functions over 50 lines, missing type annotations, violations of learned rules.

@@ -195,6 +195,25 @@ Skip this round if the BRD describes a traditional web app with no autonomous ag
 - "You chose Custom but have 5 agents with complex state. A framework saves months of orchestration work — consider LangGraph."
 - "You picked a single LLM provider but the BRD says 'model-agnostic deployment'. Use LiteLLM so deployers can choose their provider."
 
+### MVP Over-Engineering Challenges
+
+These patterns were identified through production dogfooding. Challenge them during stack interrogation:
+
+**Per-service containers for MVP:**
+If the user proposes separate Docker containers per component (e.g., one container per bot, per worker, per microservice), challenge: "Do you need separate containers for MVP? A single shared service with a discriminator parameter is simpler to deploy, monitor, and debug. Separate containers add orchestration complexity (K8s/ECS) that may not be justified until you hit scaling limits."
+
+**External vector database:**
+If the user proposes ChromaDB, Pinecone, Weaviate, or Milvus, challenge: "Does the dataset size justify a dedicated vector DB? pgvector in your existing PostgreSQL handles millions of embeddings with no additional infrastructure. Only move to a dedicated vector DB when you measure query latency exceeding your SLA."
+
+**Custom authentication:**
+If the user proposes building JWT auth, session management, or password hashing from scratch, challenge: "Have you considered Firebase Auth, Clerk, Auth0, or Supabase Auth? Managed auth eliminates an entire security surface. Custom auth is justified only when you need features no managed service provides."
+
+**Complex state management:**
+If the user proposes Redux, MobX, or elaborate React Context patterns for a CRUD app, challenge: "Is the state complexity high enough to justify this? Zustand or Jotai handle most CRUD state in under 20 lines. Complex state management is warranted for real-time collaborative editing or offline-first apps, not standard forms and lists."
+
+**Agent framework for simple orchestration:**
+If the user proposes CrewAI, AutoGen, or LangGraph for straightforward LLM calls (no branching, no tool use, no multi-step reasoning), challenge: "Does this need an agent framework? Direct function calling with a simple prompt chain is easier to debug and costs less. Agent frameworks are justified when you need tool selection, planning, or multi-agent coordination — not for linear prompt→response flows."
+
 Record in `project-manifest.json` under `ai_native`:
 ```json
 {
