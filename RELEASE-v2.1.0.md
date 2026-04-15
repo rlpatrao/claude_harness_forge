@@ -113,6 +113,24 @@ The test-engineer agent was never called in the build pipeline. Now:
 
 ---
 
+## Known Optimization: Profile-Based Agent/Gate Loading
+
+Currently all 11 agents and 12 gates are loaded for every project regardless of type. A CLI tool loads the compliance reviewer and UI standards reviewer it will never use — ~40% agent context waste.
+
+**Planned for v2.2.0:** Profile-based loading where `project-manifest.json` gets an `active_agents` list based on project type. Only needed agents are copied during scaffold/upgrade.
+
+| Project Type | Agents Needed | Gates Needed | Current Waste |
+|-------------|--------------|-------------|--------------|
+| CLI tool | 6 of 11 | 7 of 12 | ~40% |
+| Simple CRUD web | 9 of 11 | 10 of 12 | ~15% |
+| ML/AI | 10 of 11 | 11 of 12 | ~5% |
+| Agentic | 10 of 11 | 11 of 12 | ~5% |
+
+Agents that are **always required**: brd-creator, spec-writer, generator, evaluator, code-reviewer, test-engineer (6 core).
+Agents that are **conditional**: architect (skip for trivial CLIs), ui-designer (skip for non-UI), ui-standards-reviewer (skip for non-UI), security-reviewer (skip for internal tools), compliance-reviewer (only ML/regulated).
+
+---
+
 ## Quantitative Summary
 
 | Metric | v2.0.0 | v2.1.0 | Delta |
