@@ -47,6 +47,18 @@ const result = await retryPolicy.execute(() => callModel(prompt));
 - Log each retry with attempt number and delay for debugging.
 - Do NOT retry 400-level errors (except 429) — they will never succeed.
 
+## Data Source Fallback
+
+When live data sources are unavailable (external APIs, scraping targets, real-time feeds), always have a fallback. Stale data is better than no data.
+
+```
+Live fetch → Cache (Redis/DB) → Stale file → Default/empty state → Error with explanation
+```
+
+**Rule:** Never let a feature fail entirely because one external data source is unreachable. Every external data dependency must have at least one fallback level.
+
+**Anti-pattern:** Code that calls `fetch(url)` and crashes or shows a blank page on failure. Must catch, fallback, and inform the user.
+
 ## Model Fallback Chains
 
 When the primary model is unavailable, degrade through a chain rather than failing outright.

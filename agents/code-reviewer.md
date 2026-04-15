@@ -101,6 +101,22 @@ These checks catch recurring bugs found through dogfooding and user reports (see
 - When a function signature changes, grep for ALL callers to verify they match the new signature. New implementations must be compatible with all existing call sites.
 - BLOCK: "Function signature changed but {n} callers still use old signature"
 
+**LLM Tool Instructions:**
+- When code defines tool descriptions or system prompts for LLM agents, instructions must be imperative ("you MUST call", "always use"), not permissive ("you have access to", "you can use"). Permissive language causes LLMs to skip tools.
+- WARN: "LLM tool instruction is permissive — use imperative language ('you MUST call X') not ('you have access to X')"
+
+**Timeout Budgeting:**
+- When code sets timeouts on operations that process N items (batch jobs, crawlers, pipelines), verify the timeout accommodates worst-case N. Flag timeout values that are hardcoded defaults (30s, 60s) rather than calculated from workload size.
+- WARN: "Timeout appears to be a default value, not calculated from workload size — may fail on large inputs"
+
+**SPA Navigation:**
+- In single-page applications (React, Vue, Svelte), flag any use of `window.location`, `window.location.href =`, or `window.location.assign()` for in-app navigation. Must use the framework's router (`useNavigate`, `router.push`, `goto`). Direct location changes cause full page reloads, lose state, and break history.
+- WARN: "Using window.location for SPA navigation — use the router instead to avoid full reload and state loss"
+
+**Auth State Loading:**
+- When code restores auth state on page load (checking tokens, session cookies, Firebase auth), the UI must show a loading state until auth is confirmed or denied. Flag pages that flash unauthenticated content before redirecting.
+- WARN: "Auth state restoration without loading state — users see unauthenticated flash before redirect"
+
 ## Severity
 
 - **BLOCK**: Must fix before merge. Architecture violations, coverage below 80%, bare exceptions, security issues, files over 300 lines, functions over 50 lines, missing type annotations, violations of learned rules.

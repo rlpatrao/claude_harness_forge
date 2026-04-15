@@ -131,6 +131,19 @@ Agents that are **conditional**: architect (skip for trivial CLIs), ui-designer 
 
 ---
 
+## Backlog: Suggested New Skills (from issue #1)
+
+These were suggested by a user but deferred. They would be new skills if implemented.
+
+| # | Skill | What It Would Do | Status |
+|---|-------|-----------------|--------|
+| 1 | `loop-termination-check` | Static analysis verifying loops with overlap/offset logic terminate on all inputs | Backlog |
+| 2 | `cloud-run-compatibility-check` | Pre-deploy check: no long-running browser processes, ops fit timeout, cold start assessed | Backlog |
+| 3 | `local-vs-prod-parity-test` | Run test subset against deployed environment (local success != production success) | Backlog |
+| 4 | `timeout-budget-calculator` | Given operation timeout and per-unit time, flag ops that exceed timeout before starting | Backlog |
+
+---
+
 ## Quantitative Summary
 
 | Metric | v2.0.0 | v2.1.0 | Delta |

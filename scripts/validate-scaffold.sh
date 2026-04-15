@@ -91,12 +91,12 @@ if [ "$FORGE_MODE" = true ]; then
 
   # --- 3. Skills ---
   echo ""
-  echo "--- Skills (expect >= 40 SKILL.md) ---"
+  echo "--- Skills (expect >= 41 SKILL.md) ---"
   skill_count=$(find skills -name "SKILL.md" 2>/dev/null | wc -l | tr -d ' ')
-  if [ "$skill_count" -ge 40 ]; then
-    pass "Skill definitions: $skill_count (>= 40)"
+  if [ "$skill_count" -ge 41 ]; then
+    pass "Skill definitions: $skill_count (>= 41)"
   else
-    fail "Skill definitions: $skill_count (expected >= 40)"
+    fail "Skill definitions: $skill_count (expected >= 41)"
   fi
 
   for skill in auto brd spec design implement evaluate build review test \
@@ -104,7 +104,7 @@ if [ "$FORGE_MODE" = true ]; then
                spec-patterns architect-patterns ui-mockup test-patterns evaluate-patterns stack-learnings architect \
                observe comply rag workflow resilience model-card context-budget tenant \
                resilience-patterns rag-patterns agentic-ux comply-patterns context-engineering \
-               report-findings change dogfood status upgrade; do
+               report-findings change dogfood status upgrade progress-reporting-check; do
     check_file "skills/$skill/SKILL.md"
   done
 
@@ -214,12 +214,12 @@ else
 
   # --- 3. Skills ---
   echo ""
-  echo "--- Skills (expect >= 40 directories) ---"
+  echo "--- Skills (expect >= 41 directories) ---"
   skill_count=$(find .claude/skills -name "SKILL.md" 2>/dev/null | wc -l | tr -d ' ')
-  if [ "$skill_count" -ge 40 ]; then
-    pass "Skill definitions: $skill_count (>= 40)"
+  if [ "$skill_count" -ge 41 ]; then
+    pass "Skill definitions: $skill_count (>= 41)"
   else
-    fail "Skill definitions: $skill_count (expected >= 40)"
+    fail "Skill definitions: $skill_count (expected >= 41)"
   fi
 
   for skill in auto brd spec design implement evaluate build review test \
@@ -227,7 +227,7 @@ else
                spec-patterns architect-patterns ui-mockup test-patterns evaluate-patterns stack-learnings architect \
                observe comply rag workflow resilience model-card context-budget tenant \
                resilience-patterns rag-patterns agentic-ux comply-patterns context-engineering \
-               report-findings change dogfood status upgrade; do
+               report-findings change dogfood status upgrade progress-reporting-check; do
     check_file ".claude/skills/$skill/SKILL.md"
   done
 
