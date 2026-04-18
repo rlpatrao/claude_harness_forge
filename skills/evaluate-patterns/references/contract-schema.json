@@ -16,6 +16,42 @@
       "items": { "type": "string" },
       "minItems": 1
     },
+    "setup": {
+      "type": "array",
+      "description": "Test fixture actions to execute before running checks. Creates users, seed data, and config needed for meaningful verification.",
+      "items": {
+        "type": "object",
+        "required": ["action"],
+        "properties": {
+          "action": { "type": "string", "description": "Action type: create_user, seed_data, api_call, run_migrations, run_command" },
+          "method": { "type": "string", "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"] },
+          "endpoint": { "type": "string", "description": "API endpoint for api_call/seed_data actions" },
+          "path": { "type": "string", "description": "API path for api_call actions" },
+          "body": { "type": "object", "description": "Request body for API-based actions" },
+          "command": { "type": "string", "description": "Shell command for run_command actions" },
+          "email": { "type": "string" },
+          "role": { "type": "string" },
+          "password": { "type": "string" }
+        }
+      }
+    },
+    "teardown": {
+      "type": "array",
+      "description": "Cleanup actions to execute after all checks complete. Removes test fixtures.",
+      "items": {
+        "type": "object",
+        "required": ["action"],
+        "properties": {
+          "action": { "type": "string", "description": "Action type: delete_user, api_call, run_command" },
+          "method": { "type": "string", "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"] },
+          "endpoint": { "type": "string" },
+          "path": { "type": "string" },
+          "body": { "type": "object" },
+          "command": { "type": "string" },
+          "email": { "type": "string" }
+        }
+      }
+    },
     "contract": {
       "type": "object",
       "description": "Verification checklist for the sprint",
@@ -35,6 +71,32 @@
               "body": { "type": "object" },
               "expected_status": { "type": "integer" },
               "expected_body": { "type": "object" },
+              "expect": {
+                "type": "object",
+                "description": "Behavioral verification assertions beyond status code",
+                "properties": {
+                  "status": { "type": "integer", "description": "Expected HTTP status code" },
+                  "body_contains": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Strings that must appear in the response body"
+                  },
+                  "body_not_contains": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "Error indicators that must NOT appear (e.g., 'Failed to connect', 'access denied')"
+                  },
+                  "min_items": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "description": "For list endpoints: minimum number of items expected in response array"
+                  },
+                  "body_schema": {
+                    "type": "string",
+                    "description": "JSON Schema $ref for response body validation"
+                  }
+                }
+              },
               "description": { "type": "string" }
             }
           }

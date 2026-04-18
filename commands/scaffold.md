@@ -106,7 +106,9 @@ Write `project-manifest.json` to the project root with populated project info an
     }
   },
   "verification": {
-    "mode": null
+    "mode": null,
+    "dev_bootstrap": null,
+    "dev_teardown": null
   }
 }
 ```

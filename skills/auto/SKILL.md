@@ -37,6 +37,42 @@ Before `/auto` can run, the following must exist:
 
 If any prerequisite is missing, stop and report what is absent. Do not proceed with partial context.
 
+### Evaluation Readiness Pre-Flight
+
+After verifying the prerequisites above, validate that the evaluation pipeline can actually run. Read `project-manifest.json` and check:
+
+1. **`evaluation.api_base_url`** — must be non-null (unless project is a CLI/library with no API).
+2. **`evaluation.health_check`** — must be non-null (unless project is a CLI/library).
+3. **`evaluation.ui_base_url`** — must be non-null if the project has a frontend (check `stack.frontend` is non-null).
+4. **`verification.mode`** — must be one of `docker`, `local`, or `stub`.
+5. **`verification.dev_bootstrap`** — must be non-null. This is the command the evaluator uses to start the app.
+
+If any required field is null, halt with this message:
+
+```
+BLOCKED: Evaluation pipeline not ready. The following manifest fields are null:
+
+  - evaluation.api_base_url (required — set by /architect)
+  - verification.dev_bootstrap (required — set by /architect)
+
+Run /architect to populate these fields before starting the build loop.
+Without these, the evaluator cannot run and all stories will be marked
+"done" without verification — defeating the purpose of the ratchet.
+```
+
+Do NOT proceed with the build loop if evaluation readiness fails. Building 50 stories that can never be E2E-tested is wasted effort.
+
+### Infrastructure Pre-Flight (Phase 0)
+
+After evaluation readiness passes, attempt to start the app stack and verify it works before writing any feature code:
+
+1. Run `verification.dev_bootstrap` command.
+2. Health-check `evaluation.api_base_url` + `evaluation.health_check` with retry (5 attempts, exponential backoff).
+3. If health check passes: tear down with `verification.dev_teardown`, proceed to build loop.
+4. If health check fails: halt with `BLOCKED: Local dev stack failed health check. Fix infrastructure before building features.` Include the error output.
+
+This catches infrastructure problems (missing Docker images, broken database configs, port conflicts) before any stories are implemented.
+
 ### Agent Delegation
 
 **Critical rule: /auto orchestrates but NEVER implements code directly.**
@@ -73,7 +109,11 @@ Sprint contracts define the verifiable done-criteria for a group. Two-step propo
 
 Spawn generator as a subagent with this prompt:
 
-> Read stories [list IDs for this group], `specs/design/api-contracts.md`, `specs/design/component-map.md`, `specs/test_artefacts/test-cases.md` (for test cases mapped to this group's stories), and `specs/test_artefacts/traceability-matrix.md` (for BRD traceability). Propose a sprint contract for group {ID}. Include: api_checks, playwright_checks, design_checks, architecture_checks, features list. Each check must trace to a test case ID from test-cases.md. Write the contract to `sprint-contracts/{group}.json`.
+> Read stories [list IDs for this group], `specs/design/api-contracts.md`, `specs/design/component-map.md`, `specs/test_artefacts/test-cases.md` (for test cases mapped to this group's stories), and `specs/test_artefacts/traceability-matrix.md` (for BRD traceability). Propose a sprint contract for group {ID}. Include: setup (test fixtures), api_checks, playwright_checks, design_checks, architecture_checks, teardown, features list. Each check must trace to a test case ID from test-cases.md. Write the contract to `sprint-contracts/{group}.json`.
+>
+> The `setup` array must create all test data needed for checks to be meaningful (users, seed records, config). The `teardown` array must clean up test data. Without fixtures, admin pages show "access denied" and data pages show empty states — the evaluator sees rendered HTML and marks PASS but verifies nothing.
+>
+> API checks must verify behavioral correctness, not just liveness. A 200 response with `{"error": "Failed to connect"}` or `{"data": []}` when data should exist is a FAIL. Include `expect.body_contains` or `expect.body_schema` assertions for every check.
 
 The generator produces a draft contract based on the story acceptance criteria and the architecture design.
 
@@ -171,7 +211,29 @@ When `strategy` is `hybrid` or `local-only`, and the provider is `openai-compati
 
 ## SECTION 5: Ratchet Gate (Step 5)
 
-After the agent team completes, run the ratchet gate. The ratchet is monotonic: progress never regresses. Eleven sub-gates, mode-dependent:
+After the agent team completes, run the ratchet gate. The ratchet is monotonic: progress never regresses.
+
+### Gate Result States
+
+Every gate produces one of three results:
+
+| State | Meaning | Progression |
+|-------|---------|-------------|
+| **PASS** | Gate executed and all checks succeeded | Allowed |
+| **FAIL** | Gate executed and one or more checks failed | Blocked — enters self-healing loop |
+| **NOT_RUN** | Gate could not execute due to missing prerequisites | Blocked — halt with actionable error |
+
+**Only PASS allows progression.** NOT_RUN is treated like FAIL for progression purposes, but with a different response: instead of entering the self-healing loop, halt immediately and report what prerequisite is missing. The self-healing loop cannot fix missing infrastructure or configuration.
+
+A gate returns NOT_RUN when:
+- Sprint contract does not exist for the current group (should have been created in Section 3)
+- `project-manifest.json` evaluation URLs are null
+- `verification.dev_bootstrap` is null or the bootstrap command has not been run
+- The evaluator cannot reach the app (no browser tool available AND no API URL configured)
+
+**Log gate states** in `claude-progress.txt` using the three-state format: `gate_5: PASS`, `gate_5: FAIL (api_check POST /users)`, or `gate_5: NOT_RUN (sprint contract missing)`.
+
+Twelve sub-gates, mode-dependent:
 
 | Gate | Full | Lean | Solo | Turbo | Condition |
 |------|------|------|------|-------|-----------|
@@ -336,7 +398,7 @@ Spawn evaluator to verify `architecture_checks` from the sprint contract:
 
 ### Gate 5 — Evaluator (API + Playwright + Browser Console)
 
-Spawn evaluator with the full sprint contract. The evaluator runs three layers plus browser health monitoring:
+Spawn evaluator with the full sprint contract and `--skip-lifecycle` (the orchestrator manages the app lifecycle via SECTION 7). The evaluator runs three layers plus browser health monitoring:
 
 **Layer 1 — API Checks:**
 - All `api_checks` against the live Docker stack.
@@ -445,7 +507,9 @@ Do not immediately revert. Attempt targeted self-healing first.
 | Playwright fail | Element not found / assertion error | Read the selector, fix the component |
 | Console error | `console.error` or unhandled rejection during Playwright | Read browser error with source file:line, fix the component (null check, error boundary, loading state) |
 | Network error | Frontend fetch returns unexpected 4xx/5xx | Fix the API call URL, error handling, or backend endpoint |
-| Docker fail | Container exit code / won't start | Read `docker compose logs`, fix config or deps |
+| Infrastructure fail | Container exit code / service won't start / health check timeout | Read `docker compose logs` or process stderr, fix config or deps |
+| Setup fail | Test fixture creation failed (API returned error during setup) | Fix the endpoint or seed script that the setup action calls |
+| Behavioral fail | 200 response with error body, empty list when data expected | Fix the feature logic — the endpoint is reachable but not functioning correctly |
 | Architecture drift | Schema mismatch / missing file | Read the schema, fix the response or create the file |
 | UI standards fail | Conformance check failed | Apply the fix instruction from ui-standards-reviewer (e.g., change color to #767676, add min-height: 44px) |
 
@@ -495,19 +559,21 @@ Read `verification.mode` from `project-manifest.json`. Default: `docker`.
 ### Mode: docker (default)
 
 **Startup:**
-1. Run `bash init.sh` before first evaluator check
-2. Run health-check retry loop (see evaluator agent for protocol)
-3. If health check fails: FAIL the current group, log to failures.md
+1. Run `verification.dev_bootstrap` from `project-manifest.json` (e.g., `docker compose -f docker-compose.dev.yml up -d`)
+2. Run DB migrations if detected (Alembic, Prisma, Django — see evaluate skill Step 3.5)
+3. Run health-check retry loop against `evaluation.api_base_url` + `evaluation.health_check`
+4. If health check fails: FAIL the current group, log to failures.md
 
 **Between Groups:**
 ```bash
-docker compose up -d --build
+# Re-run bootstrap to pick up new code
+{verification.dev_bootstrap}
 ```
 Wait for health check before handing off to evaluator.
 
 **Teardown:**
 ```bash
-docker compose down -v
+{verification.dev_teardown}
 ```
 
 **Error Context:** `docker compose logs --tail=50 {service_name}`

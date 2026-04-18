@@ -78,6 +78,13 @@ try {
   process.exit(2);
 }
 
+if (reportContent.includes('VERDICT: NOT_RUN')) {
+  process.stderr.write(
+    `BLOCKED: Evaluator could not run for group ${group} — prerequisites missing.\nThe evaluation was NOT_RUN (not PASS, not FAIL). Check evaluator-report.md for details.\nFix: Ensure project-manifest.json has non-null evaluation URLs and sprint contract exists.\n`
+  );
+  process.exit(2);
+}
+
 if (!reportContent.includes('VERDICT: PASS')) {
   process.stderr.write(
     `BLOCKED: Sprint contract for group ${group} not satisfied. Run /evaluate first.\nFix: Run /evaluate to verify the sprint contract, then retry the commit.\n`

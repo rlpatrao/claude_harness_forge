@@ -346,6 +346,7 @@ After stack confirmation, generate all artifacts:
 | Component map | `specs/design/component-map.md` | Maps each story → implementing files, file ownership, Produces/Consumes |
 | Folder structure | `specs/design/folder-structure.md` | Full file tree for all services |
 | Deployment topology | `specs/design/deployment.md` | Docker Compose config, env vars, migrations, health checks |
+| Local dev environment | `docker-compose.dev.yml` (or equivalent) | Single-command local dev stack — all services, databases, and dependencies. Must make `docker compose -f docker-compose.dev.yml up -d` bring up the full stack locally. |
 | `project-manifest.json` | project root | Complete machine-readable stack config (fills in skeleton from scaffold) |
 | `calibration-profile.json` | project root | UI standards config for project type |
 
@@ -354,6 +355,54 @@ Follow layered architecture rules from `.claude/architecture.md`:
 
 Every API endpoint must have typed schemas (Pydantic + TypeScript interfaces).
 Every decision must be annotated with the rationale discussed during the interview.
+
+### Manifest Evaluation and Verification Fields (Required)
+
+When generating `project-manifest.json`, you MUST populate these fields based on the deployment decisions from Round 5. They cannot remain null — the evaluator depends on them for all E2E verification.
+
+**`evaluation` section** (used by `/evaluate` skill):
+```json
+"evaluation": {
+  "api_base_url": "http://localhost:{backend_port}",
+  "ui_base_url": "http://localhost:{frontend_port}",
+  "health_check": "/{health_endpoint_path}"
+}
+```
+
+Derive values from the deployment topology:
+- `api_base_url` — backend service URL from Docker Compose or local dev config (e.g., `http://localhost:8000`)
+- `ui_base_url` — frontend service URL (e.g., `http://localhost:5173`). Set to `null` only for API-only projects.
+- `health_check` — health endpoint path (e.g., `/health`, `/api/health`). Must match an endpoint defined in `api-contracts.md`.
+
+**`verification` section** (used by `/auto` orchestrator):
+```json
+"verification": {
+  "mode": "docker | local | stub",
+  "dev_bootstrap": "docker compose -f docker-compose.dev.yml up -d",
+  "dev_teardown": "docker compose -f docker-compose.dev.yml down -v"
+}
+```
+
+- `mode` — how the app runs during evaluation. Default: `docker`.
+- `dev_bootstrap` — single command to bring up the full local stack including database, cache, and all services. The evaluator executes this command autonomously before running checks.
+- `dev_teardown` — single command to tear down the stack after evaluation.
+
+If `verification.mode` is `local`, also include:
+```json
+"verification": {
+  "mode": "local",
+  "dev_bootstrap": "npm run dev:all",
+  "dev_teardown": "kill $(cat .claude/state/pids.txt)",
+  "local": {
+    "start_commands": [
+      {"name": "backend", "command": "cd backend && uv run uvicorn main:app --port 8000", "health": "http://localhost:8000/health"},
+      {"name": "frontend", "command": "cd frontend && npm run dev", "health": "http://localhost:5173"}
+    ]
+  }
+}
+```
+
+**If these fields are left null, the entire evaluation pipeline will be blocked.** The architect must derive concrete values from the deployment decisions.
 
 ---
 

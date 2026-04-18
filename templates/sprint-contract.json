@@ -1,6 +1,8 @@
 {
   "group": "",
   "stories": [],
+  "setup": [],
+  "teardown": [],
   "contract": {
     "api_checks": [],
     "playwright_checks": [],
