@@ -1,1 +1,4 @@
 test-projects/
+.DS_Store
+.vscode/
+.playwright-mcp/
