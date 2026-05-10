@@ -1,3 +1,9 @@
+---
+name: brd
+description: Create a Business Requirements Document through Socratic five-dimension dialogue with the human. First step of the SDLC pipeline, before spec/design/build. Supports greenfield projects or single-feature additions.
+argument-hint: "[initial-idea] [--feature <name>]"
+---
+
 # /brd — Business Requirements Document Creator
 
 ## Usage

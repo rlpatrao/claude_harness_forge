@@ -207,9 +207,12 @@ Copy from plugin source (`$CLAUDE_PLUGIN_DIR` or detect from this file's locatio
 mkdir -p .claude
 cp -r $PLUGIN_SOURCE/agents/ .claude/agents/
 cp -r $PLUGIN_SOURCE/skills/ .claude/skills/
+cp -r $PLUGIN_SOURCE/commands/ .claude/commands/
 cp -r $PLUGIN_SOURCE/hooks/ .claude/hooks/
 cp -r $PLUGIN_SOURCE/templates/ .claude/templates/
 cp -r $PLUGIN_SOURCE/evals/ .claude/evals/
+cp -r $PLUGIN_SOURCE/scripts/ .claude/scripts/
+cp -r $PLUGIN_SOURCE/docs/ .claude/docs/
 cp $PLUGIN_SOURCE/architecture.md .claude/architecture.md
 cp $PLUGIN_SOURCE/program.md .claude/program.md
 cp $PLUGIN_SOURCE/settings.json .claude/settings.json
@@ -409,9 +412,12 @@ Print:
 Installed:
   11 agents     → .claude/agents/
   40 skills     → .claude/skills/
+  8 commands    → .claude/commands/   (/brd /architect /spec /design /build /auto /dogfood /scaffold)
   19 hooks      → .claude/hooks/
   17 templates  → .claude/templates/
   4 evals       → .claude/evals/
+  4 scripts     → .claude/scripts/
+  1 docs tree   → .claude/docs/
   8 state files → .claude/state/
 
 Project type: {type}
