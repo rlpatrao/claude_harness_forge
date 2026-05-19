@@ -24,6 +24,7 @@
       {
         "matcher": "Edit|Write",
         "hooks": [
+          { "type": "command", "command": "node .claude/hooks/e2e-gate.js" },
           { "type": "command", "command": "node .claude/hooks/feature-edit-guard.js" }
         ]
       }
@@ -73,6 +74,14 @@
         "hooks": [
           { "type": "command", "command": "node .claude/hooks/task-completed.js" },
           { "type": "command", "command": "node .claude/hooks/findings-collector.js" }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/ralph-loop.js" }
         ]
       }
     ]
