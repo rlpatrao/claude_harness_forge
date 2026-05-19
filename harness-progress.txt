@@ -1,0 +1,81 @@
+================================================================
+claude_harness_forge — harness progress log
+================================================================
+
+Project: claude_harness_forge
+Repo: rlpatrao/claude_harness_forge
+Spec: brd/v3.0.md (supersedes architecture.md, forge-reference.md, program.md)
+Plan: brd/v3.0-implementation-plan.md
+Contract: feature_list.json (BRD §3.2)
+
+================================================================
+ARCHITECTURE DECISIONS (frozen at v3.0 BRD persist)
+================================================================
+
+D1. Retrofit, not rewrite. v2.0 multi-cloud adapter, Durable Functions
+    topology, permission classifier, and existing 41 skills stay.
+
+D2. The five v3.0 design principles (BRD §1) override prior conventions
+    where they conflict:
+      - Separation of concerns
+      - Progressive degradation
+      - Transparency over magic
+      - Goal-driven, not instruction-driven
+      - Compound system over monolithic agent
+
+D3. Initializer agent runs once at project genesis (BRD §3.1).
+    Coding-agent runs every subsequent session; obeys the 8-step
+    SessionStart sequence enforced by hooks/session-start.js.
+
+D4. feature_list.json is the source of truth for completion (BRD §3.2).
+    Schema: { id, category, description, steps[], passes: false,
+              source_section, depends_on[], verification_artifact_path }
+    Entries are append-only (no delete); only the `passes` field flips,
+    and only after a verification artifact lands under verification/<id>.
+
+D5. Vendor-first reuse mandate (BRD §10). Every component with a
+    permissively-licensed public reference is vendored, depended on, or
+    forked — generation is the last resort. Discipline tracked in
+    vendor/README.md.
+
+D6. Per-workflow LLM routing (BRD §3.4) replaces all-agents-on-Opus.
+    Source of truth lives in config/workflows.yaml (created in increment 2a).
+
+D7. Plan Mode is a subagent with a read-only tool schema (BRD §3.5),
+    not a state machine. The schema restriction makes "stuck in plan
+    mode" structurally impossible.
+
+D8. Five-layer defense-in-depth safety (BRD §4.1). The existing 19
+    hooks slot in as Layer 5. Layer 3 reuses the existing permission
+    classifier.
+
+D9. State files already exist for v3.0 components:
+      state/eval-scores.json    → §4.8 snapshot store
+      state/cost-log.json       → §6.1 cost ledger
+      state/iteration-log.md    → §4.8 experiment log
+      templates/features-template.json → §3.2 template seed
+      templates/init-sh.template       → §3.1 init.sh template
+      hooks/cost-tracker.js     → §3.7 budget footer foundation
+      hooks/token-budget.js     → §3.7 budget footer foundation
+
+D10. Branch policy. All v3.0 retrofit work happens on
+     claude/implement-claude-agents-aSXLm (this branch) until merged to
+     main.
+
+================================================================
+PROGRESS LOG (append-only)
+================================================================
+
+[2026-05-19 | session: initial-persistence | branch: claude/implement-claude-agents-aSXLm]
+- Persisted BRD v3.0 to brd/v3.0.md.
+- Created brd/README.md (index) and brd/v3.0-implementation-plan.md (operational plan).
+- Seeded feature_list.json with ~46 entries covering every BRD §3 / §4 / §5 retrofit item.
+- Seeded harness-progress.txt (this file) with architecture decisions D1–D10.
+- Created vendor/README.md (BRD §10 sync ledger) and NOTICE.md (attribution stub).
+- Increment 1a delivered:
+    * agents/initializer.md, agents/coding-agent.md
+    * hooks/session-start.js, hooks/feature-edit-guard.js
+    * settings.json updated to register SessionStart and feature-edit-guard
+- Verification: jq on feature_list.json passes; both new hooks dry-run exit 0;
+  no existing tests broken (no existing tests modified).
+- Next: Increment 1b (E2E gate hook + Playwright MCP audit) per brd/v3.0-implementation-plan.md §1b.

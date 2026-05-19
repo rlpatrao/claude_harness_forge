@@ -12,6 +12,22 @@
     "deny": ["Bash(rm -rf /)", "Bash(sudo:*)", "Bash(chmod 777:*)"]
   },
   "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/session-start.js" }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/feature-edit-guard.js" }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Edit|Write",
