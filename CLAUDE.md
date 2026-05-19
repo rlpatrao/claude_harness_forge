@@ -15,14 +15,22 @@ GAN-inspired autonomous SDLC scaffold with browser-based verification, Karpathy 
 - `commands/` — **23 slash commands** (8 v2.0 + 15 v3.0: plan, feature-add, feature-status, tree, fork, branch, export, instinct-status, evolve, instinct-export, instinct-import, spec-audit, model, cost, recipe-run)
 - `config/` — `workflows.yaml` (BRD §3.4 per-workflow LLM routing, 13 workflows)
 - `recipes/` — YAML recipes (BRD §6.5) + example
-- `vendor/` — vendor sync ledger (BRD §10)
 - `evals/` — Code reviewer regression tests
 - `templates/` — 17 templates (Docker, Playwright, OTel, RAG, Temporal, model card, env, findings report)
 - `learnings/` — Cross-project knowledge base
 - `state/` — Initial state files (incl. cost-log, eval-scores → BRD §4.8 snapshot store)
 - `scripts/` — Validation scripts
 - `verification/`, `scratch/plans/`, `instincts/`, `experiments/`, `sessions/` — BRD §3.8 / §3.5 / §4.4 / §4.8 / §4.5 runtime dirs
-- `feature_list.json`, `harness-progress.txt`, `NOTICE.md` — root-level dogfooding artifacts
+- `feature_list.json`, `harness-progress.txt` — root-level dogfooding artifacts
+
+## Provenance
+
+Source attribution lives in two places:
+
+1. **BRD `brd/v3.0.md` §10 + Appendix A** — the canonical record of every upstream reference (Anthropic claude-quickstarts, OPENDEV-py, Pi-mono, ECC, Forge, Goose, Karpathy, etc.).
+2. **Inline `source:` frontmatter** on adapted files (e.g., `agents/initializer.md` lists its upstream prompt path).
+
+No separate `vendor/` directory or `NOTICE.md` — features are assimilated; the BRD is the reference.
 
 ## Agents (19)
 

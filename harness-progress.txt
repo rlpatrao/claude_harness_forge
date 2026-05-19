@@ -33,10 +33,13 @@ D4. feature_list.json is the source of truth for completion (BRD §3.2).
     Entries are append-only (no delete); only the `passes` field flips,
     and only after a verification artifact lands under verification/<id>.
 
-D5. Vendor-first reuse mandate (BRD §10). Every component with a
-    permissively-licensed public reference is vendored, depended on, or
-    forked — generation is the last resort. Discipline tracked in
-    vendor/README.md.
+D5. Source attribution lives in BRD §10 + Appendix A (canonical) plus
+    inline `source:` frontmatter on each adapted file under agents/,
+    skills/, hooks/. No separate vendor/ directory or NOTICE.md is
+    maintained — features are assimilated into the codebase. The BRD's
+    §10.6 vendoring-discipline requirements are deferred; re-engage
+    only if we ever redistribute upstream code verbatim and the
+    license obligates it. (Reversal noted 2026-05-19 by @rlpatrao.)
 
 D6. Per-workflow LLM routing (BRD §3.4) replaces all-agents-on-Opus.
     Source of truth lives in config/workflows.yaml (created in increment 2a).
@@ -226,6 +229,27 @@ ALL BRD §3, §4 gap-closure scaffolding now has a working code path.
 47 feature_list.json entries still passes:false (by design — e2e-gate
 requires verification artifacts; the first dogfood run will flip
 v3-3.1-initializer-split first).
+
+[2026-05-19 | session: vendor-cleanup | branch: claude/implement-claude-agents-aSXLm]
+- Per @rlpatrao: vendor/ directory and NOTICE.md removed. Features are
+  assimilated into the codebase; source attribution lives in BRD §10 +
+  Appendix A plus inline `source:` frontmatter on adapted files.
+- Removed: vendor/ (5 stubbed UPSTREAM.md + 5 fetched-upstream copies),
+  NOTICE.md.
+- Updated D5 architecture decision to reflect the reversal.
+- Stripped "officially vendored under vendor/" prose from agents/
+  initializer.md, coding-agent.md, planner.md, compactor.md,
+  spec-auditor.md, and from skills/spec-backprop, extended-react,
+  instinct-extraction, tree-sessions, cross-provider-handoff, and
+  from recipes/README.md and commands/cost.md.
+- Removed vendor/pi-ai/pricing.json path check from scripts/cost-render.js
+  (pricing table is now solely in-script, sourced from Pi-AI per BRD §6.1).
+- brd/README.md updated: "Provenance" section replaces vendor-tracking.
+- brd/v3.0-implementation-plan.md updated: "Provenance" section replaces
+  "Vendor map (cross-cutting)".
+- CLAUDE.md "Repo Structure" entry for vendor/ removed; added a
+  "Provenance" section.
+- brd/v3.0.md left untouched — it is the canonical historical spec.
 
 NEXT (separate work, not blocking on this branch):
 - Actual vendoring (UPSTREAM.md stubs → real file copies + LICENSE +

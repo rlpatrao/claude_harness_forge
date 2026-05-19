@@ -55,6 +55,6 @@ Your sole output is a plan file written to `scratch/plans/<feature_id_or_topic>.
 
 Use `WebSearch` / `WebFetch` to fill gaps. Cite sources inline. Do not invent requirements.
 
-## Vendor source
+## Source
 
-Adapted from `opendev-to/opendev-py/opendev/agents/planner.py` (MIT). The schema-filtering pattern is the load-bearing primitive — when this agent is officially vendored under `vendor/opendev-py/`, update the `source:` frontmatter with the pinned commit SHA.
+Adapted from `opendev-to/opendev-py/opendev/agents/planner.py` (MIT). The schema-filtering pattern is the load-bearing primitive. See BRD §10.2 §3.5.

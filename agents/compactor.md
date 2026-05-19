@@ -59,6 +59,6 @@ Always return a single Markdown document with these sections:
 - **Aggressiveness scales with stage.** Stage 3 keeps richer detail; stage 5 is a 500-token-or-less checkpoint.
 - **Originals stay on disk.** The orchestrator archives the pre-compaction transcript to `sessions/archive/<session_id>/` before calling you. You do not delete anything.
 
-## Vendor source
+## Source
 
-Pattern from `opendev-to/opendev-py/opendev/context/compaction.py` (MIT). When officially vendored, update the `source:` frontmatter with the pinned commit SHA.
+Pattern from `opendev-to/opendev-py/opendev/context/compaction.py` (MIT). See BRD §10.3 §4.3.

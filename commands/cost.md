@@ -27,7 +27,7 @@ by provider:
 total:  <tokens>  $<usd>
 ```
 
-Pricing comes from the Pi-AI pricing table (BRD §10.4 §6.1), vendored at `vendor/pi-ai/pricing.json` once synced; otherwise a fallback table in `scripts/cost-render.js` is used.
+Pricing comes from a fallback table in `scripts/cost-render.js`. Per BRD §10.4 §6.1, the Pi-AI pricing table is the conceptual source; we maintain a local copy in the script.
 
 ## Runtime
 

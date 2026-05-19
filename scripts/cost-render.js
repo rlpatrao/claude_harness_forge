@@ -3,8 +3,9 @@
 'use strict';
 
 // /cost implementation. Reads state/cost-log.json and renders a
-// breakdown by workflow and provider. Pricing per BRD §6.1 comes from
-// the Pi-AI table (vendored at vendor/pi-ai/pricing.json once synced).
+// breakdown by workflow and provider. Pricing per BRD §6.1 is sourced
+// from the Pi-AI pricing table; maintained as a local fallback table
+// below.
 
 const fs = require('fs');
 const path = require('path');
@@ -22,10 +23,9 @@ const root = findRoot();
 if (!root) { process.stderr.write('No project root found\n'); process.exit(1); }
 
 const costPath = path.join(root, 'state', 'cost-log.json');
-const pricingPath = path.join(root, 'vendor', 'pi-ai', 'pricing.json');
 
-// Hardcoded fallback pricing (USD per 1M tokens, prompt / completion).
-// To be replaced by vendor/pi-ai/pricing.json once vendored.
+// Pricing table (USD per 1M tokens, prompt / completion).
+// Sourced from Pi-AI per BRD §6.1; update when Pi-AI's table updates.
 const fallbackPricing = {
   'anthropic/claude-opus-4-7':   { in: 15.00, out: 75.00 },
   'anthropic/claude-sonnet-4-6': { in: 3.00,  out: 15.00 },
@@ -36,10 +36,7 @@ const fallbackPricing = {
   'google/gemini-2.5-flash':     { in: 0.40,  out: 1.60 },
 };
 
-let pricing = fallbackPricing;
-if (fs.existsSync(pricingPath)) {
-  try { pricing = JSON.parse(fs.readFileSync(pricingPath, 'utf8')); } catch (_) {}
-}
+const pricing = fallbackPricing;
 
 if (!fs.existsSync(costPath)) {
   console.log('state/cost-log.json is empty — nothing to render.');
