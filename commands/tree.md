@@ -27,4 +27,6 @@ active: <branch-label or "(unlabeled)">
       ● turn-007  (user)    review
 ```
 
-See `skills/tree-sessions/SKILL.md` for the on-disk format and behavior.
+## Runtime
+
+`node scripts/tree-sessions.js tree <session_id>` (or `switch <session_id> <label>` for the labeled form). See `skills/tree-sessions/SKILL.md` for the on-disk format.

@@ -22,6 +22,16 @@ _Attribution lines are appended here as each row in `vendor/README.md` transitio
 - **`multica-ai/andrej-karpathy-skills`** (MIT) — goal-driven framing prose, per BRD §10.4 §1 principle 4.
 - **`anthropics/skills`** (MIT) — `SKILL.md` frontmatter convention reference, per BRD §10.3 §4.6.
 
-### Activated
+### Upstream-stub (UPSTREAM.md recorded; not yet vendored verbatim)
 
-_None yet. Will be populated as rows in `vendor/README.md` flip to `vendored` or `depended` status._
+The forge currently *adapts* material from these projects without yet vendoring the originals. Adaptation locations are noted; full vendoring per BRD §10.6 is owed.
+
+- **`anthropics/claude-quickstarts`** (MIT) — adapted at `agents/initializer.md` and `agents/coding-agent.md`. Stub: `vendor/claude-quickstarts/UPSTREAM.md`.
+- **`opendev-to/opendev-py`** (MIT) — reimplemented at `agents/planner.md`, `agents/spec-auditor.md`, `hooks/compaction-stage.js`, `scripts/skills-loader.js`. Stub: `vendor/opendev-py/UPSTREAM.md`.
+- **`earendil-works/pi`** (MIT) — declared in `config/workflows.yaml` failover lists; tree-session pattern reimplemented at `scripts/tree-sessions.js`. Stub: `vendor/pi-ai/UPSTREAM.md`.
+- **`affaan-m/everything-claude-code`** (MIT) — instinct-extraction pattern reimplemented at `hooks/instinct-extractor.js` and `scripts/instinct-evolve.js`. Stub: `vendor/everything-claude-code/UPSTREAM.md`.
+- **`kingofevil/forge`** (MIT) — spec-gap backprop pattern reimplemented at `agents/spec-auditor.md` + `scripts/spec-backprop.js`. Stub: `vendor/forge/UPSTREAM.md`.
+
+### Activated (fully vendored)
+
+_None yet. Will be populated as rows in `vendor/README.md` flip to `vendored` status._

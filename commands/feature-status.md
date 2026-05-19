@@ -18,6 +18,10 @@ Renders a summary of `feature_list.json` for the current project:
 - Before opening `/plan` — confirms the right feature is queued.
 - Before a release decision; the count tells you if you're feature-complete.
 
+## Runtime
+
+This command runs `node scripts/feature-status.js` from the project root and surfaces its stdout.
+
 ## Output format
 
 ```

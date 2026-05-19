@@ -17,6 +17,10 @@ instincts/
   confirmed/  <n> instincts (eligible for /evolve clustering)
 ```
 
+## Runtime
+
+`node scripts/instinct-evolve.js status` emits JSON counts.
+
 ## Lifecycle reminder (BRD §4.4)
 
 ```

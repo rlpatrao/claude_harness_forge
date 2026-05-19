@@ -1,1 +1,76 @@
-[]
+[
+  {
+    "id": "example-auth-signup",
+    "category": "auth",
+    "description": "Anonymous visitor can register a new account using email + password.",
+    "steps": [
+      "Navigate to /signup",
+      "Fill email and password fields with valid values",
+      "Submit the form",
+      "Receive 302 redirect to /onboarding",
+      "Confirm a new user row exists in the database"
+    ],
+    "passes": false,
+    "source_section": "BRD §<auth requirement section>",
+    "depends_on": [],
+    "verification_artifact_path": "verification/example-auth-signup.png"
+  },
+  {
+    "id": "example-auth-login",
+    "category": "auth",
+    "description": "Existing user can log in with email + password and reach /dashboard.",
+    "steps": [
+      "Seed test user in DB",
+      "Navigate to /login",
+      "Submit valid credentials",
+      "Confirm /dashboard renders with the user's name in the header"
+    ],
+    "passes": false,
+    "source_section": "BRD §<auth requirement section>",
+    "depends_on": ["example-auth-signup"],
+    "verification_artifact_path": "verification/example-auth-login.png"
+  },
+  {
+    "id": "example-api-health",
+    "category": "api",
+    "description": "GET /api/health returns 200 with {status:'ok',db:'reachable'}.",
+    "steps": [
+      "curl -s http://localhost:8000/api/health",
+      "Assert HTTP 200",
+      "Assert JSON body matches {status:'ok',db:'reachable'}"
+    ],
+    "passes": false,
+    "source_section": "BRD §<observability section>",
+    "depends_on": [],
+    "verification_artifact_path": "verification/example-api-health.json"
+  },
+  {
+    "id": "example-data-list-empty",
+    "category": "data",
+    "description": "GET /api/items returns an empty array on first run.",
+    "steps": [
+      "Confirm no items in DB",
+      "curl -s http://localhost:8000/api/items",
+      "Assert HTTP 200",
+      "Assert JSON body is []"
+    ],
+    "passes": false,
+    "source_section": "BRD §<data section>",
+    "depends_on": ["example-api-health"],
+    "verification_artifact_path": "verification/example-data-list-empty.json"
+  },
+  {
+    "id": "example-ui-landing",
+    "category": "ui",
+    "description": "GET / renders the landing page with a 'Sign up' CTA.",
+    "steps": [
+      "Navigate to /",
+      "Assert page title matches the project name",
+      "Assert link with text 'Sign up' is present and points at /signup"
+    ],
+    "passes": false,
+    "source_section": "BRD §<UI section>",
+    "depends_on": [],
+    "verification_artifact_path": "verification/example-ui-landing.png"
+  }
+]

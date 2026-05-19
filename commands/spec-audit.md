@@ -27,3 +27,9 @@ Spawns the Spec-Auditor subagent (`agents/spec-auditor.md`) on the current failu
 - An environment-only failure (missing dep, wrong Node version). Fix `init.sh` instead.
 
 See `skills/spec-backprop/SKILL.md` for the walk-back algorithm.
+
+## Runtime
+
+1. `node scripts/spec-backprop.js packet <N> [<feature_id>]` emits a JSON packet on stdout: failing phase, feature entry, walked phases with artifact samples.
+2. The orchestrator passes the packet to the Spec-Auditor subagent (`agents/spec-auditor.md`).
+3. The Critic validates the returned amendment before apply.

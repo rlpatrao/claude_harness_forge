@@ -1,0 +1,39 @@
+{
+  "name": "claude-harness-forge",
+  "version": "3.0.0-alpha",
+  "description": "GAN-inspired autonomous SDLC scaffold (BRD v3.0). Loaded as a Claude Code plugin via --plugin-dir.",
+  "private": true,
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "verify:hooks": "for f in hooks/*.js; do node -c \"$f\" || exit 1; done && echo OK",
+    "verify:scripts": "for f in scripts/*.js; do node -c \"$f\" || exit 1; done && echo OK",
+    "verify:json": "for f in feature_list.json settings.json .claude-plugin/plugin.json state/eval-scores.json state/monotonic-policy.json templates/features-template.json; do jq -e . $f >/dev/null || exit 1; done && echo OK",
+    "feature:status": "node scripts/feature-status.js",
+    "cost": "node scripts/cost-render.js",
+    "workflows:list": "node scripts/workflows-resolver.js --list",
+    "skills:list": "node scripts/skills-loader.js list",
+    "instincts:status": "node scripts/instinct-evolve.js status"
+  },
+  "dependencies": {
+    "_comment": "Deps declared but install is deferred per BRD §10 vendor-first mandate. The harness ships these declarations so a scaffolded target project picks them up; the forge repo itself does not require an npm install for hooks/scripts (they're stdlib-only).",
+    "@mariozechner/pi-ai": "^0.x",
+    "@anthropic-ai/claude-agent-sdk": "^0.x"
+  },
+  "optionalDependencies": {
+    "_comment": "Browser-MCP servers declared per BRD §3.8; runtime picks one based on project stack.",
+    "@executeautomation/playwright-mcp-server": "*",
+    "@modelcontextprotocol/server-puppeteer": "*"
+  },
+  "devDependencies": {
+    "ecc-agentshield": "*"
+  },
+  "brd": {
+    "spec": "brd/v3.0.md",
+    "implementation_plan": "brd/v3.0-implementation-plan.md",
+    "contract": "feature_list.json",
+    "progress_log": "harness-progress.txt"
+  }
+}

@@ -28,3 +28,8 @@ Executes a recipe from `recipes/<name>.yaml`. Recipes are deterministic and para
 - **Skill failures abort the recipe.** No partial-execution mode.
 
 See `recipes/README.md` for the schema and `recipes/example-weekly-consulting.yaml` for a worked example.
+
+## Runtime
+
+1. `node scripts/recipe-runner.js <recipe.yaml> key=value ...` emits a JSON execution plan to stdout (exit 2 if any step's skill is missing).
+2. The orchestrator iterates the plan and invokes each `skill` via the Skill tool with the resolved `params`.
