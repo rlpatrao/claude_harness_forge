@@ -2,9 +2,11 @@
 
 > A Claude Code plugin that builds software the way a well-run engineering team would -- from requirements to production, with independent verification at every step.
 
-You describe what you want to build. The forge runs 11 specialized agents through a 10-phase pipeline: gathering requirements through Socratic interview, challenging your architecture decisions, decomposing work into stories, generating code with parallel agent teams, and verifying everything by actually running the application. Not by reading the code and saying "looks good."
+> **v3.0** (May 2026) is the current spec. It retrofits the v2.0 pipeline with: initializer/coding-agent split, `feature_list.json` as the project-completion contract, mandatory browser-automation E2E gate, Ralph Loop exit interception, per-workflow LLM routing, Plan Mode subagent, Extended ReAct, 5-stage adaptive compaction, spec-gap backpropagation, monotonic-improvement guards, instinct extraction, tree-structured sessions, and YAML recipes. Full spec: [`brd/v3.0.md`](brd/v3.0.md). Operational plan: [`brd/v3.0-implementation-plan.md`](brd/v3.0-implementation-plan.md). Live punch list: [`feature_list.json`](feature_list.json). 19 agents · 27 hooks · 47 skills · 23 commands.
 
-One command starts it. Human approval gates the creative decisions (BRD, architecture, design). Everything after that -- implementation, testing, verification, self-healing -- runs autonomously.
+You describe what you want to build. The forge runs **19 specialized agents** through a 9-phase pipeline (v3.0 §7): gathering requirements through Socratic interview, challenging your architecture decisions, decomposing work into stories, generating code with parallel agent teams, and verifying everything by actually running the application. Not by reading the code and saying "looks good."
+
+One command starts it. Human approval gates the creative decisions (BRD, architecture, design). Everything after that -- implementation, testing, verification, self-healing -- runs autonomously, bounded by the [`feature_list.json`](feature_list.json) contract.
 
 ```bash
 # Load as plugin and scaffold
@@ -270,6 +272,7 @@ claude_harness_forge/
 
 ## Release History
 
+- **v3.0.0-alpha** (May 2026) -- Retrofit driven by Anthropic Nov-2025 effective-harness paper, OPENDEV (arXiv 2603.05344), Pi-mono. Initializer/coding-agent split (BRD §3.1), `feature_list.json` contract (§3.2), Ralph Loop (§3.3), per-workflow LLM routing (§3.4), Plan Mode subagent (§3.5), Extended ReAct (§3.6), tool-result budget footer (§3.7), mandatory browser-automation E2E gate (§3.8), five-layer defense-in-depth safety (§4.1), event-driven system reminders (§4.2), 5-stage adaptive compaction (§4.3), instinct extraction (§4.4), tree-structured sessions (§4.5), three-tier skills hierarchy (§4.6), spec-gap backpropagation (§4.7), monotonic-improvement guards (§4.8), YAML recipes (§6.5). 19 agents, 27 hooks, 47 skills, 23 commands. Spec: `brd/v3.0.md`.
 - **v2.1.0** (April 2026) -- Gate 12, Phase 3.5, `/upgrade`, `/change`, `/status`, internet research, PTY-based E2E, Playwright MCP pipeline
 - **v2.0.0** (March 2026) -- 15 pillars, mutation testing, compliance reviewer, OWASP Agentic, local LLM routing, RAG/workflow/resilience scaffolding
 - **v1.0.0** (March 2026) -- GAN-inspired architecture, 8-gate ratchet, 4 execution modes, Socratic BRD, interactive architect
