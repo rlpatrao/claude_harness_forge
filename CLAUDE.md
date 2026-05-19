@@ -4,33 +4,66 @@ GAN-inspired autonomous SDLC scaffold with browser-based verification, Karpathy 
 
 **This is the forge repo itself.** Loaded as a plugin via `--plugin-dir` and scaffolded into target projects.
 
-## Repo Structure
+> **BRD v3.0 is the current spec** ([`brd/v3.0.md`](brd/v3.0.md)). It supersedes the v2.0-era `architecture.md`, `forge-reference.md`, and `program.md`. v3.0 retrofits v2.0 with: initializer/coding-agent split, `feature_list.json` contract, mandatory E2E gate, Ralph Loop, per-workflow LLM routing, Plan Mode subagent, Extended ReAct, 5-stage compaction, tree-structured sessions, spec-gap backprop, monotonic-improvement guards, instinct extraction, and YAML recipes. Operational plan: [`brd/v3.0-implementation-plan.md`](brd/v3.0-implementation-plan.md). Live punch list: [`feature_list.json`](feature_list.json) (47 entries, BRD §3.2). Cross-session bridge: [`harness-progress.txt`](harness-progress.txt).
 
-- `agents/` — 11 agents
-- `skills/` — 41 skills (29 task + 12 reference) — reference skills use `-patterns` suffix
-- `hooks/` — 19 Node.js enforcement hooks
+## Repo Structure (v3.0)
+
+- `brd/` — BRD v3.0 + index + implementation plan
+- `agents/` — **19 agents** (11 v2.0 + 8 v3.0: initializer, coding-agent, planner, critic, compactor, spec-auditor, e2e-runner, doc-updater)
+- `skills/` — **47 skills** (41 v2.0 + 6 v3.0: extended-react, spec-backprop, instinct-extraction, tree-sessions, iterative-retrieval, cross-provider-handoff) — reference skills use `-patterns` suffix
+- `hooks/` — **27 Node.js enforcement hooks** (19 v2.0 + 8 v3.0: session-start, feature-edit-guard, e2e-gate, ralph-loop, compaction-stage, budget-footer, instinct-extractor, experiment-logger)
+- `commands/` — **23 slash commands** (8 v2.0 + 15 v3.0: plan, feature-add, feature-status, tree, fork, branch, export, instinct-status, evolve, instinct-export, instinct-import, spec-audit, model, cost, recipe-run)
+- `config/` — `workflows.yaml` (BRD §3.4 per-workflow LLM routing, 13 workflows)
+- `recipes/` — YAML recipes (BRD §6.5) + example
 - `evals/` — Code reviewer regression tests
 - `templates/` — 17 templates (Docker, Playwright, OTel, RAG, Temporal, model card, env, findings report)
 - `learnings/` — Cross-project knowledge base
-- `state/` — Initial state files
+- `state/` — Initial state files (incl. cost-log, eval-scores → BRD §4.8 snapshot store)
 - `scripts/` — Validation scripts
-- `commands/scaffold.md` — The `/scaffold` command
+- `verification/`, `scratch/plans/`, `instincts/`, `experiments/`, `sessions/` — BRD §3.8 / §3.5 / §4.4 / §4.8 / §4.5 runtime dirs
+- `feature_list.json`, `harness-progress.txt` — root-level dogfooding artifacts
 
-## Agents (11)
+## Provenance
 
-| Agent | Role | Model |
-|-------|------|-------|
-| brd-creator | Socratic BRD interview (5 dimensions) | Sonnet |
-| architect | Interactive stack decisions (up to 11 rounds), design artifacts, learnings | Opus |
-| spec-writer | BRD → epics, stories, dependency graph | Sonnet |
-| generator | Code + tests, agent teams, sprint contracts | Sonnet |
-| evaluator | 3-layer verification + browser console + Playwright MCP | Opus |
-| ui-standards-reviewer | SaaS/enterprise conformance (single-pass) | Sonnet |
-| code-reviewer | Quality principles, architecture, story traceability | Sonnet |
-| security-reviewer | OWASP Web Top 10 + OWASP Agentic Top 10 (ASI01-ASI10) | Sonnet |
-| test-engineer | Test plans, cases, data, Playwright E2E, mutation testing | Sonnet |
-| ui-designer | React+Tailwind HTML mockups, agentic UX patterns | Sonnet |
-| **compliance-reviewer** | Bias/fairness, PII, data privacy, regulatory compliance, model cards | Sonnet |
+Source attribution lives in two places:
+
+1. **BRD `brd/v3.0.md` §10 + Appendix A** — the canonical record of every upstream reference (Anthropic claude-quickstarts, OPENDEV-py, Pi-mono, ECC, Forge, Goose, Karpathy, etc.).
+2. **Inline `source:` frontmatter** on adapted files (e.g., `agents/initializer.md` lists its upstream prompt path).
+
+No separate `vendor/` directory or `NOTICE.md` — features are assimilated; the BRD is the reference.
+
+## Agents (19)
+
+Model bindings now live in `config/workflows.yaml` (BRD §3.4); agent files reference them via `{{model:<workflow>}}` placeholders.
+
+### v2.0 agents (11) — unchanged
+
+| Agent | Role | Workflow |
+|-------|------|----------|
+| brd-creator | Socratic BRD interview (5 dimensions) | (inherited) |
+| architect | Interactive stack decisions (up to 11 rounds), design artifacts, learnings | (inherited) |
+| spec-writer | BRD → epics, stories, dependency graph | (inherited) |
+| generator | Code + tests, agent teams, sprint contracts | `generator` |
+| evaluator | 3-layer verification + browser console + Playwright MCP | `evaluator` |
+| ui-standards-reviewer | SaaS/enterprise conformance (single-pass) | (inherited) |
+| code-reviewer | PR-style review (distinct from v3.0 `critic`) | `code-reviewer` |
+| security-reviewer | OWASP Web Top 10 + OWASP Agentic Top 10 (ASI01–ASI10) | `security-reviewer` |
+| test-engineer | Test plans, cases, data, Playwright E2E, mutation testing | (inherited) |
+| ui-designer | React+Tailwind HTML mockups, agentic UX patterns | (inherited) |
+| compliance-reviewer | Bias/fairness, PII, data privacy, regulatory compliance, model cards | (inherited) |
+
+### v3.0 agents (8) — new
+
+| Agent | Role | Workflow | BRD ref |
+|-------|------|----------|---------|
+| **initializer** | One-shot project genesis — produces `feature_list.json`, `init.sh`, `harness-progress.txt`, first commit. Never returns mid-project. | `initializer` (Opus) | §3.1 |
+| **coding-agent** | Per-session feature worker. 8-step SessionStart sequence; one feature per session; flips passes only after E2E artifact lands. | `coding-agent` (Sonnet) | §3.1 |
+| **planner** | Read-only Plan Mode subagent. Schema literally lacks Write/Edit. | `planner` (Opus) | §3.5 |
+| **critic** | GAN-pair independent quality judge. Read-only. Stronger model than the generator. | `critic` (Opus) | §3.6, §5.1 |
+| **compactor** | Stage 3-5 transcript summarizer. Haiku for cost. | `compactor` (Haiku) | §4.3 |
+| **spec-auditor** | Walks back from a phase-N failure to the earliest upstream spec gap; proposes a surgical amendment. | `spec-auditor` (Opus) | §4.7 |
+| **e2e-runner** | Executes feature `steps[]` via Playwright/Puppeteer MCP; captures verification artifact. | `e2e-runner` (Sonnet) | §3.8, §5.1 |
+| **doc-updater** | Syncs `docs/` to code changes. Write scope restricted to `docs/`. | `doc-updater` (Sonnet) | §5.1 |
 
 ## 12-Gate Ratchet
 
@@ -48,6 +81,26 @@ GAN-inspired autonomous SDLC scaffold with browser-based verification, Karpathy 
 | 10. Compliance (bias, fairness, PII) | Yes | -- | -- | End only | ML projects |
 | 11. Spec gaming detection | Yes | Yes | Yes | Per commit | **Always (cannot disable)** |
 | 12. Smoke launch (real data) | Yes | Yes | Yes | Per commit | **Always (cannot disable)** |
+
+## BRD v3.0 additions (beyond the 12-gate ratchet)
+
+These are *not* additional ratchet gates; they are runtime infrastructure that the gates run on top of. The 12-gate ratchet above remains in force for projects scaffolded from the forge.
+
+| Component | BRD ref | Implementation |
+|---|---|---|
+| `feature_list.json` contract | §3.2 | JSON contract at project root; entries append-only via `/feature-add`; only `passes` may flip false→true; enforced by `hooks/feature-edit-guard.js`. |
+| E2E gate | §3.8 | `hooks/e2e-gate.js` rejects passes-flip without a committed verification artifact under `verification/<id>.{png,json}`. Playwright/Puppeteer MCP declared in `.claude-plugin/plugin.json`. |
+| Ralph Loop | §3.3 | `hooks/ralph-loop.js` (Stop hook) blocks exit when any feature `passes:false`; per-session intercept counter yields after 3 to avoid tight loops. |
+| Per-workflow LLM routing | §3.4 | `config/workflows.yaml` — 13 workflows × {primary, failover[], thinking_level, max_iterations, tools_filter}. |
+| Plan Mode subagent | §3.5 | `agents/planner.md` with read-only tool schema; spawned via `/plan`. Structurally cannot Write/Edit. |
+| Extended ReAct | §3.6 | `skills/extended-react/SKILL.md` — six-phase loop (pre-check, thinking, self-critique, action, tool, post). thinking_level per workflow. |
+| Budget footer | §3.7 | `hooks/budget-footer.js` appends `regime: NORMAL/CONSERVE/HIGH/CRITICAL` to every tool result. |
+| 5-stage compaction | §4.3 | `hooks/compaction-stage.js` (PreCompact event) → spawns `agents/compactor.md` at stages 3-5. |
+| Spec backprop | §4.7 | `agents/spec-auditor.md` + `/spec-audit` + `skills/spec-backprop/`. Surgical amendments only. |
+| Monotonic guards | §4.8 | `hooks/experiment-logger.js` fires after `validate-evals.sh`; appends keep/revert decision to `experiments/log.jsonl`. |
+| Instinct extraction | §4.4 | `hooks/instinct-extractor.js` (Stop event, after Ralph Loop) → `instincts/pending/` → `/evolve` promotes via Critic. |
+| Tree sessions | §4.5 | `skills/tree-sessions/`, `commands/{tree,fork,branch,export}.md`, `sessions/<id>.json`. |
+| YAML recipes | §6.5 | `recipes/<name>.yaml` deterministic workflows; `/recipe-run`. |
 
 ## Key Design Decisions
 

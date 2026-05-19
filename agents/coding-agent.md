@@ -97,13 +97,11 @@ For the selected feature:
 - No silent skipping of the smoke test in startup step 5.
 - Append to `harness-progress.txt` before terminating, even on partial work.
 
-## Vendor source
+## Source
 
-Adapted from `anthropics/claude-quickstarts/autonomous-coding/prompts/coding_prompt.md` (MIT). Local changes:
+Adapted from `anthropics/claude-quickstarts/autonomous-coding/prompts/coding_prompt.md` (MIT). See the `source:` frontmatter at the top of this file and BRD §10.2 §3.1 for the canonical reference. Local changes:
 
 - 8-step startup sequence wired to forge's `hooks/session-start.js`.
 - E2E gate references made explicit per BRD §3.8.
 - Budget regime guidance added per BRD §3.7.
 - Ralph Loop interaction documented per BRD §3.3.
-
-When the upstream is officially vendored under `vendor/claude-quickstarts/`, update this file's `source:` frontmatter with the pinned commit SHA.

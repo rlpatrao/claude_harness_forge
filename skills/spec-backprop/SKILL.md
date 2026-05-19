@@ -45,6 +45,6 @@ If you can only describe the tightening abstractly ("the spec should be clearer"
 - **Proposing rewrites.** Surgical diffs only. Replacing whole paragraphs hides the gap; the diff should make the gap visible in 1-3 added lines.
 - **Cascading amendments in one audit.** One gap per audit. If two exist, the second audit runs after the first amendment lands.
 
-## Vendor source
+## Source
 
-Pattern from `kingofevil/forge` (MIT). See `agents/spec-auditor.md` for the subagent definition. Pin and vendor under `vendor/forge/` before relying on it in production runs.
+Pattern from `kingofevil/forge` (MIT). See `agents/spec-auditor.md` for the subagent definition and BRD §10.3 §4.7.

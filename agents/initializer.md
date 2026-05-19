@@ -86,12 +86,10 @@ Step 6 needs a stable ordering. Choose `id`s and `depends_on` entries so the dep
 
 Use `WebSearch` / `WebFetch` to fill gaps before writing `feature_list.json`. Cite sources in `harness-progress.txt` under a "Sources consulted" subsection. Do not invent requirements — if something is genuinely ambiguous, prefer asking via the harness's HITL gate over guessing.
 
-## Vendor source
+## Source
 
-This prompt is adapted from `anthropics/claude-quickstarts/autonomous-coding/prompts/initializer_prompt.md` (MIT). Local changes:
+Adapted from `anthropics/claude-quickstarts/autonomous-coding/prompts/initializer_prompt.md` (MIT). See the `source:` frontmatter at the top of this file and BRD §10.2 §3.1 for the canonical reference. Local changes:
 
 - `claude-progress.txt` → `harness-progress.txt` (forge naming).
 - References `templates/init-sh.template` instead of generating fresh.
 - `feature_list.json` schema extended with `id`, `source_section`, `depends_on`, `verification_artifact_path` for the v3.0 §3.2 / §3.8 hook integration.
-
-When the upstream is officially vendored under `vendor/claude-quickstarts/`, update this file's `source:` frontmatter with the pinned commit SHA.

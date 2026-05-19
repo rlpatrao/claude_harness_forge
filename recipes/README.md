@@ -37,6 +37,6 @@ steps:                          # ordered, executed top-to-bottom
 
 See `recipes/example-weekly-consulting.yaml`.
 
-## Vendor source
+## Source
 
-Read-and-reimplement of the YAML schema from `block-open-source/goose` `crates/goose/src/recipe/` (Apache-2.0). The runtime is forge-native; only the schema is borrowed. See BRD §10.4 §6.5.
+YAML schema read-and-reimplemented from `block-open-source/goose` `crates/goose/src/recipe/` (Apache-2.0). The runtime is forge-native; only the schema is borrowed. See BRD §10.4 §6.5.

@@ -45,6 +45,6 @@ Configured per-workflow in `config/workflows.yaml`. The default is `low`.
 - **Skipping phase 1 to "save tokens".** A 70%+ context window with stale tool outputs hurts more than it helps.
 - **Treating phase 3 verdict as final on the *feature*.** Self-critique is for the *reasoning*. Feature acceptance is the Critic's job (BRD §5.1) and the E2E gate's job (BRD §3.8).
 
-## Vendor source
+## Source
 
-Read-and-reimplement of the OPENDEV §2.2.6 pattern (Python reference at `opendev-to/opendev-py/opendev/runtime/react_loop.py`, MIT). Our Durable Functions topology required a different control flow, so the reimplementation lives in the harness runtime rather than the vendored copy.
+Read-and-reimplement of the OPENDEV §2.2.6 pattern (Python reference at `opendev-to/opendev-py/opendev/runtime/react_loop.py`, MIT). Our Durable Functions topology required a different control flow. See BRD §10.2 §3.6.

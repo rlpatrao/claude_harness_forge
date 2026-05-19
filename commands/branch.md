@@ -18,3 +18,7 @@ Labels the current active path. Use after `/fork` to make the new branch retriev
 - Don't use spaces; use hyphens.
 
 See `commands/tree.md` and `skills/tree-sessions/SKILL.md`.
+
+## Runtime
+
+`node scripts/tree-sessions.js branch <session_id> <label>`.

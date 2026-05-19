@@ -48,6 +48,6 @@ Every turn is saved. The orchestrator maintains the file as JSONL-internally-but
 - **Using `/fork` to undo.** `git revert` is the better tool for undoing. Forks are for *exploring* — you want both branches to remain visible.
 - **Long-lived branches.** A fork that survives across days/sessions tends to drift. Either merge the learnings back to main or label the branch as abandoned.
 
-## Vendor source
+## Source
 
-Read-and-reimplement of `earendil-works/pi/packages/pi-coding-agent/src/session/` (MIT). The algorithm is ~400 lines; the implementation lives in the harness runtime. See BRD §10.3 §4.5.
+Read-and-reimplement of `earendil-works/pi/packages/pi-coding-agent/src/session/` (MIT). The implementation lives at `scripts/tree-sessions.js`. See BRD §10.3 §4.5.

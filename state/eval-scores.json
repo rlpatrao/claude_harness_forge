@@ -1,1 +1,24 @@
-[]
+{
+  "schema_version": "3.0",
+  "_schema": {
+    "description": "BRD §4.8 monotonic-improvement snapshot store. Each snapshot captures the eval scores at a checkpoint; hooks/experiment-logger.js compares latest to previous and decides keep/revert per state/monotonic-policy.json.",
+    "snapshot_shape": {
+      "checkpoint_id": "string (UUID or sequence number)",
+      "git_sha": "string (SHA of HEAD at snapshot time)",
+      "feature_list_hash": "string (sha256 of feature_list.json)",
+      "ts": "ISO-8601 timestamp",
+      "scores": {
+        "coverage": "float 0-1",
+        "typecheck": "float 0-1 (pass rate)",
+        "lint": "float 0-1 (score)",
+        "build": "bool 0|1",
+        "e2e_pass_rate": "float 0-1",
+        "mutation_score": "float 0-1",
+        "perf_p95_ms": "number (optional)"
+      },
+      "decision": "keep | revert | pending",
+      "diff_path": "string (optional, path to the diff that produced this snapshot)"
+    }
+  },
+  "snapshots": []
+}

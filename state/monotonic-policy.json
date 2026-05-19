@@ -1,0 +1,18 @@
+{
+  "_doc": "BRD §4.8 monotonic-improvement policy. Consumed by hooks/experiment-logger.js. Edit to change the default keep/revert behavior.",
+  "policy": "revert-on-any-regression",
+  "_policy_options": [
+    "revert-on-any-regression  -- DEFAULT. Any dimension regressing by more than its tolerance triggers a revert recommendation.",
+    "keep-on-any-improvement   -- Keep if at least one dimension improved, even if another regressed (within tolerance).",
+    "keep-always               -- Never recommend revert (advisory mode)."
+  ],
+  "tolerances": {
+    "coverage": 0.01,
+    "typecheck": 0,
+    "lint": 0.02,
+    "build": 0,
+    "e2e_pass_rate": 0,
+    "mutation_score": 0.02,
+    "perf_p95_ms": 50
+  }
+}

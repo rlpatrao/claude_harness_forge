@@ -16,6 +16,10 @@ Renders the tree-structured session (BRD §4.5) as a reviewable document.
 
 Writes to `sessions/<project>/<session_id>.export.{html,md}`.
 
+## Runtime
+
+`node scripts/tree-sessions.js export <session_id> [html|md]`.
+
 ## When to use
 
 - After a long debugging session you want to attach to a PR.

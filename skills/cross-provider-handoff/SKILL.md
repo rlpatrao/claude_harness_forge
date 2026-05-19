@@ -34,6 +34,6 @@ The conversion is **lossy in one direction**: thinking content tagged for redact
 - **Cost is logged at the destination provider's rate.** The cost-tracker hook reads the active provider from the session metadata, not from the workflow's config.
 - **Don't fail over reads.** Anthropic's prompt cache stores reads; failing over to GPT-5 invalidates the cache and is more expensive than retrying.
 
-## Vendor source
+## Source
 
-Wraps `earendil-works/pi/packages/pi-ai/src/providers/` (MIT). See BRD §6.2 and §10.4 §6.2 for the integration mode (depend vs port).
+Wraps `earendil-works/pi/packages/pi-ai/src/providers/` (MIT). See BRD §6.2 and §10.4 §6.2.

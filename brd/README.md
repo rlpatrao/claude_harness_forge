@@ -23,8 +23,10 @@ The retrofit is dogfooded against the BRD's own concepts:
 
 - **`../feature_list.json`** at the repo root is the v3.0 retrofit contract (BRD §3.2). Entries flip `passes: false → true` only when the corresponding code lands and a verification artifact is committed under `../verification/`.
 - **`../harness-progress.txt`** is the append-only cross-session bridge (BRD §3.1). Every retrofit session ends with a progress note here.
-- **`../vendor/README.md`** is the §10 sync ledger. No code is vendored without a record there.
-- **`../NOTICE.md`** carries vendor attributions per BRD §10.6.
+
+## Provenance
+
+Source attribution is in [`v3.0.md`](./v3.0.md) §10 and Appendix A. Each adapted file (under `agents/`, `skills/`, `hooks/`) also carries an inline `source:` frontmatter line pointing at its upstream. The forge does not maintain a `vendor/` directory or a separate `NOTICE.md`.
 
 ## How to propose a v3.1
 

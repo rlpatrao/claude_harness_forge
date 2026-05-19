@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  verify:
+    name: Verify (JSON · hooks · scripts · YAML · functional)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Set up Python (for YAML round-trip checks)
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python YAML
+        run: python -m pip install --quiet pyyaml
+
+      - name: jq sanity
+        run: jq --version
+
+      # ----- JSON parse (BRD §3.2, §4.8, plugin manifest, settings) -----
+      - name: verify:json
+        run: npm run verify:json
+
+      # ----- Node syntax for every hook and script -----
+      - name: verify:hooks
+        run: npm run verify:hooks
+
+      - name: verify:scripts
+        run: npm run verify:scripts
+
+      # ----- YAML parse (config/workflows.yaml + recipes) -----
+      - name: YAML parse
+        run: |
+          python -c "import yaml; w = yaml.safe_load(open('config/workflows.yaml')); assert len(w['workflows']) == 13, f'expected 13 workflows, got {len(w[\"workflows\"])}'"
+          python -c "import yaml; r = yaml.safe_load(open('recipes/example-weekly-consulting.yaml')); assert len(r['steps']) == 4, f'expected 4 steps, got {len(r[\"steps\"])}'"
+
+      # ----- feature_list.json schema checks -----
+      - name: feature_list.json schema
+        run: |
+          jq -e 'type == "array"' feature_list.json > /dev/null
+          jq -e 'all(.passes == false or .passes == true)' feature_list.json > /dev/null
+          jq -e 'all(.id and .description and .steps and .verification_artifact_path)' feature_list.json > /dev/null
+          # ID uniqueness
+          test "$(jq -r '.[].id' feature_list.json | sort -u | wc -l)" -eq "$(jq 'length' feature_list.json)"
+          echo "feature_list.json: schema OK ($(jq length feature_list.json) entries)"
+
+      # ----- Functional smoke tests against all the new hooks/scripts -----
+      - name: Functional smoke tests
+        run: bash scripts/test-hooks.sh
+
+      # ----- BRD invariants -----
+      - name: BRD docs invariants
+        run: |
+          test -f brd/v3.0.md && echo "OK brd/v3.0.md present"
+          test -f brd/v3.0-implementation-plan.md && echo "OK plan present"
+          test -f harness-progress.txt && echo "OK progress log present"
+          test -f .claude-plugin/plugin.json && echo "OK plugin manifest"
+          jq -e '.mcpServers.playwright.required == true' .claude-plugin/plugin.json > /dev/null
+          echo "OK Playwright MCP declared required (BRD §3.8)"
+
+      # ----- Settings.json hook registration invariants -----
+      - name: settings.json hook registration
+        run: |
+          for evt in SessionStart PreToolUse PostToolUse PreCompact Stop TaskCompleted; do
+            jq -e ".hooks.$evt | length > 0" settings.json > /dev/null || { echo "MISSING: $evt"; exit 1; }
+            echo "OK $evt registered"
+          done
+
+  agentshield:
+    name: AgentShield (security scan of harness config)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true  # Advisory until agentshield is npm-installable
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Try to install + run agentshield
+        run: |
+          if npm install --no-save ecc-agentshield >/dev/null 2>&1; then
+            echo "agentshield installed; running scan..."
+            npx ecc-agentshield scan . || echo "agentshield reported findings (non-blocking)"
+          else
+            echo "agentshield not installable from public npm; skipping (BRD §10.4 — advisory)"
+          fi

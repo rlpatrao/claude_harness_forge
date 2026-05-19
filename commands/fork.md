@@ -27,3 +27,7 @@ After forking, run `/branch <name>` to label the new path so you can come back t
 ```
 
 The first branch remains in the tree under turn 3. Run `/tree` to see both. Run `/export` for a reviewable HTML rendering.
+
+## Runtime
+
+`node scripts/tree-sessions.js fork <session_id> [<turn_id>]`.

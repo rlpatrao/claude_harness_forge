@@ -1,5 +1,22 @@
 {
   "name": "claude-harness-forge",
-  "version": "1.0.0",
-  "description": "GAN-inspired autonomous SDLC scaffold with browser-based verification, Karpathy ratcheting, and cross-project learning."
+  "version": "3.0.0-alpha",
+  "description": "GAN-inspired autonomous SDLC scaffold (BRD v3.0): initializer/coding-agent split, feature_list.json contract, mandatory browser-automation E2E gate, Ralph Loop exit interception, per-workflow LLM routing, Plan Mode subagent, Extended ReAct, adaptive context compaction, tree-structured sessions, spec-gap backprop, monotonic-improvement guards, instinct extraction, YAML recipes. Vendor-first reuse mandate per brd/v3.0.md §10.",
+  "spec": "brd/v3.0.md",
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@executeautomation/playwright-mcp-server"],
+      "purpose": "BRD §3.8 E2E gate — browser automation for verification artifacts under verification/<feature_id>.{png,json}. Required before any feature_list.json passes:false→true flip; the e2e-gate hook rejects flips with no committed artifact.",
+      "required": true,
+      "alternatives": [
+        {
+          "name": "puppeteer",
+          "command": "npx",
+          "args": ["-y", "@modelcontextprotocol/server-puppeteer"],
+          "rationale": "Equivalent to Playwright; use when the target project's stack favors Puppeteer."
+        }
+      ]
+    }
+  }
 }

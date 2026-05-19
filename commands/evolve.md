@@ -22,6 +22,20 @@ Promotes instincts through the BRD §4.4 lifecycle and clusters confirmed instin
 - **Pending → tentative only via Critic.** Skip Critic validation only with `--force` (not recommended).
 - **Tentative → confirmed only via session-count.** Time-based promotion alone is not enough; the instinct must have recurred.
 
+## Runtime
+
+The orchestrator runs the lifecycle steps via `scripts/instinct-evolve.js`:
+
+```
+node scripts/instinct-evolve.js status              # current counts
+node scripts/instinct-evolve.js promote-pending     # score>=0.6 → tentative
+node scripts/instinct-evolve.js promote-tentative   # sessions_seen>=3 → confirmed
+node scripts/instinct-evolve.js cluster             # propose skill clusters
+node scripts/instinct-evolve.js prune-pending       # delete pending older than 30 days
+```
+
+Between `promote-pending` and `promote-tentative`, the Critic subagent validates each candidate (BRD §4.4 hard rule: no auto-promotion past `pending` without Critic).
+
 ## Anti-patterns
 
 - **Running /evolve too often.** It's a curation pass, not a hot path. Once per week of active development is plenty.

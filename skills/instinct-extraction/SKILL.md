@@ -43,6 +43,6 @@ skill       -- clustered instincts merged into skills/ by /evolve
 - Is novel (not already in `instincts/.seen-hashes.txt`).
 - Is short enough to be reusable (length 2-4 tool calls). Longer sequences are usually project-specific scripts, not instincts.
 
-## Vendor source
+## Source
 
-Pattern from `affaan-m/everything-claude-code/skills/continuous-learning-v2/` (MIT). See `hooks/instinct-extractor.js` for the implementation and `commands/evolve.md` for the promotion path.
+Pattern from `affaan-m/everything-claude-code/skills/continuous-learning-v2/` (MIT). See `hooks/instinct-extractor.js` for the implementation, `commands/evolve.md` for the promotion path, and BRD §10.3 §4.4.

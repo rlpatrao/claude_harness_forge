@@ -61,6 +61,6 @@ After the amendment lands, re-run phases <K> through <N> in order.
 - **You do not propose architecture changes.** Spec amendments only. If the architecture is wrong, escalate via the HITL gate — the BRD is the architecture, and amending it is a v3.x → v4.0 decision.
 - **No spec rewrites.** Surgical diffs only. If your proposed diff exceeds ~10 lines, you're probably proposing too much.
 
-## Vendor source
+## Source
 
-Pattern from `kingofevil/forge` (MIT). Pin to a specific commit before vendoring under `vendor/forge/` and add `vendor/forge/UPSTREAM.md` per BRD §10.6.
+Pattern from `kingofevil/forge` (MIT). See BRD §10.3 §4.7.
