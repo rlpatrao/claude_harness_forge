@@ -12,6 +12,23 @@
     "deny": ["Bash(rm -rf /)", "Bash(sudo:*)", "Bash(chmod 777:*)"]
   },
   "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/session-start.js" }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/e2e-gate.js" },
+          { "type": "command", "command": "node .claude/hooks/feature-edit-guard.js" }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Edit|Write",
@@ -40,7 +57,8 @@
           { "type": "command", "command": "node .claude/hooks/pre-commit-gate.js" },
           { "type": "command", "command": "node .claude/hooks/sprint-contract-gate.js" },
           { "type": "command", "command": "node .claude/hooks/teammate-idle-check.js" },
-          { "type": "command", "command": "node .claude/hooks/network-egress.js" }
+          { "type": "command", "command": "node .claude/hooks/network-egress.js" },
+          { "type": "command", "command": "node .claude/hooks/experiment-logger.js" }
         ]
       },
       {
@@ -48,6 +66,20 @@
         "hooks": [
           { "type": "command", "command": "node .claude/hooks/cost-tracker.js" },
           { "type": "command", "command": "node .claude/hooks/token-budget.js" }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/budget-footer.js" }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/compaction-stage.js" }
         ]
       }
     ],
@@ -57,6 +89,15 @@
         "hooks": [
           { "type": "command", "command": "node .claude/hooks/task-completed.js" },
           { "type": "command", "command": "node .claude/hooks/findings-collector.js" }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/ralph-loop.js" },
+          { "type": "command", "command": "node .claude/hooks/instinct-extractor.js" }
         ]
       }
     ]

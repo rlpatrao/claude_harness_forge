@@ -1,0 +1,39 @@
+# BRD §6.5 worked example — weekly consulting deliverable.
+# Invocation:
+#   /recipe-run recipes/example-weekly-consulting.yaml client="EngCo" week_ending="2026-05-19"
+
+name: weekly-consulting-deliverable
+description: Weekly consulting cadence — market research → use-case prioritization → deck → doc sync.
+
+inputs:
+  client:
+    type: string
+    description: Client name for the deliverable.
+    required: true
+  week_ending:
+    type: date
+    description: Week-ending date for this deliverable.
+    required: true
+
+steps:
+  - skill: market-research
+    params:
+      client_industry: engineering-construction
+    pipe: true
+
+  - skill: use-case-prioritization
+    params:
+      dimensions:
+        - feasibility
+        - value
+        - risk
+        - time
+        - cost
+
+  - skill: deck-generator
+    params:
+      template: 5-dim-scoring
+
+  - skill: doc-updater
+    params:
+      target: google-slides

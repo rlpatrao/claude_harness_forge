@@ -1,0 +1,14 @@
+# Verification artifacts for BRD §3.8 E2E gate
+
+Files under this directory are screenshots, DOM-assertion dumps, or
+JSON proof-of-state captured by a Playwright/Puppeteer MCP session
+when a feature_list.json entry is being marked `passes: true`.
+
+Naming convention: `<feature_id>.{png,json}` matching the
+`verification_artifact_path` field in the entry.
+
+The `hooks/e2e-gate.js` PreToolUse hook refuses any
+`passes: false → true` flip unless the artifact at the expected path
+exists on disk AND is tracked or staged in git AND is non-empty.
+
+This file is a placeholder so git tracks the empty directory.

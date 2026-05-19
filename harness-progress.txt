@@ -1,0 +1,183 @@
+================================================================
+claude_harness_forge — harness progress log
+================================================================
+
+Project: claude_harness_forge
+Repo: rlpatrao/claude_harness_forge
+Spec: brd/v3.0.md (supersedes architecture.md, forge-reference.md, program.md)
+Plan: brd/v3.0-implementation-plan.md
+Contract: feature_list.json (BRD §3.2)
+
+================================================================
+ARCHITECTURE DECISIONS (frozen at v3.0 BRD persist)
+================================================================
+
+D1. Retrofit, not rewrite. v2.0 multi-cloud adapter, Durable Functions
+    topology, permission classifier, and existing 41 skills stay.
+
+D2. The five v3.0 design principles (BRD §1) override prior conventions
+    where they conflict:
+      - Separation of concerns
+      - Progressive degradation
+      - Transparency over magic
+      - Goal-driven, not instruction-driven
+      - Compound system over monolithic agent
+
+D3. Initializer agent runs once at project genesis (BRD §3.1).
+    Coding-agent runs every subsequent session; obeys the 8-step
+    SessionStart sequence enforced by hooks/session-start.js.
+
+D4. feature_list.json is the source of truth for completion (BRD §3.2).
+    Schema: { id, category, description, steps[], passes: false,
+              source_section, depends_on[], verification_artifact_path }
+    Entries are append-only (no delete); only the `passes` field flips,
+    and only after a verification artifact lands under verification/<id>.
+
+D5. Vendor-first reuse mandate (BRD §10). Every component with a
+    permissively-licensed public reference is vendored, depended on, or
+    forked — generation is the last resort. Discipline tracked in
+    vendor/README.md.
+
+D6. Per-workflow LLM routing (BRD §3.4) replaces all-agents-on-Opus.
+    Source of truth lives in config/workflows.yaml (created in increment 2a).
+
+D7. Plan Mode is a subagent with a read-only tool schema (BRD §3.5),
+    not a state machine. The schema restriction makes "stuck in plan
+    mode" structurally impossible.
+
+D8. Five-layer defense-in-depth safety (BRD §4.1). The existing 19
+    hooks slot in as Layer 5. Layer 3 reuses the existing permission
+    classifier.
+
+D9. State files already exist for v3.0 components:
+      state/eval-scores.json    → §4.8 snapshot store
+      state/cost-log.json       → §6.1 cost ledger
+      state/iteration-log.md    → §4.8 experiment log
+      templates/features-template.json → §3.2 template seed
+      templates/init-sh.template       → §3.1 init.sh template
+      hooks/cost-tracker.js     → §3.7 budget footer foundation
+      hooks/token-budget.js     → §3.7 budget footer foundation
+
+D10. Branch policy. All v3.0 retrofit work happens on
+     claude/implement-claude-agents-aSXLm (this branch) until merged to
+     main.
+
+================================================================
+PROGRESS LOG (append-only)
+================================================================
+
+[2026-05-19 | session: initial-persistence | branch: claude/implement-claude-agents-aSXLm]
+- Persisted BRD v3.0 to brd/v3.0.md.
+- Created brd/README.md (index) and brd/v3.0-implementation-plan.md (operational plan).
+- Seeded feature_list.json with 47 entries covering every BRD §3 / §4 / §5 retrofit item.
+- Seeded harness-progress.txt (this file) with architecture decisions D1–D10.
+- Created vendor/README.md (BRD §10 sync ledger) and NOTICE.md (attribution stub).
+- Increment 1a delivered:
+    * agents/initializer.md, agents/coding-agent.md
+    * hooks/session-start.js, hooks/feature-edit-guard.js
+    * settings.json updated to register SessionStart and feature-edit-guard
+- Verification: jq on feature_list.json passes; both new hooks dry-run exit 0;
+  no existing tests broken (no existing tests modified).
+- Commit: 457ba1b
+
+[2026-05-19 | session: increment-1-complete | branch: claude/implement-claude-agents-aSXLm]
+- Increment 1b (BRD §3.8) E2E gate:
+    * hooks/e2e-gate.js — PreToolUse Edit|Write; rejects passes-flip without
+      a non-empty, git-tracked verification artifact
+    * verification/.gitkeep
+    * settings.json: e2e-gate.js BEFORE feature-edit-guard.js in PreToolUse
+- Increment 1c (BRD §3.3) Ralph Loop:
+    * hooks/ralph-loop.js — Stop hook; returns decision:block when failing
+      features remain; per-session intercept counter yields after 3
+- Verification: both hooks node -c clean; e2e-gate.js correctly blocks
+  artifact-less flip with exit 2 and BRD §3.8 message
+- Commit: 1c5bf25
+
+[2026-05-19 | session: increment-2 | branch: claude/implement-claude-agents-aSXLm]
+- Increment 2a (BRD §3.4) per-workflow LLM routing:
+    * config/workflows.yaml — 13 workflows with primary, failover[],
+      thinking_level, max_iterations, tools_filter
+- Increment 2b (BRD §3.5) Plan Mode as subagent:
+    * agents/planner.md (read-only schema)
+    * commands/plan.md
+    * scratch/plans/.gitkeep
+- Increment 2c (BRD §3.6) Extended ReAct + Critic + Compactor:
+    * agents/critic.md (GAN-pair critic, Opus, read-only)
+    * agents/compactor.md (Haiku, summarize-only)
+    * skills/extended-react/SKILL.md
+    * hooks/compaction-stage.js — PreCompact hook; stages 1-5 with
+      spawn_subagent: compactor directive at stages 3-5
+- Increment 2d (BRD §3.7) tool-result budget footer:
+    * hooks/budget-footer.js — PostToolUse all matchers; reads
+      state/cost-log.json; computes regime (NORMAL/CONSERVE/HIGH/CRITICAL);
+      appends footer via hookSpecificOutput.appendToToolResult
+    * settings.json: PreCompact block; budget-footer registered LAST in
+      PostToolUse so it sees fresh tokens
+- Verification: workflows.yaml parses; budget-footer at 75% returns
+  CONSERVE regime; compaction-stage at 80% returns stage 3 with
+  preserve_last_turns:10
+- Commit: a933388
+
+[2026-05-19 | session: increment-3 + topology | branch: claude/implement-claude-agents-aSXLm]
+- Increment 3a (BRD §4.7) spec backprop:
+    * agents/spec-auditor.md (Opus, read-only)
+    * commands/spec-audit.md
+    * skills/spec-backprop/SKILL.md
+- Increment 3b (BRD §4.8) monotonic-improvement guards:
+    * hooks/experiment-logger.js — PostToolUse Bash matcher; fires after
+      validate-evals.sh; compares latest snapshot to previous; applies
+      keep-on-any-improvement | revert-on-any-regression | keep-always
+      policy from state/monotonic-policy.json; appends to experiments/log.jsonl
+    * experiments/log.jsonl (empty, initialized)
+- Increment 3c (BRD §4.4) instinct extraction:
+    * hooks/instinct-extractor.js — Stop hook (after ralph-loop); mines
+      tool-sequence patterns of length 2-4; scores via 0.4 frequency +
+      0.4 success_rate + 0.2 novelty; promotes >=0.5 score to
+      instincts/pending/
+    * instincts/{pending,tentative,confirmed}/.gitkeep
+    * skills/instinct-extraction/SKILL.md
+    * commands/{instinct-status,evolve,instinct-export,instinct-import}.md
+- Increment 3d (BRD §4.5) tree-structured sessions:
+    * skills/tree-sessions/SKILL.md
+    * commands/{tree,fork,branch,export}.md
+    * sessions/.gitkeep
+- Increment 3e (BRD §6.5) recipe runner:
+    * recipes/README.md (schema doc)
+    * recipes/example-weekly-consulting.yaml (BRD §6.5 verbatim)
+    * commands/recipe-run.md
+- Remaining §5 topology:
+    * agents/{e2e-runner,doc-updater}.md
+    * skills/{iterative-retrieval,cross-provider-handoff}/SKILL.md
+    * commands/{feature-add,feature-status,model,cost}.md
+- settings.json: instinct-extractor registered in Stop after ralph-loop;
+  experiment-logger registered in PostToolUse Bash after network-egress.
+
+STATUS as of this commit:
+- All 3 BRD §8 increments delivered.
+- 47 feature_list.json entries remain at passes:false (the E2E gate
+  blocks flips until verification artifacts are committed; this is by
+  design — the retrofit code lands first, the entry flips when the
+  corresponding component is exercised end-to-end in a later session).
+- 6 new agents in agents/: initializer, coding-agent, planner, critic,
+  compactor, spec-auditor, e2e-runner, doc-updater (=8 new total).
+- 8 new hooks in hooks/: session-start, feature-edit-guard, e2e-gate,
+  ralph-loop, compaction-stage, budget-footer, instinct-extractor,
+  experiment-logger.
+- 5 new skills in skills/: extended-react, spec-backprop, instinct-extraction,
+  tree-sessions, iterative-retrieval, cross-provider-handoff (=6 net new
+  given the planning).
+- 14 new commands in commands/: plan, feature-add, feature-status,
+  tree, fork, branch, export, instinct-status, evolve, instinct-export,
+  instinct-import, spec-audit, model, cost, recipe-run (=15).
+- 1 new config: config/workflows.yaml.
+- Infrastructure dirs: verification/, scratch/plans/, instincts/{pending,
+  tentative,confirmed}/, experiments/, sessions/, recipes/.
+
+NEXT (across sessions, not blocking):
+- Vendor the rows in vendor/README.md as the harness genuinely needs them
+  (anthropics/claude-quickstarts first, then opendev-py, then pi-ai).
+- Land Playwright MCP server in .claude-plugin/plugin.json for BRD §3.8.
+- First end-to-end test: pick feature v3-3.1-initializer-split, run the
+  Initializer agent against a throwaway project, capture verification
+  artifact, flip the passes field through e2e-gate → feature-edit-guard.
+  That validates the entire retrofit loop end-to-end.

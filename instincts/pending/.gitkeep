@@ -1,0 +1,8 @@
+# instincts/pending/ — BRD §4.4 lifecycle stage 1
+#
+# Auto-extracted by hooks/instinct-extractor.js. Each file is
+# `<sha1-prefix>.json` with: instinct_id, discovered_at, session_id,
+# tool_sequence, occurrences_in_session, success_rate, novelty, score,
+# status: "pending", notes.
+#
+# Auto-prune after 30 days if not promoted to `tentative/` via /evolve.

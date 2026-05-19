@@ -1,0 +1,36 @@
+---
+description: Show per-session cost breakdown by workflow (BRD §6.1).
+---
+
+# /cost
+
+Renders the cost ledger for the current session from `state/cost-log.json`, broken down by workflow and provider.
+
+## Output
+
+```
+session: <id>
+duration: <start> → <now>
+
+by workflow:
+  initializer     <tokens>  $<usd>   (n=<calls>)
+  coding-agent    <tokens>  $<usd>   (n=<calls>)
+  planner         <tokens>  $<usd>   (n=<calls>)
+  critic          <tokens>  $<usd>   (n=<calls>)
+  ...
+
+by provider:
+  anthropic/claude-opus-4-7      <tokens>  $<usd>
+  anthropic/claude-sonnet-4-6    <tokens>  $<usd>
+  anthropic/claude-haiku-4-5     <tokens>  $<usd>
+
+total:  <tokens>  $<usd>
+```
+
+Pricing comes from the Pi-AI pricing table (BRD §10.4 §6.1), vendored at `vendor/pi-ai/pricing.json`.
+
+## When to use
+
+- During development to confirm cost-aware routing is doing its job.
+- Before invoicing on consulting deliverables (per BRD §6.1 rationale).
+- When debugging an unexpected cost spike.
