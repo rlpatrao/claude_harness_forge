@@ -1,0 +1,9 @@
+# sessions/ — BRD §4.5 tree-structured session storage
+#
+# Sessions auto-save per turn. Each session: sessions/<project>/<session_id>.json
+# containing the full tree (turns + branches + labels).
+#
+# Archived transcripts (for the Compactor subagent, BRD §4.3):
+#   sessions/archive/<session_id>/transcript.json
+#
+# /tree, /fork, /branch, /export commands operate on these files.

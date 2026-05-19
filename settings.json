@@ -57,7 +57,8 @@
           { "type": "command", "command": "node .claude/hooks/pre-commit-gate.js" },
           { "type": "command", "command": "node .claude/hooks/sprint-contract-gate.js" },
           { "type": "command", "command": "node .claude/hooks/teammate-idle-check.js" },
-          { "type": "command", "command": "node .claude/hooks/network-egress.js" }
+          { "type": "command", "command": "node .claude/hooks/network-egress.js" },
+          { "type": "command", "command": "node .claude/hooks/experiment-logger.js" }
         ]
       },
       {
@@ -95,7 +96,8 @@
       {
         "matcher": "",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/ralph-loop.js" }
+          { "type": "command", "command": "node .claude/hooks/ralph-loop.js" },
+          { "type": "command", "command": "node .claude/hooks/instinct-extractor.js" }
         ]
       }
     ]
