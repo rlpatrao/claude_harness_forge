@@ -1,0 +1,157 @@
+# BRD §3.4 — per-workflow LLM routing
+#
+# Source of truth for the workflow → model binding. Agents reference
+# this file via {{model:<workflow>}} placeholders resolved at runtime.
+#
+# Editing rules:
+#   - Default to Sonnet for high-volume action work and Opus for
+#     independent judgment / one-shot synthesis.
+#   - Cheap, narrow workflows (compaction, summarization) bind to Haiku.
+#   - Self-critique always uses an Opus-grade model regardless of what
+#     the action pass used (BRD §3.6).
+#   - Failover providers come from the Pi-AI registry (BRD §6.2).
+#
+# Provider abstraction is delegated to @mariozechner/pi-ai (vendored at
+# vendor/pi-ai/, BRD §10.4 §6.2). pi-ai supplies the per-provider
+# pricing table consumed by hooks/budget-footer.js (BRD §3.7) and
+# hooks/cost-tracker.js (BRD §6.1).
+
+version: 1
+
+# Default models when a workflow does not explicitly bind.
+defaults:
+  primary: anthropic/claude-sonnet-4-6
+  thinking_level: low
+  max_iterations: 40
+
+# Workflow → model bindings. Keys mirror the BRD §3.4 table verbatim.
+workflows:
+
+  initializer:
+    primary: anthropic/claude-opus-4-7
+    rationale: One-shot, high-stakes, complex synthesis at project genesis.
+    thinking_level: high
+    max_iterations: 60
+    failover:
+      - openai/gpt-5
+      - google/gemini-2.5-pro
+    tools_filter: full
+
+  coding-agent:
+    primary: anthropic/claude-sonnet-4-6
+    rationale: Tool-calling workhorse; cost-sensitive per-session loop.
+    thinking_level: low
+    max_iterations: 40
+    failover:
+      - bedrock/anthropic.claude-sonnet-4-6
+      - vertex/claude-sonnet-4-6
+      - openai/gpt-5
+    tools_filter: full
+
+  planner:
+    primary: anthropic/claude-opus-4-7
+    rationale: Read-only deep reasoning. Plan quality > speed.
+    thinking_level: high
+    max_iterations: 20
+    failover:
+      - openai/gpt-5
+      - google/gemini-2.5-pro
+    tools_filter: read-only
+
+  generator:
+    primary: anthropic/claude-sonnet-4-6
+    rationale: High-volume code generation in the GAN pair.
+    thinking_level: med
+    max_iterations: 30
+    failover:
+      - bedrock/anthropic.claude-sonnet-4-6
+      - openai/gpt-5
+    tools_filter: write
+
+  critic:
+    primary: anthropic/claude-opus-4-7
+    rationale: Independent quality judgment must be stronger than the generator.
+    thinking_level: high
+    max_iterations: 15
+    failover:
+      - openai/gpt-5
+      - google/gemini-2.5-pro
+    tools_filter: read-only
+
+  evaluator:
+    primary: anthropic/claude-sonnet-4-6
+    rationale: Test execution + grading against auto-discovered dimensions.
+    thinking_level: low
+    max_iterations: 20
+    failover:
+      - bedrock/anthropic.claude-sonnet-4-6
+    tools_filter: test-runner
+
+  compactor:
+    primary: anthropic/claude-haiku-4-5
+    rationale: Cheap, fast, summarization-only (BRD §4.3 stages 3-5).
+    thinking_level: off
+    max_iterations: 5
+    failover:
+      - openai/gpt-5-mini
+      - google/gemini-2.5-flash
+    tools_filter: summarize
+
+  self-critique:
+    primary: anthropic/claude-opus-4-7
+    rationale: Catches issues the action pass missed (BRD §3.6 phase 3).
+    thinking_level: high
+    max_iterations: 10
+    failover:
+      - openai/gpt-5
+    tools_filter: read-only
+
+  spec-auditor:
+    primary: anthropic/claude-opus-4-7
+    rationale: Spec-gap backprop walks the dependency graph; needs deep reasoning (BRD §4.7).
+    thinking_level: high
+    max_iterations: 20
+    failover:
+      - openai/gpt-5
+    tools_filter: read-diff
+
+  code-reviewer:
+    primary: anthropic/claude-opus-4-7
+    rationale: PR-style review; quality > speed.
+    thinking_level: med
+    max_iterations: 15
+    failover:
+      - openai/gpt-5
+    tools_filter: read-only
+
+  security-reviewer:
+    primary: anthropic/claude-opus-4-7
+    rationale: OWASP Web + Agentic Top 10 threat check.
+    thinking_level: high
+    max_iterations: 15
+    failover:
+      - openai/gpt-5
+    tools_filter: read-scan
+
+  e2e-runner:
+    primary: anthropic/claude-sonnet-4-6
+    rationale: Browser automation; tool-heavy, not reasoning-heavy.
+    thinking_level: low
+    max_iterations: 30
+    failover:
+      - bedrock/anthropic.claude-sonnet-4-6
+    tools_filter: browser-mcp
+
+  doc-updater:
+    primary: anthropic/claude-sonnet-4-6
+    rationale: Sync docs to code; targeted edits in docs/ only.
+    thinking_level: low
+    max_iterations: 15
+    failover:
+      - bedrock/anthropic.claude-sonnet-4-6
+    tools_filter: docs-only
+
+# Cross-cutting:
+#   thinking_level: off | min | low | med | high — controls BRD §3.6 phase 2 depth.
+#   tools_filter: a named tool schema set (BRD §4.1 layer 2). Schemas live in config/tool-schemas/.
+#   failover[]: ordered provider list for BRD §6.2; first available wins.

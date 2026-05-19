@@ -66,6 +66,20 @@
           { "type": "command", "command": "node .claude/hooks/cost-tracker.js" },
           { "type": "command", "command": "node .claude/hooks/token-budget.js" }
         ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/budget-footer.js" }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/compaction-stage.js" }
+        ]
       }
     ],
     "TaskCompleted": [

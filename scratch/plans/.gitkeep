@@ -1,0 +1,8 @@
+# Plans produced by the Planner subagent (BRD §3.5)
+#
+# Each file: `<feature_id_or_topic>.md` written by the orchestrator
+# from the Planner's final-response payload. Format documented in
+# `../../agents/planner.md`.
+#
+# These are inputs to the main coding agent — they are not authoritative
+# spec. The BRD remains the source of truth.
