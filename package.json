@@ -11,6 +11,8 @@
     "verify:hooks": "for f in hooks/*.js; do node -c \"$f\" || exit 1; done && echo OK",
     "verify:scripts": "for f in scripts/*.js; do node -c \"$f\" || exit 1; done && echo OK",
     "verify:json": "for f in feature_list.json settings.json .claude-plugin/plugin.json state/eval-scores.json state/monotonic-policy.json templates/features-template.json; do jq -e . $f >/dev/null || exit 1; done && echo OK",
+    "test:hooks": "bash scripts/test-hooks.sh",
+    "test": "npm run verify:json && npm run verify:hooks && npm run verify:scripts && npm run test:hooks",
     "feature:status": "node scripts/feature-status.js",
     "cost": "node scripts/cost-render.js",
     "workflows:list": "node scripts/workflows-resolver.js --list",
