@@ -1,54 +1,202 @@
 from __future__ import annotations
 
+import json
 from typing import Any
 
 import pandas as pd
 
-EXP_ORDER  = ["EN", "MI", "SE", "EX"]
-EXP_LABELS = {"EN": "Entry-level", "MI": "Mid-level", "SE": "Senior", "EX": "Executive"}
+_KEY_DIMS = [
+    "experience_level", "company_location", "industry",
+    "employment_type", "company_size", "remote_ratio",
+    "education_required", "job_category", "work_year",
+]
 
 
 class SalaryDataset:
-    SKEW_THRESHOLD = 0.80
-    MIN_ROWS_WARN  = 100
-    MIN_ROWS_HARD  = 30
+    MIN_ROWS_HARD  = 3    # guardrail: never output stats on fewer rows
+    MIN_ROWS_WARN  = 15   # soft warning
+    SKEW_THRESHOLD = 0.85 # flag when one value dominates this fraction
 
     def __init__(self, df: pd.DataFrame) -> None:
         self.df = df
-        self._categorical = [
-            "experience_level", "employment_type", "company_size",
-            "company_location", "employee_residence", "industry",
-            "education_required", "job_category", "hiring_status",
-        ]
         self.options: dict[str, list] = self._build_options()
-
-    def _build_options(self) -> dict[str, list]:
-        out: dict[str, list] = {}
-        for col in self._categorical:
-            if col in self.df.columns:
-                out[col] = sorted(self.df[col].dropna().unique().tolist())
-        for col in ("job_title", "remote_ratio", "work_year"):
-            if col in self.df.columns:
-                out[col] = sorted(self.df[col].dropna().unique().tolist())
-        return out
 
     # ------------------------------------------------------------------ #
     # Public API
     # ------------------------------------------------------------------ #
 
     def query(self, filters: dict) -> dict[str, Any]:
-        df = self.df.copy()
+        df      = self._apply_filters(filters)
+        balance = self._balance(df)
+        stats   = self._stats(df)
+        return {"stats": stats, "balance": balance, "row_count": len(df)}
 
-        _list_cols = [
-            "experience_level", "employment_type", "company_size",
-            "company_location", "industry", "education_required",
-            "job_category", "hiring_status", "remote_ratio", "work_year",
-        ]
-        for col in _list_cols:
+    def suggest_alternatives(self, current_filters: dict, n: int = 3) -> list[dict]:
+        """Data-driven suggestions: every candidate is derived from the actual
+        distribution of the current filtered subset, not from hardcoded rules."""
+        base_df = self._apply_filters(current_filters)
+
+        if len(base_df) < self.MIN_ROWS_HARD:
+            return []
+
+        unfiltered = [d for d in _KEY_DIMS if not current_filters.get(d) and d in self.df.columns]
+        active     = [d for d in _KEY_DIMS if current_filters.get(d)     and d in self.df.columns]
+        candidates: list[dict] = []
+
+        # ── Strategy 1: highest salary-spread dimension ──────────────────
+        # Finds the unfiltered dimension that discriminates salary the most
+        # within the current result, and suggests top-N groups from that dim.
+        spread_rank: list[tuple[float, str, pd.DataFrame]] = []
+        for dim in unfiltered:
+            grp = (
+                base_df.groupby(dim)["salary_usd"]
+                .agg(cnt="count", med="median")
+                .query(f"cnt >= {self.MIN_ROWS_HARD}")
+            )
+            if len(grp) < 2:
+                continue
+            lo = float(grp["med"].min())
+            hi = float(grp["med"].max())
+            spread = hi / lo if lo > 0 else 1.0
+            spread_rank.append((spread, dim, grp))
+
+        spread_rank.sort(reverse=True)
+
+        for spread, dim, grp in spread_rank[:2]:
+            top_vals = (
+                grp.sort_values("cnt", ascending=False).head(4).index.tolist()
+            )
+            f2  = {**current_filters, dim: top_vals}
+            df2 = self._apply_filters(f2)
+            if len(df2) < self.MIN_ROWS_HARD:
+                continue
+            high_val = grp["med"].idxmax()
+            low_val  = grp["med"].idxmin()
+            candidates.append({
+                "label":              f"Break down by {dim}",
+                "filters":            f2,
+                "rationale":          (
+                    f"'{dim}' spans {spread:.1f}× salary range in your current data "
+                    f"('{high_val}' is highest, '{low_val}' is lowest)."
+                ),
+                "preview_count":      len(df2),
+                "preview_median_usd": int(df2["salary_usd"].median()),
+            })
+
+        # ── Strategy 2: relax the most restrictive active filter ─────────
+        # Only fires when the current result is small (< 50 rows).
+        if len(base_df) < 50 and active:
+            relax_rank: list[tuple[int, str, dict, pd.DataFrame]] = []
+            for dim in active:
+                rf  = {k: v for k, v in current_filters.items() if k != dim}
+                df2 = self._apply_filters(rf)
+                gain = len(df2) - len(base_df)
+                if len(df2) >= self.MIN_ROWS_HARD and gain > 0:
+                    relax_rank.append((gain, dim, rf, df2))
+            relax_rank.sort(reverse=True)
+            if relax_rank:
+                gain, dim, rf, df2 = relax_rank[0]
+                candidates.append({
+                    "label":              f"Remove '{dim}' filter  (+{gain} rows)",
+                    "filters":            rf,
+                    "rationale":          (
+                        f"Dropping the {dim} filter expands your result "
+                        f"from {len(base_df)} → {len(df2)} rows."
+                    ),
+                    "preview_count":      len(df2),
+                    "preview_median_usd": int(df2["salary_usd"].median()),
+                })
+
+        # ── Strategy 3: head-to-head comparison on most populated dim ────
+        # Picks the first unfiltered dim where top-2 values each have
+        # enough rows, and offers a direct side-by-side.
+        for dim in unfiltered:
+            vc    = base_df[dim].value_counts()
+            valid = [v for v in vc.index if vc[v] >= self.MIN_ROWS_HARD]
+            if len(valid) < 2:
+                continue
+            top2 = valid[:2]
+            f2   = {**current_filters, dim: top2}
+            df2  = self._apply_filters(f2)
+            if len(df2) < self.MIN_ROWS_HARD:
+                continue
+            is_dup = any(c["filters"] == f2 for c in candidates)
+            if not is_dup:
+                candidates.append({
+                    "label":              f"Compare {dim}: '{top2[0]}' vs '{top2[1]}'",
+                    "filters":            f2,
+                    "rationale":          (
+                        f"Top 2 values in {dim} within your current data: "
+                        f"{vc[top2[0]]} vs {vc[top2[1]]} rows."
+                    ),
+                    "preview_count":      len(df2),
+                    "preview_median_usd": int(df2["salary_usd"].median()),
+                })
+            break
+
+        # ── Strategy 4: temporal zoom ────────────────────────────────────
+        # Suggest the two most recent years if year isn't already filtered.
+        if not current_filters.get("work_year") and "work_year" in self.df.columns:
+            recent = sorted(self.df["work_year"].unique())[-2:]
+            f2  = {**current_filters, "work_year": list(recent)}
+            df2 = self._apply_filters(f2)
+            if len(df2) >= self.MIN_ROWS_HARD:
+                is_dup = any(c["filters"] == f2 for c in candidates)
+                if not is_dup:
+                    candidates.append({
+                        "label":              f"Recent data only ({', '.join(str(y) for y in recent)})",
+                        "filters":            f2,
+                        "rationale":          (
+                            f"Narrowing to {recent[0]}–{recent[1]} reflects "
+                            f"current market conditions ({len(df2)} rows)."
+                        ),
+                        "preview_count":      len(df2),
+                        "preview_median_usd": int(df2["salary_usd"].median()),
+                    })
+
+        # ── Strategy 5: top-paying sub-slice ─────────────────────────────
+        # If salary_min not set, suggest a top-quartile cut from the data.
+        if not current_filters.get("salary_min") and len(base_df) >= 10:
+            p75 = int(base_df["salary_usd"].quantile(0.75))
+            f2  = {**current_filters, "salary_min": p75}
+            df2 = self._apply_filters(f2)
+            if len(df2) >= self.MIN_ROWS_HARD:
+                is_dup = any(c["filters"] == f2 for c in candidates)
+                if not is_dup:
+                    candidates.append({
+                        "label":              f"Top-quartile salaries (≥ ${p75:,})",
+                        "filters":            f2,
+                        "rationale":          (
+                            f"Filters to the top 25% earners in your current slice "
+                            f"(salary ≥ ${p75:,} USD, {len(df2)} rows)."
+                        ),
+                        "preview_count":      len(df2),
+                        "preview_median_usd": int(df2["salary_usd"].median()),
+                    })
+
+        # Deduplicate and return
+        seen: set[str] = set()
+        out:  list[dict] = []
+        for c in candidates:
+            key = json.dumps(c["filters"], sort_keys=True, default=str)
+            cf_key = json.dumps(current_filters, sort_keys=True, default=str)
+            if key != cf_key and key not in seen:
+                seen.add(key)
+                out.append(c)
+            if len(out) >= n:
+                break
+        return out
+
+    # ------------------------------------------------------------------ #
+    # Private helpers
+    # ------------------------------------------------------------------ #
+
+    def _apply_filters(self, filters: dict) -> pd.DataFrame:
+        df = self.df.copy()
+        for col in _KEY_DIMS:
             vals = filters.get(col)
             if vals and col in df.columns:
                 df = df[df[col].isin(vals)]
-
         if filters.get("job_title_contains") and "job_title" in df.columns:
             df = df[df["job_title"].str.contains(
                 filters["job_title_contains"], case=False, na=False
@@ -57,72 +205,50 @@ class SalaryDataset:
             df = df[df["salary_usd"] >= filters["salary_min"]]
         if filters.get("salary_max") is not None:
             df = df[df["salary_usd"] <= filters["salary_max"]]
-
-        balance = self._balance(df)
-        stats   = self._stats(df)
-        return {"stats": stats, "balance": balance, "row_count": len(df)}
-
-    def suggest_alternatives(
-        self, current_filters: dict, n: int = 3
-    ) -> list[dict]:
-        candidates = self._build_candidates(current_filters)
-        valid: list[dict] = []
-        for cand in candidates:
-            r   = self.query(cand["filters"])
-            bal = r["balance"]
-            if bal["n"] < self.MIN_ROWS_HARD:
-                continue
-            cand["preview_count"]      = bal["n"]
-            cand["preview_median_usd"] = (
-                r["stats"].get("salary_usd", {}).get("median") if "error" not in r["stats"] else None
-            )
-            cand["balanced"] = bal["balanced"]
-            if not bal["balanced"]:
-                cand["balance_warnings"] = bal["warnings"]
-            valid.append(cand)
-            if len(valid) >= n:
-                break
-        return valid
-
-    # ------------------------------------------------------------------ #
-    # Private helpers
-    # ------------------------------------------------------------------ #
+        return df
 
     def _balance(self, df: pd.DataFrame) -> dict:
-        n = len(df)
+        n        = len(df)
         warnings: list[str] = []
 
         if n < self.MIN_ROWS_HARD:
             warnings.append(
-                f"Only {n} rows — too few for reliable statistics (minimum {self.MIN_ROWS_HARD})."
+                f"Guardrail: only {n} row(s) match — "
+                f"minimum {self.MIN_ROWS_HARD} required to produce any output."
             )
         elif n < self.MIN_ROWS_WARN:
-            warnings.append(f"Only {n} rows — interpret with caution.")
+            warnings.append(f"Only {n} rows — interpret results with caution.")
 
-        for col, label in {
+        check = {
             "company_location": "geographic location",
             "experience_level": "experience level",
             "industry":         "industry",
             "employment_type":  "employment type",
-        }.items():
+        }
+        for col, label in check.items():
             if col not in df.columns or n == 0:
                 continue
             vc = df[col].value_counts(normalize=True)
             if len(vc) == 1:
                 warnings.append(
-                    f"Single-source: all results share one {label} ('{vc.index[0]}')."
+                    f"Single-source: all {n} rows share {label} '{vc.index[0]}'."
                 )
             elif vc.iloc[0] > self.SKEW_THRESHOLD:
                 warnings.append(
-                    f"{vc.iloc[0]*100:.0f}% of results are {label} '{vc.index[0]}' "
-                    f"— data is skewed; consider broadening this filter."
+                    f"{vc.iloc[0]*100:.0f}% of rows are {label} "
+                    f"'{vc.index[0]}' — data is skewed on this dimension."
                 )
 
         return {"warnings": warnings, "balanced": len(warnings) == 0, "n": n}
 
     def _stats(self, df: pd.DataFrame) -> dict:
-        if len(df) == 0:
-            return {"error": "No rows match the given filters."}
+        if len(df) < self.MIN_ROWS_HARD:
+            return {
+                "error": (
+                    f"Only {len(df)} row(s) match — guardrail blocks output "
+                    f"below {self.MIN_ROWS_HARD} rows."
+                )
+            }
 
         s = df["salary_usd"]
         out: dict[str, Any] = {
@@ -158,88 +284,17 @@ class SalaryDataset:
 
         return out
 
-    def _build_candidates(self, cf: dict) -> list[dict]:
-        cands: list[dict] = []
-
-        # 1. Broaden geography if narrow
-        locs = cf.get("company_location", [])
-        if 1 <= len(locs) <= 2:
-            top5 = self.df["company_location"].value_counts().head(5).index.tolist()
-            merged = sorted(set(locs) | set(top5))
-            cands.append({
-                "label":     "Broaden to top-5 countries",
-                "filters":   {**cf, "company_location": merged},
-                "rationale": f"Expand geography to {', '.join(merged)} for a diverse, balanced sample.",
-            })
-
-        # 2. Adjacent experience level
-        exps = cf.get("experience_level", [])
-        if len(exps) == 1 and exps[0] in EXP_ORDER:
-            idx = EXP_ORDER.index(exps[0])
-            if idx < len(EXP_ORDER) - 1:
-                nxt = EXP_ORDER[idx + 1]
-                cands.append({
-                    "label":     f"Add {EXP_LABELS[nxt]} to see salary progression",
-                    "filters":   {**cf, "experience_level": [exps[0], nxt]},
-                    "rationale": (
-                        f"Comparing {EXP_LABELS[exps[0]]} vs {EXP_LABELS[nxt]} "
-                        f"shows compensation growth between tiers."
-                    ),
-                })
-            if idx > 0:
-                prev = EXP_ORDER[idx - 1]
-                cands.append({
-                    "label":     f"Include {EXP_LABELS[prev]} for downward comparison",
-                    "filters":   {**cf, "experience_level": [prev, exps[0]]},
-                    "rationale": f"Shows where {EXP_LABELS[exps[0]]} sits relative to {EXP_LABELS[prev]}.",
-                })
-
-        # 3. Remote vs on-site comparison (always multi-value)
-        if not cf.get("remote_ratio"):
-            cands.append({
-                "label":     "Remote vs On-site salary gap",
-                "filters":   {**cf, "remote_ratio": [0, 100]},
-                "rationale": "Compares fully on-site (0) vs fully remote (100) — reveals remote premium/discount.",
-            })
-
-        # 4. Large companies vs small
-        if not cf.get("company_size"):
-            cands.append({
-                "label":     "Compare large vs small companies",
-                "filters":   {**cf, "company_size": ["S", "L"]},
-                "rationale": "Large enterprises typically pay 15-30% more — direct comparison across size.",
-            })
-
-        # 5. Cross-industry (always multiple industries)
-        if not cf.get("industry"):
-            top4 = self.df["industry"].value_counts().head(4).index.tolist()
-            cands.append({
-                "label":     f"Top-4 industries: {', '.join(top4)}",
-                "filters":   {**cf, "industry": top4},
-                "rationale": "Largest industry pools for statistically robust cross-sector comparison.",
-            })
-        elif len(cf.get("industry", [])) == 1:
-            top4 = self.df["industry"].value_counts().head(4).index.tolist()
-            cands.append({
-                "label":     "Expand to top-4 industries",
-                "filters":   {**cf, "industry": top4},
-                "rationale": "Adds context by comparing your industry against the top alternatives.",
-            })
-
-        # 6. Full-time vs contract
-        if not cf.get("employment_type"):
-            cands.append({
-                "label":     "Full-time vs Contract comparison",
-                "filters":   {**cf, "employment_type": ["FT", "CT"]},
-                "rationale": "Contractors often earn higher gross salaries — side-by-side shows the gap.",
-            })
-
-        # 7. Recent years only
-        if not cf.get("work_year"):
-            cands.append({
-                "label":     "2024–2025 data only",
-                "filters":   {**cf, "work_year": [2024, 2025]},
-                "rationale": "Focus on the most recent market conditions, filtering out older entries.",
-            })
-
-        return cands
+    def _build_options(self) -> dict[str, list]:
+        out: dict[str, list] = {}
+        categorical = [
+            "experience_level", "employment_type", "company_size",
+            "company_location", "employee_residence", "industry",
+            "education_required", "job_category", "hiring_status",
+        ]
+        for col in categorical:
+            if col in self.df.columns:
+                out[col] = sorted(self.df[col].dropna().unique().tolist())
+        for col in ("job_title", "remote_ratio", "work_year"):
+            if col in self.df.columns:
+                out[col] = sorted(self.df[col].dropna().unique().tolist())
+        return out

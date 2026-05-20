@@ -6,39 +6,47 @@ import anthropic
 
 from dataset import SalaryDataset
 
-_SYSTEM = """You are an AI job market salary analyst with access to the \
+_SYSTEM = """You are an AI job market salary analyst backed by the \
 Global AI Job Market & Salary Trends 2025 dataset (15,001 rows × 20 columns) \
 covering AI/ML roles across 15 countries and 14 industries.
 
-Dataset columns: job_id, work_year, job_title, job_category, experience_level \
-(EN/MI/SE/EX), employment_type (FT/PT/CT/FL), company_size (S/M/L), \
-company_location, employee_residence, remote_ratio (0/50/100), \
-education_required, skills_required, industry, salary_currency, salary_local, \
-salary_usd, years_experience, benefits_score (1–10), posting_date, hiring_status.
+Dataset columns:
+  job_id, work_year, job_title, job_category,
+  experience_level (EN=Entry / MI=Mid / SE=Senior / EX=Executive),
+  employment_type  (FT=Full-time / PT=Part-time / CT=Contract / FL=Freelance),
+  company_size     (S / M / L),
+  company_location (ISO-2: US GB DE CA AU IN FR NL SG CH BR JP ES PL SW),
+  employee_residence, remote_ratio (0=On-site / 50=Hybrid / 100=Remote),
+  education_required, skills_required, industry, salary_currency,
+  salary_local, salary_usd, years_experience,
+  benefits_score (1–10), posting_date, hiring_status.
 
-Your workflow for every user question:
-1. Call query_salary_data with appropriate filters. If unsure what values exist, \
+Workflow — follow this for EVERY user question:
+1. If the user's message contains a JSON filters dict (prefixed "filters="),
+   extract it and pass those exact values to query_salary_data.
+   Otherwise infer the right filters from the question.
+2. Call query_salary_data. If unsure what values exist for a dimension,
    call get_filter_options first.
-2. LEAD with balance warnings if the result has any. Never suppress them.
-3. Present: sample size, median salary, 25th–75th percentile range, and top \
-   breakdowns (by experience, location, or whatever is relevant).
-4. ALWAYS follow up with suggest_alternative_filters so the user has 2–3 \
-   well-balanced next steps to explore.
+3. If the balance report contains warnings, LEAD with them before the stats.
+4. Present: sample size, median, p25–p75 range, and the most relevant breakdown.
+5. ALWAYS end by calling suggest_alternative_filters, then tell the user
+   what the 2–3 suggestions are and why each is interesting.
 
-Hard rules:
-- Never draw conclusions from < 30 rows. Say so explicitly instead.
-- Flag any result where one country/industry/experience dominates > 80%.
-- Alternative suggestions must never be single-source or highly skewed \
-  (the tool enforces this, but reinforce it in your language).
-- Format salary figures as $X,XXX (USD). Use markdown tables/bullets.
+Hard guardrails:
+- The dataset enforces a minimum of 3 rows. If a query returns fewer,
+  say so and suggest broadening filters — do not guess or fabricate numbers.
+- Flag results where one value dominates > 85% on any key dimension.
+- Format salaries as $X,XXX (USD). Use markdown tables or bullets.
+- Suggestions come from the data itself; never invent filter combinations
+  that don't reflect what's actually in the filtered subset.
 """
 
 _TOOLS = [
     {
         "name": "query_salary_data",
         "description": (
-            "Filter the salary dataset and return statistics plus a balance report. "
-            "Omit a key to leave that dimension unfiltered."
+            "Filter the salary dataset and return salary statistics plus a balance report. "
+            "Omit a key entirely to leave that dimension unfiltered."
         ),
         "input_schema": {
             "type": "object",
@@ -53,15 +61,15 @@ _TOOLS = [
                 },
                 "company_size": {
                     "type": "array", "items": {"type": "string"},
-                    "description": "S=Small (<50), M=Medium (50–250), L=Large (>250)",
+                    "description": "S=Small, M=Medium, L=Large",
                 },
                 "company_location": {
                     "type": "array", "items": {"type": "string"},
-                    "description": "ISO-2 codes: US, GB, DE, CA, AU, IN, FR, NL, SG, CH, BR, JP, ES, PL, SW",
+                    "description": "ISO-2 codes, e.g. ['US', 'GB', 'DE']",
                 },
                 "industry": {
                     "type": "array", "items": {"type": "string"},
-                    "description": "Industry sector names as listed in get_filter_options",
+                    "description": "Sector name(s) — use get_filter_options to see all values",
                 },
                 "education_required": {
                     "type": "array", "items": {"type": "string"},
@@ -76,7 +84,7 @@ _TOOLS = [
                 },
                 "job_title_contains": {
                     "type": "string",
-                    "description": "Case-insensitive substring to match in job_title",
+                    "description": "Case-insensitive substring match on job_title",
                 },
                 "remote_ratio": {
                     "type": "array", "items": {"type": "integer"},
@@ -86,8 +94,8 @@ _TOOLS = [
                     "type": "array", "items": {"type": "integer"},
                     "description": "e.g. [2024, 2025]",
                 },
-                "salary_min": {"type": "number", "description": "Minimum salary in USD"},
-                "salary_max": {"type": "number", "description": "Maximum salary in USD"},
+                "salary_min": {"type": "number", "description": "Min salary in USD"},
+                "salary_max": {"type": "number", "description": "Max salary in USD"},
             },
         },
     },
@@ -99,19 +107,20 @@ _TOOLS = [
     {
         "name": "suggest_alternative_filters",
         "description": (
-            "Generate 2–3 alternative filter sets the user could explore next. "
-            "Each suggestion is pre-validated to have ≥30 rows and no single-source skew."
+            "Generate 2–3 alternative filter sets derived from the actual distribution "
+            "of the current filtered subset — not hardcoded rules. Each suggestion is "
+            "pre-validated to return ≥ 3 rows (the hard guardrail)."
         ),
         "input_schema": {
             "type": "object",
             "properties": {
                 "current_filters": {
                     "type": "object",
-                    "description": "The filters used in the most recent query",
+                    "description": "The exact filters passed to the most recent query_salary_data call",
                 },
                 "num_suggestions": {
                     "type": "integer",
-                    "description": "Number of alternatives (default 3)",
+                    "description": "How many alternatives to return (default 3, max 4)",
                 },
             },
             "required": ["current_filters"],
@@ -125,6 +134,8 @@ class SalaryAgent:
         self._ds      = dataset
         self._client  = anthropic.Anthropic()
         self._history: list[dict] = []
+        self.last_filters:     dict      = {}
+        self.last_suggestions: list[dict] = []
 
     # ------------------------------------------------------------------ #
 
@@ -163,18 +174,25 @@ class SalaryAgent:
 
     def reset(self) -> None:
         self._history.clear()
+        self.last_filters     = {}
+        self.last_suggestions = []
 
     # ------------------------------------------------------------------ #
 
     def _dispatch(self, name: str, inp: dict) -> str:
         if name == "query_salary_data":
+            self.last_filters = inp
             return json.dumps(self._ds.query(inp), default=str)
+
         if name == "get_filter_options":
             return json.dumps(self._ds.options)
+
         if name == "suggest_alternative_filters":
             suggestions = self._ds.suggest_alternatives(
                 inp.get("current_filters", {}),
                 inp.get("num_suggestions", 3),
             )
+            self.last_suggestions = suggestions
             return json.dumps(suggestions, default=str)
+
         return json.dumps({"error": f"Unknown tool: {name}"})
