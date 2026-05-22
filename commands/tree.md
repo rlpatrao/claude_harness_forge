@@ -29,4 +29,12 @@ active: <branch-label or "(unlabeled)">
 
 ## Runtime
 
-`node scripts/tree-sessions.js tree <session_id>` (or `switch <session_id> <label>` for the labeled form). See `skills/tree-sessions/SKILL.md` for the on-disk format.
+```bash
+# Render current tree
+node scripts/tree-sessions.js tree "$SESSION_ID"
+
+# Switch to a labeled branch
+node scripts/tree-sessions.js switch "$SESSION_ID" "$ARGUMENTS"
+```
+
+Use `$SESSION_ID` from `CLAUDE_CODE_SESSION_ID` env var if present, otherwise the active session-tree file under `sessions/<project>/`. See `skills/tree-sessions/SKILL.md` for the on-disk format.

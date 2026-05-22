@@ -31,5 +31,8 @@ See `recipes/README.md` for the schema and `recipes/example-weekly-consulting.ya
 
 ## Runtime
 
-1. `node scripts/recipe-runner.js <recipe.yaml> key=value ...` emits a JSON execution plan to stdout (exit 2 if any step's skill is missing).
-2. The orchestrator iterates the plan and invokes each `skill` via the Skill tool with the resolved `params`.
+```bash
+node scripts/recipe-runner.js $ARGUMENTS
+```
+
+The output is a JSON execution plan (exit 2 if any step's skill is missing). For each step in `plan.steps[]`, invoke the named skill via the Skill tool with the resolved `params`. If a step has `pipe: true`, pass its output to the next step's params.

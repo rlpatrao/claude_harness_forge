@@ -30,6 +30,17 @@ See `skills/spec-backprop/SKILL.md` for the walk-back algorithm.
 
 ## Runtime
 
-1. `node scripts/spec-backprop.js packet <N> [<feature_id>]` emits a JSON packet on stdout: failing phase, feature entry, walked phases with artifact samples.
-2. The orchestrator passes the packet to the Spec-Auditor subagent (`agents/spec-auditor.md`).
-3. The Critic validates the returned amendment before apply.
+```bash
+# Step 1: build the packet
+node scripts/spec-backprop.js packet $ARGUMENTS > /tmp/spec-audit-packet.json
+
+# Step 2: spawn the Spec-Auditor subagent
+# Invoke the Task tool with subagent_type="spec-auditor" and pass the packet
+# contents as input. The subagent returns a proposed unified-diff amendment.
+
+# Step 3: validate via Critic
+# Invoke the Task tool with subagent_type="critic" against the amendment.
+
+# Step 4: on critic pass, apply the diff:
+# patch -p1 < <(echo "$AMENDMENT") && git add -A && git commit -m "spec: amendment per /spec-audit"
+```

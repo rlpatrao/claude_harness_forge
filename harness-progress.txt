@@ -251,6 +251,69 @@ v3-3.1-initializer-split first).
   "Provenance" section.
 - brd/v3.0.md left untouched — it is the canonical historical spec.
 
+[2026-05-19 | session: wiring-completion | branch: claude/implement-claude-agents-aSXLm]
+- scripts/sdk-contract.md — documents the Claude Code SDK hook output
+  shapes the forge depends on. Lists known unknowns (spawn_subagent
+  in PreCompact output, appendToToolResult honoring, etc.) to be
+  resolved on first dogfood.
+- scripts/orchestrate.js — BRD §7 phase orchestrator. Given a
+  feature_id (or --resume to pick the next unblocked failing one),
+  emits a 6-phase plan (4-9; phases 1-3 require human approval).
+  Each phase: subagent + model + task_prompt + spawn_instruction,
+  or cmd + run_instruction. Final block: instructions_to_main_agent.
+- scripts/run-gates.sh — 12-gate ratchet runner. Appends snapshot to
+  state/eval-scores.json with git_sha + feature_list_hash + per-gate
+  scores. Triggers experiment-logger PostToolUse hook at the end.
+- scripts/bootstrap-target.sh — creates a throwaway target with 3
+  seed features + init.sh + .git + verification/. With --self-test,
+  runs orchestrate + run-gates + a gold-path passes-flip through the
+  e2e-gate chain.
+- hooks/post-turn.js — PostToolUse, auto-appends turn snapshots to
+  sessions/<project>/<sid>.json (BRD §4.5 tree-sessions integration).
+- 3 new slash commands: /orchestrate, /run-gates, /bootstrap-target.
+  Each commands/*.md got an explicit "## Runtime" block with the
+  exact Bash command + arg passthrough convention. Also added
+  Runtime to: /plan (Task spawn), /feature-add (Critic spawn),
+  /instinct-export (jq), /instinct-import (jq+dedup), /model
+  (no-op script — meta-command).
+- settings.json: post-turn.js registered in PostToolUse all-matcher
+  after budget-footer.
+- package.json: +orchestrate, +gates, +bootstrap-target scripts.
+- scripts/test-hooks.sh: +5 new tests (orchestrate-plan, --resume,
+  run-gates --dry-run, post-turn auto-create, bootstrap-target 3-
+  entry). 22/22 pass.
+- End-to-end synthetic validation: bootstrap-target --self-test
+  produced a 3-feature target, ran orchestrate against it (6 phases),
+  staged a verification artifact for hello-world, and the gold-path
+  passes-flip went through e2e-gate with rc=0. (Target git commit
+  failed only due to this harness's commit-signing wrapper; not a
+  code issue.)
+
+WHAT THIS UNBLOCKED
+- The Claude Code SDK now has a concrete contract to honor
+  (scripts/sdk-contract.md).
+- The main coding-agent has a single command to walk a feature
+  through phases 4-9 autonomously: /orchestrate <feature_id>.
+- The 12-gate ratchet is callable as one command and feeds the
+  monotonic-improvement guard automatically.
+- A real dogfood run can use /bootstrap-target to get a clean
+  surface before testing.
+- Session-tree branching now happens automatically — every tool
+  use becomes a turn in the tree under sessions/<project>/.
+
+WHAT STILL REQUIRES A REAL DOGFOOD
+- SDK honoring of spawn_subagent, decision:block, appendToToolResult.
+- Whether the SDK routes a slash command to the script (vs to the
+  agent prompt) when commands/*.md has a "## Runtime" Bash block.
+- Whether subagent prompts spawn correctly when the orchestrate plan
+  instructs the agent to invoke the Task tool.
+- The Critic / Spec-Auditor / Compactor / E2E-Runner / Doc-Updater
+  agents under real-task pressure.
+
+These resolve only by running the harness against a real workload.
+The synthetic self-test validated the static wiring; the dynamic
+wiring is one orchestrate run away from proof.
+
 NEXT (separate work, not blocking on this branch):
 - Actual vendoring (UPSTREAM.md stubs → real file copies + LICENSE +
   patches/<repo>.patch). Start with claude-quickstarts.

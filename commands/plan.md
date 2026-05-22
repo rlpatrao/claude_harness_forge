@@ -5,7 +5,20 @@ argument-hint: <feature_id or short topic>
 
 # /plan
 
-Spawn the **Planner** subagent (`agents/planner.md`) to design an implementation plan for `$ARGUMENTS`.
+## Runtime
+
+Invoke the Task tool with `subagent_type="planner"` and the prompt:
+> Design an implementation plan for: $ARGUMENTS. Follow the format in agents/planner.md. Return the plan as your final message; the orchestrator will persist it to `scratch/plans/<topic>.md`.
+
+After the planner returns:
+```bash
+mkdir -p scratch/plans
+# Persist the plan content to a topic-named file under scratch/plans/
+```
+
+## What the planner does
+
+Spawns the **Planner** subagent (`agents/planner.md`) to design an implementation plan for `$ARGUMENTS`.
 
 The Planner runs with a tool schema reduced to `Read, Glob, Grep, WebFetch, WebSearch` — it cannot write, edit, or mutate. This is enforced at the SDK schema level (BRD §3.5), not by convention.
 

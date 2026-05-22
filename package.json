@@ -17,7 +17,10 @@
     "cost": "node scripts/cost-render.js",
     "workflows:list": "node scripts/workflows-resolver.js --list",
     "skills:list": "node scripts/skills-loader.js list",
-    "instincts:status": "node scripts/instinct-evolve.js status"
+    "instincts:status": "node scripts/instinct-evolve.js status",
+    "orchestrate": "node scripts/orchestrate.js",
+    "gates": "bash scripts/run-gates.sh",
+    "bootstrap-target": "bash scripts/bootstrap-target.sh"
   },
   "dependencies": {
     "_comment": "Deps declared but install is deferred per BRD §10 vendor-first mandate. The harness ships these declarations so a scaffolded target project picks them up; the forge repo itself does not require an npm install for hooks/scripts (they're stdlib-only).",

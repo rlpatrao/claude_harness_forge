@@ -5,6 +5,17 @@ argument-hint: <one-sentence feature description>
 
 # /feature-add
 
+## Runtime
+
+1. Draft the proposed entry as JSON matching the schema (id, category, description, steps[], passes: false, source_section, depends_on[], verification_artifact_path).
+2. Invoke the Task tool with `subagent_type="critic"` and the prompt:
+   > Validate this proposed feature_list.json entry: $PROPOSED_ENTRY. Existing entries: see feature_list.json. Return VERDICT: pass | block | needs-revision with rationale.
+3. On `pass`, append to `feature_list.json`:
+   ```bash
+   jq ". + [$PROPOSED_ENTRY]" feature_list.json > /tmp/fl.new && mv /tmp/fl.new feature_list.json
+   ```
+   The `feature-edit-guard` hook recognizes the append (length grew by 1, all existing entries unchanged) and allows it.
+
 Per BRD §3.2, entries in `feature_list.json` are append-only via this command. Direct edits that add or remove entries are blocked by `hooks/feature-edit-guard.js`.
 
 ## Workflow

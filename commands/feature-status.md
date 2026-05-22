@@ -20,7 +20,11 @@ Renders a summary of `feature_list.json` for the current project:
 
 ## Runtime
 
-This command runs `node scripts/feature-status.js` from the project root and surfaces its stdout.
+```bash
+node scripts/feature-status.js
+```
+
+Surface the stdout. No further interpretation needed.
 
 ## Output format
 

@@ -19,7 +19,9 @@ instincts/
 
 ## Runtime
 
-`node scripts/instinct-evolve.js status` emits JSON counts.
+```bash
+node scripts/instinct-evolve.js status
+```
 
 ## Lifecycle reminder (BRD §4.4)
 

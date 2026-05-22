@@ -21,3 +21,11 @@ Exports `instincts/confirmed/` to a portable file (default: `instincts/export-<d
 ## Import path
 
 The receiving project runs `/instinct-import <file>`, which writes to its own `instincts/pending/` (not `confirmed/`) — the new project's `/evolve` cycle decides if the imported pattern holds in this codebase.
+
+## Runtime
+
+```bash
+OUT="${ARGUMENTS:-instincts/export-$(date +%Y-%m-%d).json}"
+jq -s '.' instincts/confirmed/*.json > "$OUT"
+echo "exported $(jq length "$OUT") confirmed instincts to $OUT"
+```

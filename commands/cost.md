@@ -31,7 +31,11 @@ Pricing comes from a fallback table in `scripts/cost-render.js`. Per BRD §10.4 
 
 ## Runtime
 
-This command runs `node scripts/cost-render.js` from the project root and surfaces its stdout.
+```bash
+node scripts/cost-render.js
+```
+
+Surface the stdout. No further interpretation needed.
 
 ## When to use
 

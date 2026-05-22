@@ -11,8 +11,8 @@ GAN-inspired autonomous SDLC scaffold with browser-based verification, Karpathy 
 - `brd/` — BRD v3.0 + index + implementation plan
 - `agents/` — **19 agents** (11 v2.0 + 8 v3.0: initializer, coding-agent, planner, critic, compactor, spec-auditor, e2e-runner, doc-updater)
 - `skills/` — **47 skills** (41 v2.0 + 6 v3.0: extended-react, spec-backprop, instinct-extraction, tree-sessions, iterative-retrieval, cross-provider-handoff) — reference skills use `-patterns` suffix
-- `hooks/` — **27 Node.js enforcement hooks** (19 v2.0 + 8 v3.0: session-start, feature-edit-guard, e2e-gate, ralph-loop, compaction-stage, budget-footer, instinct-extractor, experiment-logger)
-- `commands/` — **23 slash commands** (8 v2.0 + 15 v3.0: plan, feature-add, feature-status, tree, fork, branch, export, instinct-status, evolve, instinct-export, instinct-import, spec-audit, model, cost, recipe-run)
+- `hooks/` — **30 Node.js enforcement hooks** (19 v2.0 + 11 v3.0: session-start, feature-edit-guard, e2e-gate, ralph-loop, compaction-stage, budget-footer, instinct-extractor, experiment-logger, reminder-injector, dangerous-patterns, post-turn)
+- `commands/` — **26 slash commands** (8 v2.0 + 18 v3.0: plan, feature-add, feature-status, tree, fork, branch, export, instinct-status, evolve, instinct-export, instinct-import, spec-audit, model, cost, recipe-run, orchestrate, run-gates, bootstrap-target)
 - `config/` — `workflows.yaml` (BRD §3.4 per-workflow LLM routing, 13 workflows)
 - `recipes/` — YAML recipes (BRD §6.5) + example
 - `evals/` — Code reviewer regression tests

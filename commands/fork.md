@@ -30,4 +30,6 @@ The first branch remains in the tree under turn 3. Run `/tree` to see both. Run 
 
 ## Runtime
 
-`node scripts/tree-sessions.js fork <session_id> [<turn_id>]`.
+```bash
+node scripts/tree-sessions.js fork "$SESSION_ID" $ARGUMENTS
+```

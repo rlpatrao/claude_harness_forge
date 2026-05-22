@@ -187,6 +187,51 @@ out=$(node scripts/feature-status.js 2>&1)
 echo "$out" | grep -q "passing:" && ok "feature-status renders summary" \
                                 || fail "feature-status output unexpected" "$(echo $out | head -c 200)"
 
+# --- 18. orchestrate: emits a 6-phase plan for v3-3.1-initializer-split ---
+out=$(node scripts/orchestrate.js v3-3.1-initializer-split 2>&1)
+if echo "$out" | jq -e '(.phases | length) == 6 and .feature_id == "v3-3.1-initializer-split"' >/dev/null 2>&1; then
+  ok "orchestrate emits 6-phase plan with correct feature_id"
+else
+  fail "orchestrate plan should have 6 phases" "$(echo $out | head -c 200)"
+fi
+
+# --- 19. orchestrate --resume picks next unblocked failing feature ---
+out=$(node scripts/orchestrate.js --resume 2>&1)
+if echo "$out" | jq -e '.feature_id == "v3-3.1-initializer-split"' >/dev/null 2>&1; then
+  ok "orchestrate --resume picks v3-3.1-initializer-split (no deps)"
+else
+  fail "orchestrate --resume should pick v3-3.1-initializer-split" "$(echo $out | head -c 200)"
+fi
+
+# --- 20. run-gates --dry-run lists all 12 gates ---
+out=$(bash scripts/run-gates.sh --dry-run 2>&1)
+echo "$out" | grep -q "would run gates: 1 2 3 4 5 6 7 8 9 10 11 12" \
+  && ok "run-gates --dry-run lists all 12 gates" \
+  || fail "run-gates --dry-run should list 12 gates" "$(echo $out | head -c 200)"
+
+# --- 21. post-turn hook auto-creates a session-tree file ---
+TMPSESS=$(mktemp -d)
+cp -r . "$TMPSESS"
+(
+  cd "$TMPSESS"
+  printf '{"session_id":"smoke-post-turn","cwd":"%s","tool_name":"Read","tool_input":{"file_path":"foo.txt"}}' "$TMPSESS" \
+    | node hooks/post-turn.js
+  test -f "sessions/$(basename $TMPSESS)/smoke-post-turn.json"
+) && ok "post-turn auto-creates session-tree file" \
+   || fail "post-turn should create sessions/<project>/<sid>.json" ""
+rm -rf "$TMPSESS"
+
+# --- 22. bootstrap-target creates a 3-entry target ---
+TMPTGT=$(mktemp -d)
+out=$(bash scripts/bootstrap-target.sh "$TMPTGT/target" 2>&1)
+if [ -f "$TMPTGT/target/feature_list.json" ] && \
+   [ "$(jq length $TMPTGT/target/feature_list.json)" -eq 3 ]; then
+  ok "bootstrap-target creates 3-entry target"
+else
+  fail "bootstrap-target should produce a 3-entry feature_list.json" "$(echo $out | head -c 200)"
+fi
+rm -rf "$TMPTGT"
+
 # --- Summary ---
 echo ""
 echo "----- test summary -----"

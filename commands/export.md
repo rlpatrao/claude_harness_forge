@@ -18,7 +18,9 @@ Writes to `sessions/<project>/<session_id>.export.{html,md}`.
 
 ## Runtime
 
-`node scripts/tree-sessions.js export <session_id> [html|md]`.
+```bash
+node scripts/tree-sessions.js export "$SESSION_ID" ${ARGUMENTS:-html}
+```
 
 ## When to use
 

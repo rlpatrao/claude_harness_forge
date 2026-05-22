@@ -16,3 +16,19 @@ An instinct that fires reliably in project A may not fire at all in project B. W
 - **Imports never auto-promote to `confirmed`.** Always start at `pending`.
 - **Duplicate hashes are skipped.** If the imported instinct's hash matches one already in this project's `instincts/.seen-hashes.txt`, it is dropped.
 - **The import is read-only on the source file.** The source file is not modified.
+
+## Runtime
+
+```bash
+IN="$ARGUMENTS"
+mkdir -p instincts/pending
+SEEN=$(cat instincts/.seen-hashes.txt 2>/dev/null || true)
+COUNT=0
+for hash in $(jq -r '.[].instinct_id' "$IN"); do
+  if echo "$SEEN" | grep -q "^${hash}$"; then continue; fi
+  jq --arg h "$hash" '.[] | select(.instinct_id == $h) | .status = "pending"' "$IN" \
+    > "instincts/pending/${hash}.json"
+  COUNT=$((COUNT+1))
+done
+echo "imported $COUNT new instincts to instincts/pending/"
+```

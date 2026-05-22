@@ -21,4 +21,6 @@ See `commands/tree.md` and `skills/tree-sessions/SKILL.md`.
 
 ## Runtime
 
-`node scripts/tree-sessions.js branch <session_id> <label>`.
+```bash
+node scripts/tree-sessions.js branch "$SESSION_ID" "$ARGUMENTS"
+```

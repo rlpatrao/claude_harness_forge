@@ -24,17 +24,25 @@ Promotes instincts through the BRD §4.4 lifecycle and clusters confirmed instin
 
 ## Runtime
 
-The orchestrator runs the lifecycle steps via `scripts/instinct-evolve.js`:
+```bash
+# 1. Current counts
+node scripts/instinct-evolve.js status
 
-```
-node scripts/instinct-evolve.js status              # current counts
-node scripts/instinct-evolve.js promote-pending     # score>=0.6 → tentative
-node scripts/instinct-evolve.js promote-tentative   # sessions_seen>=3 → confirmed
-node scripts/instinct-evolve.js cluster             # propose skill clusters
-node scripts/instinct-evolve.js prune-pending       # delete pending older than 30 days
+# 2. Score>=0.6 → tentative. BEFORE this, spawn the Critic subagent
+#    on each pending instinct and only promote on critic.pass.
+node scripts/instinct-evolve.js promote-pending
+
+# 3. sessions_seen>=3 → confirmed
+node scripts/instinct-evolve.js promote-tentative
+
+# 4. Propose skill clusters from confirmed instincts
+node scripts/instinct-evolve.js cluster
+
+# 5. Prune pending older than 30 days
+node scripts/instinct-evolve.js prune-pending
 ```
 
-Between `promote-pending` and `promote-tentative`, the Critic subagent validates each candidate (BRD §4.4 hard rule: no auto-promotion past `pending` without Critic).
+BRD §4.4 hard rule: no auto-promotion past `pending` without the Critic. The orchestrator interleaves Critic spawns between the script calls — do not call `promote-pending` blindly.
 
 ## Anti-patterns
 
