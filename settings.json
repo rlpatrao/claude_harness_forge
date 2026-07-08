@@ -1,4 +1,9 @@
 {
+  "worktree": {
+    "bgIsolation": "worktree",
+    "baseRef": "head",
+    "symlinkDirectories": ["node_modules", ".venv", ".cache"]
+  },
   "permissions": {
     "allow": [
       "Bash(git:*)", "Bash(cd:*)", "Bash(ls:*)", "Bash(find:*)", "Bash(grep:*)",

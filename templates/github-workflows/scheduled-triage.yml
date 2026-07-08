@@ -1,0 +1,83 @@
+# Scheduled triage automation (BRD v3.1 §4, v3.1.8).
+#
+# Runs the morning-triage recipe every weekday at 07:30 UTC. Writes
+# candidate items to specs/triage/inbox.md and opens a PR (or creates
+# an issue) for human review.
+#
+# Installation:
+#   - Copy this file to .github/workflows/ in your scaffolded project.
+#   - Adjust the cron schedule for your timezone.
+#   - Grant the workflow write permissions to specs/triage/ and to
+#     issues (repository → Settings → Actions → General).
+#
+# Adapted from cwijayasundara/claude_harness_eng_v5 upstream-watch
+# workflow shape per BRD v3.1 §4 (v3.1.8).
+
+name: Scheduled triage
+
+on:
+  schedule:
+    - cron: "30 7 * * 1-5"    # 07:30 UTC, Mon–Fri
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Do not open PR / issue; just print output"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write         # to append to specs/triage/inbox.md
+  issues: write           # to open an issue if the recipe recommends
+  pull-requests: write    # to open a PR with the inbox update
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ensure specs/triage/ exists
+        run: mkdir -p specs/triage && touch specs/triage/inbox.md
+
+      - name: Run morning-triage recipe
+        run: |
+          if [ -f recipes/example-morning-triage.yaml ]; then
+            node .claude/scripts/recipe-runner.js recipes/example-morning-triage.yaml
+          else
+            echo "recipe not found; nothing to do"
+          fi
+
+      - name: Detect changes
+        id: diff
+        run: |
+          if ! git diff --quiet specs/triage/inbox.md; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open PR with triage updates
+        if: steps.diff.outputs.changed == 'true' && !inputs.dry_run
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore(triage): scheduled discovery pass"
+          title: "Triage: scheduled discovery ($(date -u +%Y-%m-%d))"
+          body: |
+            Scheduled `morning-triage` recipe added items to `specs/triage/inbox.md`.
+
+            **Review:**
+            - Promote actionable items via `/triage promote <id>` → they become `feature_list.json` entries via `/feature-add`.
+            - Archive already-fixed / out-of-scope items via `/triage archive <id>`.
+            - Merge this PR to accept the inbox additions as-is.
+
+            _Automated by `.github/workflows/scheduled-triage.yml` (BRD v3.1 §4, v3.1.8)._
+          branch: triage/scheduled-${{ github.run_id }}
+          base: main
+          labels: triage,automated
+
+      - name: Note (dry run)
+        if: inputs.dry_run
+        run: |
+          echo "Dry run: would open PR if changes existed."
+          git diff specs/triage/inbox.md || true

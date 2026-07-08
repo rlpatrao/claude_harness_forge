@@ -1,0 +1,79 @@
+name: morning-triage
+description: |
+  Scheduled discovery pass (BRD v3.1 §4, v3.1.8). Runs every weekday
+  at 07:30 local time. Looks at recent git activity, unresolved
+  feature_list.json entries, and instinct/pending drops, then writes
+  candidate items to specs/triage/inbox.md via /triage add.
+
+  Adapted from Addy Osmani's loop-engineering "automation triage" pattern.
+  https://addyosmani.com/blog/loop-engineering/
+
+schedule:
+  # See templates/github-workflows/scheduled-triage.yml for the GH Actions
+  # equivalent. Local cron: 30 7 * * 1-5
+  cron: "30 7 * * 1-5"
+  timezone: "user-local"
+
+steps:
+  - name: inventory-recent-activity
+    run: |
+      git log --since="24 hours ago" --pretty=format:"- %h %s (%an)" > /tmp/triage-git-log.txt || true
+      cat /tmp/triage-git-log.txt
+
+  - name: check-failing-features
+    run: |
+      python3 - <<'PY'
+      import json, os, sys
+      p = 'feature_list.json'
+      if not os.path.exists(p):
+          print('no feature_list.json'); sys.exit(0)
+      d = json.load(open(p))
+      failing = [e for e in d if e.get('passes') is False]
+      unblocked = [e for e in failing
+                   if all(any(x['id']==dep and x['passes'] for x in d)
+                          for dep in e.get('depends_on', []))]
+      print(f'total failing: {len(failing)}')
+      print(f'unblocked (deps satisfied): {len(unblocked)}')
+      for e in unblocked[:5]:
+          print(f'  - {e["id"]}: {e["description"][:80]}')
+      PY
+
+  - name: check-pending-instincts
+    run: |
+      if [ -d instincts/pending ]; then
+        ls instincts/pending/*.md 2>/dev/null | wc -l | xargs -I{} echo "pending instincts: {}"
+        ls instincts/pending/*.md 2>/dev/null | head -3
+      fi
+
+  - name: drop-notes-into-triage
+    run: |
+      # If there are unblocked failing features or pending instincts,
+      # add a triage note pointing at them.
+      NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+      cat >> specs/triage/inbox.md <<EOF
+
+      ## T-$(date +%Y-%m-%d)-auto · morning-triage recipe run
+      \`\`\`yaml
+      source: automation
+      discovered_at: ${NOW}
+      severity: low
+      tags: [morning-triage, cron]
+      suggested_next: review
+      \`\`\`
+
+      Automated inventory: see /tmp/triage-git-log.txt and instincts/pending/.
+      Human review recommended before promoting to feature_list.json.
+      EOF
+
+  - name: notify-if-configured
+    run: |
+      # Optional: post to Slack/Discord/etc if configured
+      if [ -n "$TRIAGE_NOTIFY_WEBHOOK" ]; then
+        echo "Would POST triage summary to $TRIAGE_NOTIFY_WEBHOOK (stubbed)"
+      fi
+
+human_review_required: true
+notes: |
+  This recipe is a starting point. Customize the "drop-notes-into-triage"
+  step for your project (which sensors to consult, what to write). Add
+  more `run:` steps as your discovery pipeline grows.

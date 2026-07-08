@@ -260,6 +260,25 @@ fi
 mkdir -p specs/brd/research
 ```
 
+**Worktree isolation defaults (BRD v3.1 §4, v3.1.4):**
+
+The copied `settings.json` includes a top-level `worktree` block:
+
+```json
+"worktree": {
+  "bgIsolation": "worktree",
+  "baseRef": "head",
+  "symlinkDirectories": ["node_modules", ".venv", ".cache"]
+}
+```
+
+This means:
+- Background subagent sessions run in a git worktree isolated from the main checkout — parallel `generator`/`test-engineer` spawns cannot collide on shared files.
+- New worktrees branch from `HEAD` (so in-flight feature-branch state is available), not `fresh` from `origin/<default>`.
+- `node_modules`, `.venv`, `.cache` are symlinked from the main checkout to avoid multi-GB duplication.
+
+If a project wants to opt out, set `worktree.bgIsolation: "none"` in `.claude/settings.local.json`.
+
 ## Step 5: Install Plugins (based on question 3)
 
 **If option A (recommended utilities + selected integrations):**
