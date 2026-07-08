@@ -413,6 +413,31 @@ Otherwise, create empty index files:
 git init
 ```
 
+### Install real git hooks (BRD v3.1 §4, v3.1.5)
+
+Copy the two real git-hook templates into `.git/hooks/`. These fire on `git commit --amend` from the shell, IDE git integrations, and GUI clients — cases the Claude Code Node hooks miss.
+
+```bash
+if [ -d .git/hooks ]; then
+  # If existing hooks are present, prompt the user before overwriting
+  for hook in pre-commit prepare-commit-msg; do
+    if [ -f ".git/hooks/$hook" ]; then
+      echo "Existing .git/hooks/$hook found. Overwrite with forge template? [y/N]"
+      read -r ANS
+      [ "$ANS" != "y" ] && continue
+    fi
+    cp ".claude/templates/git-hooks/$hook" ".git/hooks/$hook"
+    chmod +x ".git/hooks/$hook"
+  done
+fi
+```
+
+Files installed:
+- `.git/hooks/pre-commit` — runs `.claude/hooks/pre-commit-gate.js`, layer scan, tsc `--noEmit`, optional coverage ratchet
+- `.git/hooks/prepare-commit-msg` — appends `Harness-Lane`, `Harness-Mode`, `Harness-Iteration`, `Harness-Group` trailers to every commit
+
+Bypass: `git commit --no-verify` (git's built-in). Use only in emergencies.
+
 Write `.gitignore`:
 ```
 .env

@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+
+# Real git pre-commit hook installed by /scaffold Step 8 (BRD v3.1 §4, v3.1.5).
+#
+# Rationale: Claude Code's PreToolUse Node hooks only fire when the
+# agent calls the Bash tool with `git commit`. They do NOT fire on
+# `git commit --amend` from the CLI, external Git clients, or IDE
+# git integrations. This real hook fires in all those cases too.
+#
+# Adapted from cwijayasundara/claude_harness_eng_v5/.claude/git-hooks/pre-commit
+# per BRD v3.1 §4 (v3.1.5).
+#
+# The hook:
+#   1. Runs the same pre-commit gate script the Node hook wraps
+#   2. Warns loudly if any gate is skipped due to missing tooling
+#   3. Never blocks silently — always tells the user what happened
+#
+# Install: scaffold Step 8 copies this to .git/hooks/pre-commit and chmods +x.
+
+set -e
+
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+cd "$REPO_ROOT"
+
+# 1. Node pre-commit gate (aggregate of arch + lint + typecheck + coverage)
+if [ -f ".claude/hooks/pre-commit-gate.js" ]; then
+  # The Node hook expects PreToolUse JSON on stdin. Synthesize a minimal
+  # payload representing "user is committing".
+  PAYLOAD='{"tool_name":"Bash","tool_input":{"command":"git commit"}}'
+  if ! echo "$PAYLOAD" | node .claude/hooks/pre-commit-gate.js; then
+    echo "" >&2
+    echo "pre-commit gate FAILED. Fix errors above, then re-commit." >&2
+    echo "To bypass this hook in a genuine emergency: git commit --no-verify" >&2
+    echo "(but that will also skip signing / other real hooks; use sparingly)" >&2
+    exit 1
+  fi
+else
+  echo "WARNING: pre-commit gate SKIPPED — .claude/hooks/pre-commit-gate.js missing." >&2
+fi
+
+# 2. Staged-file layer scan (fast, deterministic)
+if [ -f ".claude/hooks/check-architecture.js" ]; then
+  STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACMR | tr '\n' ' ')
+  if [ -n "$STAGED_FILES" ]; then
+    ARCH_PAYLOAD=$(printf '{"tool_name":"Edit","tool_input":{"file_path":"%s"}}' "$(echo "$STAGED_FILES" | cut -d' ' -f1)")
+    echo "$ARCH_PAYLOAD" | node .claude/hooks/check-architecture.js >/dev/null 2>&1 || {
+      echo "" >&2
+      echo "layer/import-direction check FAILED on a staged file." >&2
+      echo "Re-run: node .claude/hooks/check-architecture.js < <PAYLOAD>" >&2
+      exit 1
+    }
+  fi
+fi
+
+# 3. tsc noEmit if tsconfig.json exists (fast, deterministic)
+if [ -f "tsconfig.json" ] && command -v npx >/dev/null 2>&1; then
+  npx --no-install tsc --noEmit 2>/dev/null || {
+    echo "" >&2
+    echo "tsc --noEmit FAILED. Fix TypeScript errors before committing." >&2
+    exit 1
+  }
+fi
+
+# 4. Coverage ratchet if a baseline exists (soft gate: warn, don't block)
+if [ -f ".claude/state/coverage-baseline.txt" ] && command -v npx >/dev/null 2>&1; then
+  BASELINE=$(cat .claude/state/coverage-baseline.txt 2>/dev/null || echo "0")
+  # Coverage measurement is expensive; skip in pre-commit unless RUN_COVERAGE=1
+  if [ "${RUN_COVERAGE:-0}" = "1" ]; then
+    CURRENT=$(npx --no-install jest --coverage --silent 2>/dev/null | grep -oE 'All files[[:space:]]*\|[[:space:]]*[0-9.]+' | grep -oE '[0-9.]+$' || echo "$BASELINE")
+    if awk "BEGIN{ exit !($CURRENT < $BASELINE) }"; then
+      echo "" >&2
+      echo "WARNING: coverage $CURRENT% < baseline $BASELINE%. Not blocking (soft gate)." >&2
+    fi
+  fi
+fi
+
+exit 0

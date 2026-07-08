@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+
+# Real git prepare-commit-msg hook installed by /scaffold Step 8
+# (BRD v3.1 §4, v3.1.5).
+#
+# Appends harness-tracking trailers to every commit message, so that
+# any commit — from Claude Code, from the shell, from a GUI client —
+# carries the same provenance metadata.
+#
+# Trailers added (only if not already present):
+#   Harness-Lane: <mode>       — full | lean | solo | turbo | dogfood
+#   Harness-Mode: <session>    — coding-agent | initializer | manual | pipeline
+#   Harness-Iteration: <n>     — iteration number from state/iteration-log.md
+#   Harness-Group: <group>     — sprint/group id if within an auto-loop group
+#
+# Adapted from cwijayasundara/claude_harness_eng_v5/.claude/git-hooks/prepare-commit-msg
+# per BRD v3.1 §4 (v3.1.5).
+#
+# Args (git-provided):
+#   $1  — path to the commit message file
+#   $2  — source of the message: "message", "template", "merge", "squash", "commit"
+#   $3  — SHA-1 if amending
+#
+# Skips on merge/squash/commit-editing since those already have canonical text.
+
+MSG_FILE="$1"
+SOURCE="$2"
+
+# Skip merges, squashes, amend re-uses
+case "$SOURCE" in
+  merge|squash|commit) exit 0 ;;
+esac
+
+REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null || pwd)
+
+# Extract Harness-* trailer values from state files (best effort)
+LANE=""
+MODE=""
+ITER=""
+GROUP=""
+
+if [ -f "$REPO_ROOT/.claude/state/current-lane" ]; then
+  LANE=$(head -1 "$REPO_ROOT/.claude/state/current-lane" 2>/dev/null | tr -d '\r\n')
+fi
+if [ -z "$LANE" ] && [ -f "$REPO_ROOT/project-manifest.json" ]; then
+  LANE=$(grep -o '"default_mode"[[:space:]]*:[[:space:]]*"[^"]*"' "$REPO_ROOT/project-manifest.json" 2>/dev/null | head -1 | sed 's/.*"\([^"]*\)"$/\1/')
+fi
+
+if [ -f "$REPO_ROOT/harness-progress.txt" ]; then
+  # last "session:" entry
+  MODE=$(grep -oE 'session: [^ |]+' "$REPO_ROOT/harness-progress.txt" 2>/dev/null | tail -1 | sed 's/^session: //')
+fi
+
+if [ -f "$REPO_ROOT/.claude/state/iteration-log.md" ]; then
+  ITER=$(grep -oE '## Iteration [0-9]+' "$REPO_ROOT/.claude/state/iteration-log.md" 2>/dev/null | tail -1 | grep -oE '[0-9]+')
+fi
+
+if [ -f "$REPO_ROOT/sprint-contracts/current.json" ]; then
+  GROUP=$(grep -o '"group_id"[[:space:]]*:[[:space:]]*"[^"]*"' "$REPO_ROOT/sprint-contracts/current.json" 2>/dev/null | head -1 | sed 's/.*"\([^"]*\)"$/\1/')
+fi
+
+# Append trailers only if not already present
+add_trailer() {
+  local key="$1"
+  local val="$2"
+  [ -z "$val" ] && return 0
+  if ! grep -q "^${key}:" "$MSG_FILE" 2>/dev/null; then
+    # Ensure a blank line before trailers
+    if [ -s "$MSG_FILE" ]; then
+      # Only add a blank line if the last line isn't already blank
+      last_line=$(tail -1 "$MSG_FILE")
+      if [ -n "$last_line" ]; then
+        printf "\n" >> "$MSG_FILE"
+      fi
+    fi
+    printf "%s: %s\n" "$key" "$val" >> "$MSG_FILE"
+  fi
+}
+
+add_trailer "Harness-Lane" "$LANE"
+add_trailer "Harness-Mode" "$MODE"
+add_trailer "Harness-Iteration" "$ITER"
+add_trailer "Harness-Group" "$GROUP"
+
+exit 0
