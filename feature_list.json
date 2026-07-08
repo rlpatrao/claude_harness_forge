@@ -11,7 +11,7 @@
       "Manually run scripts/validate-scaffold.sh against a throwaway project; confirm artifacts produced"
     ],
     "passes": false,
-    "source_section": "BRD §3.1",
+    "source_section": "BRD \u00a73.1",
     "depends_on": [],
     "verification_artifact_path": "verification/v3-3.1-initializer-split.json"
   },
@@ -22,27 +22,31 @@
     "steps": [
       "Create hooks/feature-edit-guard.js",
       "Register in PreToolUse Edit + Write matcher in settings.json",
-      "Hand-test: attempt to delete an entry → exit code 2",
-      "Hand-test: attempt to rewrite description → exit code 2",
-      "Hand-test: flip a single passes field → accepted"
+      "Hand-test: attempt to delete an entry \u2192 exit code 2",
+      "Hand-test: attempt to rewrite description \u2192 exit code 2",
+      "Hand-test: flip a single passes field \u2192 accepted"
     ],
     "passes": false,
-    "source_section": "BRD §3.2",
-    "depends_on": ["v3-3.1-initializer-split"],
+    "source_section": "BRD \u00a73.2",
+    "depends_on": [
+      "v3-3.1-initializer-split"
+    ],
     "verification_artifact_path": "verification/v3-3.2-feature-list-contract.json"
   },
   {
     "id": "v3-3.3-ralph-loop",
     "category": "hook",
-    "description": "Stop-event hook intercepts agent exit when feature_list.json has any passes:false. Decision tree per BRD §3.3.",
+    "description": "Stop-event hook intercepts agent exit when feature_list.json has any passes:false. Decision tree per BRD \u00a73.3.",
     "steps": [
       "Create hooks/ralph-loop.js",
       "Register Stop event block in settings.json",
-      "Hand-test: open a session with one failing feature, attempt to exit → reminder reinjected"
+      "Hand-test: open a session with one failing feature, attempt to exit \u2192 reminder reinjected"
     ],
     "passes": false,
-    "source_section": "BRD §3.3",
-    "depends_on": ["v3-3.2-feature-list-contract"],
+    "source_section": "BRD \u00a73.3",
+    "depends_on": [
+      "v3-3.2-feature-list-contract"
+    ],
     "verification_artifact_path": "verification/v3-3.3-ralph-loop.json"
   },
   {
@@ -50,14 +54,16 @@
     "category": "infrastructure",
     "description": "Per-workflow LLM routing replaces all-agents-on-Opus. config/workflows.yaml is source of truth. Agents reference {{model:<workflow>}} placeholders.",
     "steps": [
-      "Create config/workflows.yaml with the §3.4 table verbatim",
+      "Create config/workflows.yaml with the \u00a73.4 table verbatim",
       "Update all 12 agent files to use {{model:<workflow>}} placeholders",
       "Add a placeholder resolver (vendored from opendev-py factory pattern)",
       "Hand-test: trigger a session, confirm routing log shows the bound model"
     ],
     "passes": false,
-    "source_section": "BRD §3.4",
-    "depends_on": ["v3-3.1-initializer-split"],
+    "source_section": "BRD \u00a73.4",
+    "depends_on": [
+      "v3-3.1-initializer-split"
+    ],
     "verification_artifact_path": "verification/v3-3.4-per-workflow-routing.json"
   },
   {
@@ -71,8 +77,10 @@
       "Hand-test: spawn /plan, confirm Edit attempts are denied at the SDK level"
     ],
     "passes": false,
-    "source_section": "BRD §3.5",
-    "depends_on": ["v3-3.4-per-workflow-routing"],
+    "source_section": "BRD \u00a73.5",
+    "depends_on": [
+      "v3-3.4-per-workflow-routing"
+    ],
     "verification_artifact_path": "verification/v3-3.5-plan-mode-subagent.json"
   },
   {
@@ -85,8 +93,10 @@
       "Hand-test: run a workflow with thinking_level=high, confirm CoT trace appears in telemetry"
     ],
     "passes": false,
-    "source_section": "BRD §3.6",
-    "depends_on": ["v3-3.4-per-workflow-routing"],
+    "source_section": "BRD \u00a73.6",
+    "depends_on": [
+      "v3-3.4-per-workflow-routing"
+    ],
     "verification_artifact_path": "verification/v3-3.6-extended-react.json"
   },
   {
@@ -100,24 +110,28 @@
       "Hand-test: run a high-volume task, confirm footer appears and regime transitions at 60/80/95% thresholds"
     ],
     "passes": false,
-    "source_section": "BRD §3.7",
-    "depends_on": ["v3-3.4-per-workflow-routing"],
+    "source_section": "BRD \u00a73.7",
+    "depends_on": [
+      "v3-3.4-per-workflow-routing"
+    ],
     "verification_artifact_path": "verification/v3-3.7-budget-footer.json"
   },
   {
     "id": "v3-3.8-e2e-gate",
     "category": "hook",
-    "description": "PreToolUse hook blocks any passes:false→true flip on feature_list.json unless a verification artifact is committed in git under verification/<feature_id>.{png,json}.",
+    "description": "PreToolUse hook blocks any passes:false\u2192true flip on feature_list.json unless a verification artifact is committed in git under verification/<feature_id>.{png,json}.",
     "steps": [
       "Create hooks/e2e-gate.js",
       "Create verification/.gitkeep",
       "Register e2e-gate.js before feature-edit-guard.js in PreToolUse Edit + Write",
       "Confirm Playwright MCP server is declared in .claude-plugin/plugin.json",
-      "Hand-test: attempt passes flip without artifact → exit code 2; with artifact → accepted"
+      "Hand-test: attempt passes flip without artifact \u2192 exit code 2; with artifact \u2192 accepted"
     ],
     "passes": false,
-    "source_section": "BRD §3.8",
-    "depends_on": ["v3-3.2-feature-list-contract"],
+    "source_section": "BRD \u00a73.8",
+    "depends_on": [
+      "v3-3.2-feature-list-contract"
+    ],
     "verification_artifact_path": "verification/v3-3.8-e2e-gate.json"
   },
   {
@@ -131,8 +145,10 @@
       "Hand-test: each layer fails independently without compromising the others"
     ],
     "passes": false,
-    "source_section": "BRD §4.1",
-    "depends_on": ["v3-3.5-plan-mode-subagent"],
+    "source_section": "BRD \u00a74.1",
+    "depends_on": [
+      "v3-3.5-plan-mode-subagent"
+    ],
     "verification_artifact_path": "verification/v3-4.1-five-layer-safety.json"
   },
   {
@@ -140,14 +156,16 @@
     "category": "hook",
     "description": "PreToolUse reminder injector. Reminders live in prompts/reminders/ as small Markdown snippets, picked based on tool + args.",
     "steps": [
-      "Create prompts/reminders/ with snippets for each BRD §4.2 decision point",
+      "Create prompts/reminders/ with snippets for each BRD \u00a74.2 decision point",
       "Create hooks/reminder-injector.js",
       "Register in PreToolUse",
       "Hand-test: trigger an Edit on production code, confirm style reminder appears"
     ],
     "passes": false,
-    "source_section": "BRD §4.2",
-    "depends_on": ["v3-3.7-budget-footer"],
+    "source_section": "BRD \u00a74.2",
+    "depends_on": [
+      "v3-3.7-budget-footer"
+    ],
     "verification_artifact_path": "verification/v3-4.2-system-reminders.json"
   },
   {
@@ -161,14 +179,16 @@
       "Hand-test: load context to each threshold, confirm correct stage fires"
     ],
     "passes": false,
-    "source_section": "BRD §4.3",
-    "depends_on": ["v3-3.4-per-workflow-routing"],
+    "source_section": "BRD \u00a74.3",
+    "depends_on": [
+      "v3-3.4-per-workflow-routing"
+    ],
     "verification_artifact_path": "verification/v3-4.3-staged-compaction.json"
   },
   {
     "id": "v3-4.4-instinct-extraction",
     "category": "hook",
-    "description": "Stop-hook mines session for {tool sequence → outcome} tuples. Scores by frequency × success_rate × novelty. Promotes high-scoring patterns to instincts/.",
+    "description": "Stop-hook mines session for {tool sequence \u2192 outcome} tuples. Scores by frequency \u00d7 success_rate \u00d7 novelty. Promotes high-scoring patterns to instincts/.",
     "steps": [
       "Vendor affaan-m/everything-claude-code/skills/continuous-learning-v2/",
       "Create hooks/instinct-extractor.js (Stop event, after ralph-loop)",
@@ -177,8 +197,10 @@
       "Hand-test: run two sessions, confirm pending instincts appear"
     ],
     "passes": false,
-    "source_section": "BRD §4.4",
-    "depends_on": ["v3-3.3-ralph-loop"],
+    "source_section": "BRD \u00a74.4",
+    "depends_on": [
+      "v3-3.3-ralph-loop"
+    ],
     "verification_artifact_path": "verification/v3-4.4-instinct-extraction.json"
   },
   {
@@ -193,14 +215,16 @@
       "Hand-test: /fork mid-session, confirm both branches save to one file"
     ],
     "passes": false,
-    "source_section": "BRD §4.5",
-    "depends_on": ["v3-3.5-plan-mode-subagent"],
+    "source_section": "BRD \u00a74.5",
+    "depends_on": [
+      "v3-3.5-plan-mode-subagent"
+    ],
     "verification_artifact_path": "verification/v3-4.5-tree-sessions.json"
   },
   {
     "id": "v3-4.6-three-tier-skills",
     "category": "infrastructure",
-    "description": "Skills resolved in priority order: project-local → user-global → built-in. SKILL.md frontmatter convention adopted.",
+    "description": "Skills resolved in priority order: project-local \u2192 user-global \u2192 built-in. SKILL.md frontmatter convention adopted.",
     "steps": [
       "Vendor opendev-py skills/loader.py",
       "Adopt anthropics/skills SKILL.md frontmatter on every existing skill in skills/",
@@ -208,8 +232,10 @@
       "Hand-test: place a project-local override, confirm it wins"
     ],
     "passes": false,
-    "source_section": "BRD §4.6",
-    "depends_on": ["v3-4.1-five-layer-safety"],
+    "source_section": "BRD \u00a74.6",
+    "depends_on": [
+      "v3-4.1-five-layer-safety"
+    ],
     "verification_artifact_path": "verification/v3-4.6-three-tier-skills.json"
   },
   {
@@ -224,8 +250,10 @@
       "Hand-test: cause phase-7 failure, confirm spec amendment proposed"
     ],
     "passes": false,
-    "source_section": "BRD §4.7",
-    "depends_on": ["v3-3.5-plan-mode-subagent"],
+    "source_section": "BRD \u00a74.7",
+    "depends_on": [
+      "v3-3.5-plan-mode-subagent"
+    ],
     "verification_artifact_path": "verification/v3-4.7-spec-backprop.json"
   },
   {
@@ -240,311 +268,440 @@
       "Hand-test: cause lint regression, confirm revert and log entry"
     ],
     "passes": false,
-    "source_section": "BRD §4.8",
-    "depends_on": ["v3-3.7-budget-footer"],
+    "source_section": "BRD \u00a74.8",
+    "depends_on": [
+      "v3-3.7-budget-footer"
+    ],
     "verification_artifact_path": "verification/v3-4.8-monotonic-guards.json"
   },
   {
     "id": "v3-5.1-agent-initializer",
     "category": "agent-file",
-    "description": "agents/initializer.md — adapted from anthropics/claude-quickstarts/autonomous-coding/prompts/initializer_prompt.md.",
+    "description": "agents/initializer.md \u2014 adapted from anthropics/claude-quickstarts/autonomous-coding/prompts/initializer_prompt.md.",
     "steps": [
       "Create file",
-      "Adapt claude-progress.txt → harness-progress.txt",
+      "Adapt claude-progress.txt \u2192 harness-progress.txt",
       "Reference templates/init-sh.template",
       "Link from CLAUDE.md"
     ],
     "passes": false,
-    "source_section": "BRD §5.1",
-    "depends_on": ["v3-3.1-initializer-split"],
+    "source_section": "BRD \u00a75.1",
+    "depends_on": [
+      "v3-3.1-initializer-split"
+    ],
     "verification_artifact_path": "verification/v3-5.1-agent-initializer.json"
   },
   {
     "id": "v3-5.1-agent-coding",
     "category": "agent-file",
-    "description": "agents/coding-agent.md — adapted from anthropics/claude-quickstarts/autonomous-coding/prompts/coding_prompt.md.",
+    "description": "agents/coding-agent.md \u2014 adapted from anthropics/claude-quickstarts/autonomous-coding/prompts/coding_prompt.md.",
     "steps": [
       "Create file",
       "Encode the 8-step startup sequence verbatim",
       "Link from CLAUDE.md"
     ],
     "passes": false,
-    "source_section": "BRD §5.1",
-    "depends_on": ["v3-3.1-initializer-split"],
+    "source_section": "BRD \u00a75.1",
+    "depends_on": [
+      "v3-3.1-initializer-split"
+    ],
     "verification_artifact_path": "verification/v3-5.1-agent-coding.json"
   },
   {
     "id": "v3-5.1-agent-planner",
     "category": "agent-file",
-    "description": "agents/planner.md — read-only subagent for /plan command.",
-    "steps": ["Create file with read-only tool schema declaration"],
+    "description": "agents/planner.md \u2014 read-only subagent for /plan command.",
+    "steps": [
+      "Create file with read-only tool schema declaration"
+    ],
     "passes": false,
-    "source_section": "BRD §5.1",
-    "depends_on": ["v3-3.5-plan-mode-subagent"],
+    "source_section": "BRD \u00a75.1",
+    "depends_on": [
+      "v3-3.5-plan-mode-subagent"
+    ],
     "verification_artifact_path": "verification/v3-5.1-agent-planner.json"
   },
   {
     "id": "v3-5.1-agent-critic",
     "category": "agent-file",
-    "description": "agents/critic.md — GAN-pair critic, distinct from agents/code-reviewer.md.",
-    "steps": ["Create file", "Use Opus model binding", "Read-only tools + commentary"],
+    "description": "agents/critic.md \u2014 GAN-pair critic, distinct from agents/code-reviewer.md.",
+    "steps": [
+      "Create file",
+      "Use Opus model binding",
+      "Read-only tools + commentary"
+    ],
     "passes": false,
-    "source_section": "BRD §5.1",
-    "depends_on": ["v3-3.4-per-workflow-routing"],
+    "source_section": "BRD \u00a75.1",
+    "depends_on": [
+      "v3-3.4-per-workflow-routing"
+    ],
     "verification_artifact_path": "verification/v3-5.1-agent-critic.json"
   },
   {
     "id": "v3-5.1-agent-spec-auditor",
     "category": "agent-file",
-    "description": "agents/spec-auditor.md — backprop subagent.",
-    "steps": ["Create file per BRD §4.7"],
+    "description": "agents/spec-auditor.md \u2014 backprop subagent.",
+    "steps": [
+      "Create file per BRD \u00a74.7"
+    ],
     "passes": false,
-    "source_section": "BRD §5.1",
-    "depends_on": ["v3-4.7-spec-backprop"],
+    "source_section": "BRD \u00a75.1",
+    "depends_on": [
+      "v3-4.7-spec-backprop"
+    ],
     "verification_artifact_path": "verification/v3-5.1-agent-spec-auditor.json"
   },
   {
     "id": "v3-5.1-agent-compactor",
     "category": "agent-file",
-    "description": "agents/compactor.md — Haiku, read+summarize, for stage 3-5 compaction.",
-    "steps": ["Create file", "Bind to Haiku in config/workflows.yaml"],
+    "description": "agents/compactor.md \u2014 Haiku, read+summarize, for stage 3-5 compaction.",
+    "steps": [
+      "Create file",
+      "Bind to Haiku in config/workflows.yaml"
+    ],
     "passes": false,
-    "source_section": "BRD §5.1",
-    "depends_on": ["v3-4.3-staged-compaction"],
+    "source_section": "BRD \u00a75.1",
+    "depends_on": [
+      "v3-4.3-staged-compaction"
+    ],
     "verification_artifact_path": "verification/v3-5.1-agent-compactor.json"
   },
   {
     "id": "v3-5.1-agent-e2e-runner",
     "category": "agent-file",
-    "description": "agents/e2e-runner.md — Sonnet, Playwright/Puppeteer MCP only.",
-    "steps": ["Create file", "Restrict tool schema to browser MCP + Read"],
+    "description": "agents/e2e-runner.md \u2014 Sonnet, Playwright/Puppeteer MCP only.",
+    "steps": [
+      "Create file",
+      "Restrict tool schema to browser MCP + Read"
+    ],
     "passes": false,
-    "source_section": "BRD §5.1",
-    "depends_on": ["v3-3.8-e2e-gate"],
+    "source_section": "BRD \u00a75.1",
+    "depends_on": [
+      "v3-3.8-e2e-gate"
+    ],
     "verification_artifact_path": "verification/v3-5.1-agent-e2e-runner.json"
   },
   {
     "id": "v3-5.1-agent-doc-updater",
     "category": "agent-file",
-    "description": "agents/doc-updater.md — Sonnet, Read+Write on docs/ only.",
-    "steps": ["Create file", "Restrict Write target to docs/"],
+    "description": "agents/doc-updater.md \u2014 Sonnet, Read+Write on docs/ only.",
+    "steps": [
+      "Create file",
+      "Restrict Write target to docs/"
+    ],
     "passes": false,
-    "source_section": "BRD §5.1",
-    "depends_on": ["v3-3.4-per-workflow-routing"],
+    "source_section": "BRD \u00a75.1",
+    "depends_on": [
+      "v3-3.4-per-workflow-routing"
+    ],
     "verification_artifact_path": "verification/v3-5.1-agent-doc-updater.json"
   },
   {
     "id": "v3-5.2-skill-iterative-retrieval",
     "category": "skill",
-    "description": "skills/iterative-retrieval/SKILL.md — progressive context refinement for subagents.",
-    "steps": ["Create skill directory", "Write SKILL.md with activation conditions"],
+    "description": "skills/iterative-retrieval/SKILL.md \u2014 progressive context refinement for subagents.",
+    "steps": [
+      "Create skill directory",
+      "Write SKILL.md with activation conditions"
+    ],
     "passes": false,
-    "source_section": "BRD §5.2",
-    "depends_on": ["v3-4.6-three-tier-skills"],
+    "source_section": "BRD \u00a75.2",
+    "depends_on": [
+      "v3-4.6-three-tier-skills"
+    ],
     "verification_artifact_path": "verification/v3-5.2-skill-iterative-retrieval.json"
   },
   {
     "id": "v3-5.2-skill-cross-provider-handoff",
     "category": "skill",
-    "description": "skills/cross-provider-handoff/SKILL.md — mid-session model switch preserving thinking blocks.",
-    "steps": ["Create skill directory", "Document thinking-block conversion semantics"],
+    "description": "skills/cross-provider-handoff/SKILL.md \u2014 mid-session model switch preserving thinking blocks.",
+    "steps": [
+      "Create skill directory",
+      "Document thinking-block conversion semantics"
+    ],
     "passes": false,
-    "source_section": "BRD §5.2",
-    "depends_on": ["v3-4.6-three-tier-skills"],
+    "source_section": "BRD \u00a75.2",
+    "depends_on": [
+      "v3-4.6-three-tier-skills"
+    ],
     "verification_artifact_path": "verification/v3-5.2-skill-cross-provider-handoff.json"
   },
   {
     "id": "v3-5.3-hook-ralph-loop",
     "category": "hook-file",
-    "description": "hooks/ralph-loop.js — Stop event, exit interception.",
-    "steps": ["Create file", "Register Stop event in settings.json"],
+    "description": "hooks/ralph-loop.js \u2014 Stop event, exit interception.",
+    "steps": [
+      "Create file",
+      "Register Stop event in settings.json"
+    ],
     "passes": false,
-    "source_section": "BRD §5.3",
-    "depends_on": ["v3-3.3-ralph-loop"],
+    "source_section": "BRD \u00a75.3",
+    "depends_on": [
+      "v3-3.3-ralph-loop"
+    ],
     "verification_artifact_path": "verification/v3-5.3-hook-ralph-loop.json"
   },
   {
     "id": "v3-5.3-hook-feature-edit-guard",
     "category": "hook-file",
-    "description": "hooks/feature-edit-guard.js — PreToolUse Edit + Write, denies non-flip edits to feature_list.json.",
-    "steps": ["Create file", "Register in PreToolUse"],
+    "description": "hooks/feature-edit-guard.js \u2014 PreToolUse Edit + Write, denies non-flip edits to feature_list.json.",
+    "steps": [
+      "Create file",
+      "Register in PreToolUse"
+    ],
     "passes": false,
-    "source_section": "BRD §5.3",
-    "depends_on": ["v3-3.2-feature-list-contract"],
+    "source_section": "BRD \u00a75.3",
+    "depends_on": [
+      "v3-3.2-feature-list-contract"
+    ],
     "verification_artifact_path": "verification/v3-5.3-hook-feature-edit-guard.json"
   },
   {
     "id": "v3-5.3-hook-e2e-gate",
     "category": "hook-file",
-    "description": "hooks/e2e-gate.js — PreToolUse Edit, requires verification artifact for passes flip.",
-    "steps": ["Create file", "Register before feature-edit-guard"],
+    "description": "hooks/e2e-gate.js \u2014 PreToolUse Edit, requires verification artifact for passes flip.",
+    "steps": [
+      "Create file",
+      "Register before feature-edit-guard"
+    ],
     "passes": false,
-    "source_section": "BRD §5.3",
-    "depends_on": ["v3-3.8-e2e-gate"],
+    "source_section": "BRD \u00a75.3",
+    "depends_on": [
+      "v3-3.8-e2e-gate"
+    ],
     "verification_artifact_path": "verification/v3-5.3-hook-e2e-gate.json"
   },
   {
     "id": "v3-5.3-hook-budget-footer",
     "category": "hook-file",
-    "description": "hooks/budget-footer.js — PostToolUse all matchers, appends regime footer.",
-    "steps": ["Create file", "Register in PostToolUse after cost-tracker"],
+    "description": "hooks/budget-footer.js \u2014 PostToolUse all matchers, appends regime footer.",
+    "steps": [
+      "Create file",
+      "Register in PostToolUse after cost-tracker"
+    ],
     "passes": false,
-    "source_section": "BRD §5.3",
-    "depends_on": ["v3-3.7-budget-footer"],
+    "source_section": "BRD \u00a75.3",
+    "depends_on": [
+      "v3-3.7-budget-footer"
+    ],
     "verification_artifact_path": "verification/v3-5.3-hook-budget-footer.json"
   },
   {
     "id": "v3-5.3-hook-reminder-injector",
     "category": "hook-file",
-    "description": "hooks/reminder-injector.js — PreToolUse, injects targeted reminders by tool + args.",
-    "steps": ["Create file", "Register in PreToolUse"],
+    "description": "hooks/reminder-injector.js \u2014 PreToolUse, injects targeted reminders by tool + args.",
+    "steps": [
+      "Create file",
+      "Register in PreToolUse"
+    ],
     "passes": false,
-    "source_section": "BRD §5.3",
-    "depends_on": ["v3-4.2-system-reminders"],
+    "source_section": "BRD \u00a75.3",
+    "depends_on": [
+      "v3-4.2-system-reminders"
+    ],
     "verification_artifact_path": "verification/v3-5.3-hook-reminder-injector.json"
   },
   {
     "id": "v3-5.3-hook-compaction-stage",
     "category": "hook-file",
-    "description": "hooks/compaction-stage.js — Pre-LLM-call, triggers compaction stages 1-5.",
-    "steps": ["Create file", "Wire to SDK PreCompact event"],
+    "description": "hooks/compaction-stage.js \u2014 Pre-LLM-call, triggers compaction stages 1-5.",
+    "steps": [
+      "Create file",
+      "Wire to SDK PreCompact event"
+    ],
     "passes": false,
-    "source_section": "BRD §5.3",
-    "depends_on": ["v3-4.3-staged-compaction"],
+    "source_section": "BRD \u00a75.3",
+    "depends_on": [
+      "v3-4.3-staged-compaction"
+    ],
     "verification_artifact_path": "verification/v3-5.3-hook-compaction-stage.json"
   },
   {
     "id": "v3-5.3-hook-instinct-extractor",
     "category": "hook-file",
-    "description": "hooks/instinct-extractor.js — Stop event, mines session for pattern candidates.",
-    "steps": ["Create file", "Register in Stop after ralph-loop"],
+    "description": "hooks/instinct-extractor.js \u2014 Stop event, mines session for pattern candidates.",
+    "steps": [
+      "Create file",
+      "Register in Stop after ralph-loop"
+    ],
     "passes": false,
-    "source_section": "BRD §5.3",
-    "depends_on": ["v3-4.4-instinct-extraction"],
+    "source_section": "BRD \u00a75.3",
+    "depends_on": [
+      "v3-4.4-instinct-extraction"
+    ],
     "verification_artifact_path": "verification/v3-5.3-hook-instinct-extractor.json"
   },
   {
     "id": "v3-5.3-hook-experiment-logger",
     "category": "hook-file",
-    "description": "hooks/experiment-logger.js — fires after validate-evals.sh, records keep/revert decision.",
-    "steps": ["Create file", "Register after eval validation"],
+    "description": "hooks/experiment-logger.js \u2014 fires after validate-evals.sh, records keep/revert decision.",
+    "steps": [
+      "Create file",
+      "Register after eval validation"
+    ],
     "passes": false,
-    "source_section": "BRD §5.3",
-    "depends_on": ["v3-4.8-monotonic-guards"],
+    "source_section": "BRD \u00a75.3",
+    "depends_on": [
+      "v3-4.8-monotonic-guards"
+    ],
     "verification_artifact_path": "verification/v3-5.3-hook-experiment-logger.json"
   },
   {
     "id": "v3-5.4-cmd-feature-add",
     "category": "command",
-    "description": "/feature-add — Critic-validated entry proposal.",
-    "steps": ["Create commands/feature-add.md"],
+    "description": "/feature-add \u2014 Critic-validated entry proposal.",
+    "steps": [
+      "Create commands/feature-add.md"
+    ],
     "passes": false,
-    "source_section": "BRD §5.4",
-    "depends_on": ["v3-5.1-agent-critic"],
+    "source_section": "BRD \u00a75.4",
+    "depends_on": [
+      "v3-5.1-agent-critic"
+    ],
     "verification_artifact_path": "verification/v3-5.4-cmd-feature-add.json"
   },
   {
     "id": "v3-5.4-cmd-feature-status",
     "category": "command",
-    "description": "/feature-status — pass/fail counts.",
-    "steps": ["Create commands/feature-status.md"],
+    "description": "/feature-status \u2014 pass/fail counts.",
+    "steps": [
+      "Create commands/feature-status.md"
+    ],
     "passes": false,
-    "source_section": "BRD §5.4",
-    "depends_on": ["v3-3.2-feature-list-contract"],
+    "source_section": "BRD \u00a75.4",
+    "depends_on": [
+      "v3-3.2-feature-list-contract"
+    ],
     "verification_artifact_path": "verification/v3-5.4-cmd-feature-status.json"
   },
   {
     "id": "v3-5.4-cmd-plan",
     "category": "command",
-    "description": "/plan — spawn Planner subagent.",
-    "steps": ["Create commands/plan.md"],
+    "description": "/plan \u2014 spawn Planner subagent.",
+    "steps": [
+      "Create commands/plan.md"
+    ],
     "passes": false,
-    "source_section": "BRD §5.4",
-    "depends_on": ["v3-5.1-agent-planner"],
+    "source_section": "BRD \u00a75.4",
+    "depends_on": [
+      "v3-5.1-agent-planner"
+    ],
     "verification_artifact_path": "verification/v3-5.4-cmd-plan.json"
   },
   {
     "id": "v3-5.4-cmd-tree",
     "category": "command",
-    "description": "/tree — navigate session graph.",
-    "steps": ["Create commands/tree.md"],
+    "description": "/tree \u2014 navigate session graph.",
+    "steps": [
+      "Create commands/tree.md"
+    ],
     "passes": false,
-    "source_section": "BRD §5.4",
-    "depends_on": ["v3-4.5-tree-sessions"],
+    "source_section": "BRD \u00a75.4",
+    "depends_on": [
+      "v3-4.5-tree-sessions"
+    ],
     "verification_artifact_path": "verification/v3-5.4-cmd-tree.json"
   },
   {
     "id": "v3-5.4-cmd-fork",
     "category": "command",
-    "description": "/fork — branch session.",
-    "steps": ["Create commands/fork.md"],
+    "description": "/fork \u2014 branch session.",
+    "steps": [
+      "Create commands/fork.md"
+    ],
     "passes": false,
-    "source_section": "BRD §5.4",
-    "depends_on": ["v3-4.5-tree-sessions"],
+    "source_section": "BRD \u00a75.4",
+    "depends_on": [
+      "v3-4.5-tree-sessions"
+    ],
     "verification_artifact_path": "verification/v3-5.4-cmd-fork.json"
   },
   {
     "id": "v3-5.4-cmd-instinct-status",
     "category": "command",
-    "description": "/instinct-status — show pending/confirmed instincts.",
-    "steps": ["Create commands/instinct-status.md"],
+    "description": "/instinct-status \u2014 show pending/confirmed instincts.",
+    "steps": [
+      "Create commands/instinct-status.md"
+    ],
     "passes": false,
-    "source_section": "BRD §5.4",
-    "depends_on": ["v3-4.4-instinct-extraction"],
+    "source_section": "BRD \u00a75.4",
+    "depends_on": [
+      "v3-4.4-instinct-extraction"
+    ],
     "verification_artifact_path": "verification/v3-5.4-cmd-instinct-status.json"
   },
   {
     "id": "v3-5.4-cmd-evolve",
     "category": "command",
-    "description": "/evolve — cluster instincts into skills.",
-    "steps": ["Create commands/evolve.md"],
+    "description": "/evolve \u2014 cluster instincts into skills.",
+    "steps": [
+      "Create commands/evolve.md"
+    ],
     "passes": false,
-    "source_section": "BRD §5.4",
-    "depends_on": ["v3-4.4-instinct-extraction"],
+    "source_section": "BRD \u00a75.4",
+    "depends_on": [
+      "v3-4.4-instinct-extraction"
+    ],
     "verification_artifact_path": "verification/v3-5.4-cmd-evolve.json"
   },
   {
     "id": "v3-5.4-cmd-spec-audit",
     "category": "command",
-    "description": "/spec-audit — manually trigger spec backprop.",
-    "steps": ["Create commands/spec-audit.md"],
+    "description": "/spec-audit \u2014 manually trigger spec backprop.",
+    "steps": [
+      "Create commands/spec-audit.md"
+    ],
     "passes": false,
-    "source_section": "BRD §5.4",
-    "depends_on": ["v3-4.7-spec-backprop"],
+    "source_section": "BRD \u00a75.4",
+    "depends_on": [
+      "v3-4.7-spec-backprop"
+    ],
     "verification_artifact_path": "verification/v3-5.4-cmd-spec-audit.json"
   },
   {
     "id": "v3-5.4-cmd-model",
     "category": "command",
-    "description": "/model — switch model mid-session.",
-    "steps": ["Create commands/model.md", "Use Pi cross-provider handoff under the hood"],
+    "description": "/model \u2014 switch model mid-session.",
+    "steps": [
+      "Create commands/model.md",
+      "Use Pi cross-provider handoff under the hood"
+    ],
     "passes": false,
-    "source_section": "BRD §5.4",
-    "depends_on": ["v3-5.2-skill-cross-provider-handoff"],
+    "source_section": "BRD \u00a75.4",
+    "depends_on": [
+      "v3-5.2-skill-cross-provider-handoff"
+    ],
     "verification_artifact_path": "verification/v3-5.4-cmd-model.json"
   },
   {
     "id": "v3-5.4-cmd-cost",
     "category": "command",
-    "description": "/cost — per-session breakdown by workflow.",
-    "steps": ["Create commands/cost.md", "Read state/cost-log.json + Pi pricing table"],
+    "description": "/cost \u2014 per-session breakdown by workflow.",
+    "steps": [
+      "Create commands/cost.md",
+      "Read state/cost-log.json + Pi pricing table"
+    ],
     "passes": false,
-    "source_section": "BRD §5.4",
-    "depends_on": ["v3-3.4-per-workflow-routing"],
+    "source_section": "BRD \u00a75.4",
+    "depends_on": [
+      "v3-3.4-per-workflow-routing"
+    ],
     "verification_artifact_path": "verification/v3-5.4-cmd-cost.json"
   },
   {
     "id": "v3-5.4-cmd-recipe-run",
     "category": "command",
-    "description": "/recipe-run <yaml> — execute a YAML recipe (Goose pattern).",
+    "description": "/recipe-run <yaml> \u2014 execute a YAML recipe (Goose pattern).",
     "steps": [
       "Create commands/recipe-run.md",
       "Create recipes/README.md with the schema",
-      "Create recipes/example-weekly-consulting.yaml from BRD §6.5 verbatim"
+      "Create recipes/example-weekly-consulting.yaml from BRD \u00a76.5 verbatim"
     ],
     "passes": false,
-    "source_section": "BRD §5.4, §6.5",
-    "depends_on": ["v3-4.6-three-tier-skills"],
+    "source_section": "BRD \u00a75.4, \u00a76.5",
+    "depends_on": [
+      "v3-4.6-three-tier-skills"
+    ],
     "verification_artifact_path": "verification/v3-5.4-cmd-recipe-run.json"
   },
   {
@@ -557,22 +714,79 @@
       "Reuse state/cost-log.json (existing) as the ledger"
     ],
     "passes": false,
-    "source_section": "BRD §6.1",
-    "depends_on": ["v3-3.7-budget-footer"],
+    "source_section": "BRD \u00a76.1",
+    "depends_on": [
+      "v3-3.7-budget-footer"
+    ],
     "verification_artifact_path": "verification/v3-6.1-cost-tracking.json"
   },
   {
     "id": "v3-6.2-cross-provider-failover",
     "category": "cross-cutting",
-    "description": "On Anthropic rate-limit or outage, Critic/Spec-Auditor → GPT-5 or Gemini 2.5 Pro; Coding-Agent → Bedrock or Vertex; Compaction → GPT-5-mini fallback.",
+    "description": "On Anthropic rate-limit or outage, Critic/Spec-Auditor \u2192 GPT-5 or Gemini 2.5 Pro; Coding-Agent \u2192 Bedrock or Vertex; Compaction \u2192 GPT-5-mini fallback.",
     "steps": [
       "Depend on @mariozechner/pi-ai or port the failover decision tree",
       "Encode failover routes in config/workflows.yaml",
       "Hand-test: simulate Anthropic 429, confirm failover route taken"
     ],
     "passes": false,
-    "source_section": "BRD §6.2",
-    "depends_on": ["v3-5.2-skill-cross-provider-handoff"],
+    "source_section": "BRD \u00a76.2",
+    "depends_on": [
+      "v3-5.2-skill-cross-provider-handoff"
+    ],
     "verification_artifact_path": "verification/v3-6.2-cross-provider-failover.json"
+  },
+  {
+    "id": "v3.1.1-scaffold-import-mode",
+    "category": "command",
+    "description": "Scaffold command asks Q0 (Q&A | artifacts | hybrid) and routes imported BRD/Architecture into specs/ without interview. Markdown-only in this increment.",
+    "steps": [
+      "Add Q0 to commands/scaffold.md before Q1",
+      "Create skills/scaffold-import/SKILL.md and templates/import-checklist.md",
+      "Update skills/brd/SKILL.md to early-exit on specs/brd/.imported",
+      "Update agents/brd-creator.md pre-flight to early-exit on sentinel",
+      "Update skills/architect/SKILL.md to set --from-import on specs/design/.imported",
+      "Verify three test scaffolds: Q&A, import, hybrid (per BRD v3.1 \u00a72 verification)"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.1 \u00a72",
+    "depends_on": [],
+    "verification_artifact_path": "verification/v3.1.1-scaffold-import-mode.json"
+  },
+  {
+    "id": "v3.1.2-architect-synthesis-mode",
+    "category": "agent",
+    "description": "Architect runs in synthesis mode when --from-import is set: reads imported BRD + architecture, skips 11-round interview, produces full design artifacts directly.",
+    "steps": [
+      "Add Phase 0 mode detection to agents/architect.md",
+      "Add Step 0 mode detection to skills/architect/SKILL.md",
+      "Create skills/architect/synthesis-mode.md",
+      "Add --from-import / --restart flag handling to commands/architect.md",
+      "Verify: --from-import skips Rounds 1-11, design artifacts produced"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.1 \u00a73",
+    "depends_on": [
+      "v3.1.1-scaffold-import-mode"
+    ],
+    "verification_artifact_path": "verification/v3.1.2-architect-synthesis-mode.json"
+  },
+  {
+    "id": "v3.1.2-architect-review-loop",
+    "category": "agent",
+    "description": "After interview or synthesis, architect presents a single architecture-review document for approve/amend/restart. 3-cycle amend budget. On approve, emit handoff state for /auto.",
+    "steps": [
+      "Create skills/architect/templates/architecture-review.md",
+      "Append Step 6 review-loop to skills/architect/SKILL.md",
+      "Append Phase 6 review-loop to agents/architect.md",
+      "Implement 3-cycle amend budget with restart fallback",
+      "Write state/architecture-approved.flag on approval",
+      "Update hooks/session-start.js to surface /auto suggestion on next session",
+      "Verify all 5 paths per BRD v3.1 \u00a73 verification"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.1 \u00a73",
+    "depends_on": [],
+    "verification_artifact_path": "verification/v3.1.2-architect-review-loop.json"
   }
 ]

@@ -264,3 +264,63 @@ NEXT (separate work, not blocking on this branch):
   contract; the runtime needs to honor it.
 - npm install pi-ai once a Node entrypoint actually consumes it (today
   config/workflows.yaml is declarative-only).
+
+================================================================
+[2026-06-11 | session: v3.1-scaffold-import-and-review-loop | branch: main]
+================================================================
+
+BRD v3.1 milestone — first two increments landed.
+
+Delivered v3.1.1 (Scaffold Q0: Q&A vs artifacts vs hybrid)
+- New skill: skills/scaffold-import/SKILL.md + templates/import-checklist.md
+- commands/scaffold.md: Step 0 inserted with Branches A / B / C
+- skills/brd/SKILL.md: Step 0 sentinel check on specs/brd/.imported
+- agents/brd-creator.md: Phase 0 pre-flight sentinel check
+- skills/architect/SKILL.md: Step 0 mode detection reads specs/design/.imported
+
+Delivered v3.1.2 (Architect synthesis mode + review loop + auto-handoff)
+- New skill file: skills/architect/synthesis-mode.md
+- New template: skills/architect/templates/architecture-review.md
+- skills/architect/SKILL.md: Step 6 review loop (approve/amend/restart,
+  3-cycle amend budget); Step 5 learnings deferred until Step 6 approval
+- agents/architect.md: Phase 0 mode detection + Phase 6 review loop
+- commands/architect.md: accepts --from-import and --restart flags
+- hooks/session-start.js: reads state/architecture-approved.flag,
+  surfaces "Suggested next command: /auto" in SessionStart reminder
+
+feature_list.json: 47 → 50 entries (append-only, all new passes:false).
+Added ids:
+  v3.1.1-scaffold-import-mode      (source: BRD v3.1 §2)
+  v3.1.2-architect-synthesis-mode  (source: BRD v3.1 §3, deps: 3.1.1-scaffold)
+  v3.1.2-architect-review-loop     (source: BRD v3.1 §3)
+
+Plan doc: brd/v3.1-implementation-plan.md refreshed with 4 new proposed
+increments borrowed from cwijayasundara/claude_harness_eng_v5:
+  v3.1.3 harness registry (HARNESS.md + harness-manifest.json)
+  v3.1.5 defensive triad (real git hooks + pre-bash-gate + concurrency-gate)
+  v3.1.6 Token Governor MVP (/context + CCR + token-advisor)
+  v3.1.9 living code-graph + graph-refresh + codebase-explorer with LSP
+Plus renumbered old items (memory OS → v3.1.11/12, dogfood → v3.1.13).
+Deferred to v3.2: Symphony orchestrator, framework skill packs, REASONS
+Canvas, /vibe + /sprint lanes.
+
+Smoke tests passed (structural + functional):
+  1. feature_list.json well-formed, 50 entries, last 3 all passes:false
+  2. scaffold-import skill files present
+  3. scaffold.md contains Step 0 with Branches A/B/C
+  4. BRD skill + brd-creator agent reference sentinel path
+  5. Architect skill/agent/command wired for Phase 0 mode-detect + Phase 6
+  6. session-start.js: node --check passes; functional dry-run with a fake
+     state/architecture-approved.flag emits the expected banner including
+     "Architecture approved", "v2", and "/auto" suggestion.
+
+Salary-dashboard dogfood remains parked at test-projects/salary-dashboard/;
+scheduled as v3.1.13 target once v3.1.3, .5, .6, .9 land.
+
+NEXT (separate sessions):
+- v3.1.3 harness registry — build HARNESS.md + harness-manifest.json +
+  validate-harness-manifest.js. Cheapest, highest-leverage borrow.
+- v3.1.5 defensive triad — small copy-adapt job from claude_harness_eng_v5.
+- Verification artifacts under verification/v3.1.*.json — not written yet
+  (E2E gate hook doesn't fire in forge repo, so entries remain passes:false
+  until dogfooded through a scaffolded target project).

@@ -7,6 +7,36 @@ description: Initialize a new project with the Claude Harness Forge scaffold.
 
 When the user runs this command, follow these steps exactly:
 
+## Step 0 — Requirements source (BRD v3.1 §2)
+
+**Ask first, before any other question:**
+
+> "How are you providing requirements and architecture for this project?
+>
+>   **A) Interactive Q&A** — I'll interview you through `/brd` (5 dimensions) then `/architect` (up to 11 rounds). Best for greenfield or when requirements are still being shaped.
+>   **B) I have BRD and Architecture docs to import** — you provide the paths, I stage them into `specs/` and skip both interviews. Best when your org already has these docs.
+>   **C) Hybrid** — you provide a BRD; I still interview for architecture. Best when requirements are settled but stack choice is open."
+
+Wait for the answer. Then:
+
+### Branch A (Q&A) — default flow
+
+Proceed to Step 1 unchanged. Downstream `/brd` and `/architect` will run their full interviews.
+
+### Branch B (import both)
+
+1. Invoke the `scaffold-import` skill: read [`.claude/skills/scaffold-import/SKILL.md`](../.claude/skills/scaffold-import/SKILL.md) and follow its instructions to collect paths, validate, stage into `specs/`, and write `.imported` sentinels for both BRD and Architecture.
+2. Then proceed to Step 1 for project name / type / plugins.
+3. **Downstream:** `/brd` and `/architect` will detect their `.imported` sentinels and skip interviews. `/architect` runs in synthesis mode (v3.1.2) to produce derived design artifacts from the imported architecture.
+
+### Branch C (hybrid — BRD only)
+
+1. Invoke the `scaffold-import` skill in BRD-only mode: collect the BRD path, validate, stage into `specs/brd/app_spec.md`, write `specs/brd/.imported` (do NOT write `specs/design/.imported`).
+2. Then proceed to Step 1.
+3. **Downstream:** `/brd` will skip interview. `/architect` will run its standard 11-round interview because no architecture was imported.
+
+**Note:** If the user provides AAC files (Structurizr DSL `.dsl`, PlantUML C4 `.puml`, Mermaid C4 `.mmd`), tell them clearly that AAC parsers are deferred to v3.1.10. Ask for a Markdown equivalent.
+
 ## Step 1: Gather Project Info
 
 Ask the user these questions (one at a time):

@@ -13,8 +13,10 @@ Interactive technical design phase. The architect reads the BRD, interviews the 
 ## Usage
 
 ```
-/architect              # Full interactive flow (Phases 1-4 + learnings)
-/architect --post-build  # Post-build learnings update only (Phase 5)
+/architect                 # Auto-detect mode (interview | synthesis) based on sentinels
+/architect --from-import   # Force synthesis mode (needs specs/design/.imported)
+/architect --restart       # Force interview mode even when sentinels present
+/architect --post-build    # Post-build learnings update only (legacy phase 5)
 ```
 
 ---
@@ -26,7 +28,37 @@ Interactive technical design phase. The architect reads the BRD, interviews the 
 
 ---
 
-## Interactive Flow (default)
+## Step 0 — Mode detection (BRD v3.1 §3)
+
+**Run before any other step.** Determines whether to run interview mode (existing 11 rounds) or synthesis mode.
+
+```bash
+if [[ "$*" == *"--restart"* ]]; then
+  MODE=interview
+  # user explicitly overrides sentinels; archive any prior review docs first
+  mkdir -p specs/design/amendments
+  mv specs/design/architecture-review-v*.md specs/design/amendments/ 2>/dev/null || true
+elif [[ "$*" == *"--from-import"* ]] && [ -f specs/design/.imported ]; then
+  MODE=synthesis
+elif [ -f specs/design/.imported ]; then
+  # sentinel present but no explicit flag — ask human once
+  echo "Architecture was imported (see specs/design/.imported)."
+  echo "Recommended: synthesis mode (skips 11 rounds)."
+  echo "Type 'r' + Enter to restart with interview instead. Any other key: synthesis."
+  read -r ANS
+  if [ "$ANS" = "r" ]; then MODE=interview; else MODE=synthesis; fi
+else
+  MODE=interview
+fi
+```
+
+**On synthesis mode:** follow [`synthesis-mode.md`](synthesis-mode.md) end-to-end (Steps 1-7 of that doc), then jump to **Step 5 — Review loop** below.
+
+**On interview mode:** proceed to Step 1 below.
+
+---
+
+## Interactive Flow (interview mode)
 
 ### Step 1 — Read Context
 
@@ -93,6 +125,115 @@ Run self-check before presenting to human. Flag any gaps:
 
 Write stack decision record to `.claude/learnings/stack-decisions/{project-name}-stack.md`.
 Update `_index.md`.
+
+**Note (BRD v3.1 §3):** With the Step 6 review loop in place, defer this write until Step 6 approval. Restart at Step 6 would otherwise persist learnings for a rejected architecture.
+
+---
+
+## Step 6 — Architecture review loop (BRD v3.1 §3)
+
+**Runs after Step 5 in interview mode, or immediately after `synthesis-mode.md` Step 7 in synthesis mode.**
+
+The goal: present a single review document to the human, capture approve / amend / restart, iterate up to 3 amend cycles, then either handoff to `/auto` or fall back to interview.
+
+### Step 6.1 — Emit the review doc
+
+Fill [`templates/architecture-review.md`](templates/architecture-review.md) and write to `specs/design/architecture-review-v${N}.md` where `${N}` starts at 1.
+
+Print to the human:
+
+```
+Architecture review v${N} written to specs/design/architecture-review-v${N}.md
+
+Please review sections 1-8. Decide in section 9:
+  [A] Approve   — I'll finalize architecture.md, persist learnings, and set the /auto handoff flag
+  [M] Amend     — describe changes; I'll produce v${N+1} (${remaining}/3 amend cycles remaining)
+  [R] Restart   — drop this synthesis/interview output and run the full 11-round interview
+
+Type A, M, or R:
+```
+
+### Step 6.2 — Read the human decision
+
+Wait for A/M/R. Interpret:
+
+- **A (Approve):** proceed to Step 6.3
+- **M (Amend):** proceed to Step 6.4 (if amend budget remains)
+- **R (Restart):** proceed to Step 6.5
+
+### Step 6.3 — On Approve
+
+1. Copy `specs/design/architecture-review-v${N}.md` → `specs/design/architecture-review-final.md`
+2. If Step 5 (learnings) was deferred, run it now: write `.claude/learnings/stack-decisions/{project-name}-stack.md` and update `_index.md`
+3. If synthesis mode: leave imported `specs/design/architecture.md` in place; keep `architecture-derived.md` as reference
+4. If interview mode: promote structured decisions into `specs/design/architecture.md` (if not already written by Step 4)
+5. Write `state/architecture-approved.flag`:
+
+   ```yaml
+   approved_at: 2026-06-11T14:30:00Z
+   version: v${N}
+   review_doc: specs/design/architecture-review-v${N}.md
+   mode: interview | synthesis
+   next_suggested_command: /auto
+   ```
+
+6. Print handoff message:
+
+   ```
+   ✓ Architecture approved at v${N}.
+   ✓ specs/design/architecture-review-final.md is authoritative.
+   ✓ state/architecture-approved.flag written.
+   Next: run /auto to start the autonomous build loop.
+   (The SessionStart hook will surface this suggestion next session.)
+   ```
+
+7. Exit success.
+
+### Step 6.4 — On Amend
+
+Amend budget starts at 3 (i.e., you can produce v2, v3, v4). If cycle would produce v5 or later, force Restart with an informative message:
+
+```
+Amend budget exhausted (3 cycles used). Restart with full 11-round interview? [Y/n]
+```
+
+If within budget:
+
+1. Read the human's inline amendments from section 9 of v${N}
+2. Apply changes to the extracted decisions (backend/frontend/DB/deployment/component-map/etc.)
+3. Re-generate any impacted derived artifacts (component-map, folder-structure, api-contracts)
+4. Increment N, fill `templates/architecture-review.md` with v${N+1}, include an "Amendment history" entry citing what changed and why
+5. Loop back to Step 6.1
+
+### Step 6.5 — On Restart
+
+1. Archive all `specs/design/architecture-review-v*.md` to `specs/design/amendments/`
+2. Remove `specs/design/.imported` if present (user is explicitly abandoning the imported architecture)
+3. Do NOT persist learnings (they were deferred)
+4. Restart at Step 1 in interview mode (skip Step 0 to avoid loop)
+
+### Amend budget diagram
+
+```
+v1 (initial) ──[Amend]──→ v2 ──[Amend]──→ v3 ──[Amend]──→ v4 ──[Amend requested]──→ Force Restart
+                │                │                │                │
+              Approve          Approve          Approve          Approve
+                ↓                ↓                ↓                ↓
+              handoff to /auto (in all 4 approve cases)
+```
+
+### What SessionStart does with the flag
+
+The `state/architecture-approved.flag` file is picked up by [`hooks/session-start.js`](../../hooks/session-start.js) on the next session. It emits a system reminder to the coding-agent:
+
+```
+Architecture was approved at 2026-06-11T14:30:00Z (v2, synthesis mode).
+Ready to start the autonomous build loop.
+Suggested: run /auto
+Review doc: specs/design/architecture-review-final.md
+```
+
+We do NOT auto-invoke `/auto` — that would violate the "don't take irreversible actions without confirmation" principle. The user runs `/auto` explicitly.
 
 ---
 

@@ -37,6 +37,27 @@ Inspired by best practices from kaosensei/prd-generator and cdeust/ai-prd-genera
 
 ## Steps
 
+### Step 0 — Import sentinel check (BRD v3.1 §2)
+
+**Before any other step**, check for `specs/brd/.imported`:
+
+```bash
+if [ -f specs/brd/.imported ]; then
+  IMPORTED_FROM=$(grep '^imported_from:' specs/brd/.imported | cut -d: -f2- | xargs)
+  IMPORTED_AT=$(grep '^imported_at:' specs/brd/.imported | cut -d: -f2- | xargs)
+  echo "BRD imported from ${IMPORTED_FROM} on ${IMPORTED_AT} — skipping interview."
+  echo "See: specs/brd/app_spec.md"
+  echo "To force re-interview: rm specs/brd/.imported && /brd"
+  exit 0
+fi
+```
+
+If the sentinel exists, exit success immediately. Do NOT run codebase analysis, interview, or self-audit — the BRD was pre-provided during scaffold Q0 Branch B or C and is already at `specs/brd/app_spec.md`.
+
+If the sentinel does NOT exist, proceed with the standard flow below.
+
+### Standard flow (when no import sentinel)
+
 1. **Codebase analysis** (existing projects only) — scan `src/` for models, endpoints, patterns.
 2. **Detect scope** — greenfield app or single feature.
 3. **Five-dimension interview** (one dimension at a time, 2-3 questions each):

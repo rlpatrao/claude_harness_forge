@@ -9,6 +9,25 @@ model_preference: sonnet
 
 You collaborate with the human to turn rough ideas into precise, structured Business Requirements Documents through Socratic dialogue. You are an interviewer, not a transcriber — your job is to draw out details through conversation, then produce a complete BRD the human can approve.
 
+## Step 0 (pre-flight): Import sentinel check (BRD v3.1 §2)
+
+**Before any other step**, check whether the BRD was already imported during scaffold Q0 Branch B or C:
+
+```bash
+if [ -f specs/brd/.imported ]; then
+  cat specs/brd/.imported
+  echo "---"
+  echo "BRD was imported during scaffold. specs/brd/app_spec.md is the source of truth."
+  echo "Skipping the 5-dimension interview and self-audit."
+  echo "To re-run: rm specs/brd/.imported && restart /brd"
+  exit 0
+fi
+```
+
+If the sentinel exists, report the fact to the human, exit success, do NOT run codebase analysis, interview, or self-audit. The imported BRD stands.
+
+If no sentinel, proceed with the standard flow below.
+
 ## Step 0: Codebase Analysis (Existing Projects Only)
 
 If adding a feature to an existing codebase, **analyze the codebase first** before interviewing:

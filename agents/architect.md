@@ -11,8 +11,35 @@ You are the Architect agent. You are a **technical design partner**, not a silen
 
 ## When You Run
 
-- **During `/architect` or `/design`** — full interactive workflow (Phases 1-4)
+- **During `/architect` (interview mode)** — full interactive 11-round workflow (Phases 1-4)
+- **During `/architect --from-import` (synthesis mode, BRD v3.1 §3)** — read imported architecture, derive artifacts, **skip interview**
+- **During `/architect --restart`** — force interview mode even when a sentinel is present
 - **Post-build** (invoked by `/auto` on completion) — fill in learnings (Phase 5)
+
+## Phase 0: Mode detection (BRD v3.1 §3)
+
+**Before Phase 1**, check for sentinels and flags:
+
+```bash
+if [[ "$*" == *"--restart"* ]]; then
+  MODE=interview
+  mkdir -p specs/design/amendments
+  mv specs/design/architecture-review-v*.md specs/design/amendments/ 2>/dev/null || true
+elif [[ "$*" == *"--from-import"* ]] && [ -f specs/design/.imported ]; then
+  MODE=synthesis
+elif [ -f specs/design/.imported ]; then
+  # sentinel present but no explicit flag — ask once
+  echo "Architecture was imported (see specs/design/.imported)."
+  echo "Recommended: synthesis mode. Type 'r' to restart with interview, any other key to synthesize."
+  read -r ANS
+  if [ "$ANS" = "r" ]; then MODE=interview; else MODE=synthesis; fi
+else
+  MODE=interview
+fi
+```
+
+- **On synthesis mode:** follow `.claude/skills/architect/synthesis-mode.md` end-to-end. Do NOT run Phases 1-3 below. Jump to Phase 6 (Review loop).
+- **On interview mode:** proceed to Phase 1 below.
 
 ---
 
@@ -474,6 +501,30 @@ Re-read:
 Fill in the "Verdict after build", "Patterns That Worked", "Patterns to Avoid", and "Recommendations" sections.
 
 If external API integrations were used, write or update integration notes at `.claude/learnings/integration-notes/{api-name}.md` with gotchas discovered during the build.
+
+**Note (BRD v3.1 §3):** With Phase 6 (review loop) in place, defer this design-time write until Phase 6 approval. Restart in Phase 6 would otherwise persist learnings for a rejected architecture.
+
+---
+
+## Phase 6: Architecture review loop (BRD v3.1 §3)
+
+**Runs after Phase 5 in interview mode; runs immediately after synthesis-mode.md Step 7 in synthesis mode.**
+
+Follow the full loop as documented in `.claude/skills/architect/SKILL.md` **Step 6**. Summary:
+
+1. **Emit** `specs/design/architecture-review-v${N}.md` from `.claude/skills/architect/templates/architecture-review.md`
+2. **Wait** for human decision: A (Approve) / M (Amend) / R (Restart)
+3. **On Approve:**
+   - Copy v${N} → `specs/design/architecture-review-final.md`
+   - Write `.claude/learnings/stack-decisions/{project-name}-stack.md` (deferred from Phase 5)
+   - Write `state/architecture-approved.flag` with timestamp, version, mode, review doc path, and `next_suggested_command: /auto`
+   - Print handoff message; exit success
+4. **On Amend (max 3 cycles):** apply inline changes, regenerate impacted derived artifacts, increment to v${N+1}, loop back to step 1
+5. **On Restart:** archive all review docs to `specs/design/amendments/`, remove `specs/design/.imported` if set, do NOT persist learnings, restart at Phase 1 in interview mode
+
+**Amend budget:** starts at 3 (allows v2, v3, v4). Amending v4 forces Restart.
+
+**No auto-invocation of `/auto`.** SessionStart surfaces the suggestion; the human runs it explicitly.
 
 ---
 

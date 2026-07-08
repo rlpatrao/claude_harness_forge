@@ -88,11 +88,43 @@ const nextLine = nextFeature
       ? '→ All features passing. Run init.sh smoke for final confirmation, then exit.'
       : '→ No failing feature has all deps satisfied. Resolve a dependency cycle or escalate to HITL.');
 
+// BRD v3.1 §3: architecture-approved handoff — surface a suggestion to run /auto
+// on the session immediately after architect approval. Read but do NOT delete
+// the flag — it's a persistent signal.
+let archApprovedBlock = null;
+const archApprovedPath = path.join(projectDir, 'state', 'architecture-approved.flag');
+if (fs.existsSync(archApprovedPath)) {
+  try {
+    const raw = fs.readFileSync(archApprovedPath, 'utf8');
+    const kv = {};
+    raw.split('\n').forEach(line => {
+      const m = /^([a-z_]+):\s*(.+)$/i.exec(line.trim());
+      if (m) kv[m[1]] = m[2];
+    });
+    archApprovedBlock = [
+      '### Architecture approved (BRD v3.1 §3)',
+      `Approved: ${kv.approved_at || '(unknown time)'}`,
+      `Version: ${kv.version || '?'} (${kv.mode || 'unknown mode'})`,
+      `Review doc: ${kv.review_doc || 'specs/design/architecture-review-final.md'}`,
+      `Suggested next command: ${kv.next_suggested_command || '/auto'}`,
+      '',
+      'The autonomous build loop is ready to start. Run /auto explicitly when ready.',
+    ].join('\n');
+  } catch (_) {}
+}
+
 const lines = [
   '## BRD v3.0 SessionStart — coding-agent startup (BRD §3.1)',
   '',
   `Project root: ${projectDir}`,
   `feature_list.json: ${passing}/${total} passing, ${failing} failing`,
+];
+
+if (archApprovedBlock) {
+  lines.push('', archApprovedBlock);
+}
+
+lines.push(
   '',
   '### Next feature to work',
   nextLine,
@@ -107,8 +139,8 @@ const lines = [
   '1. pwd  2. read harness-progress.txt  3. read feature_list.json  4. git log -20  5. run init.sh smoke',
   '6. select highest-priority failing feature  7. work one feature  8. flip passes + commit + append progress',
   '',
-  'Hard rule (BRD §3.8): do NOT flip a feature_list.json passes field without a verification artifact under verification/<id>.{png,json}. The e2e-gate hook (once 1b lands) and feature-edit-guard hook will reject otherwise.',
-];
+  'Hard rule (BRD §3.8): do NOT flip a feature_list.json passes field without a verification artifact under verification/<id>.{png,json}. The e2e-gate hook (once 1b lands) and feature-edit-guard hook will reject otherwise.'
+);
 
 const output = {
   hookSpecificOutput: {
