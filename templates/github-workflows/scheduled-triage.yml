@@ -12,6 +12,10 @@
 #
 # Adapted from cwijayasundara/claude_harness_eng_v5 upstream-watch
 # workflow shape per BRD v3.1 §4 (v3.1.8).
+#
+# Supply-chain policy: any `uses:` from a non-actions/ non-github/
+# non-same-org repository MUST be pinned to a full 40-char commit SHA
+# with a trailing `# vX.Y.Z` comment. Rely on Dependabot for updates.
 
 name: Scheduled triage
 
@@ -59,7 +63,10 @@ jobs:
 
       - name: Open PR with triage updates
         if: steps.diff.outputs.changed == 'true' && !inputs.dry_run
-        uses: peter-evans/create-pull-request@v6
+        # Pinned to a full commit SHA per supply-chain hygiene (BRD v3.1 §4 v3.1.5).
+        # Update via Dependabot; a moved v6 tag could point at malicious code.
+        # actions/checkout@v4 above is from the actions/ org and does not require pinning.
+        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c  # v6.1.0
         with:
           commit-message: "chore(triage): scheduled discovery pass"
           title: "Triage: scheduled discovery ($(date -u +%Y-%m-%d))"
