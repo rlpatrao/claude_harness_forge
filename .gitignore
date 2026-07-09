@@ -2,3 +2,10 @@ test-projects/
 .DS_Store
 .vscode/
 .playwright-mcp/
+
+# BRD v3.1 §4 runtime artifacts
+state/context-cache/*/          # v3.1.6 CCR entries (per-hash caches)
+state/dirty-files.jsonl         # v3.1.9 in-flight ledger (drained on Stop)
+state/concurrency-ledger.jsonl  # v3.1.5 concurrency ledger
+state/token-advisor-session.json # v3.1.6 per-session state
+!state/context-cache/README.md   # keep the seed

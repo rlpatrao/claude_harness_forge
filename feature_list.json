@@ -788,5 +788,201 @@
     "source_section": "BRD v3.1 \u00a73",
     "depends_on": [],
     "verification_artifact_path": "verification/v3.1.2-architect-review-loop.json"
+  },
+  {
+    "id": "v3.1.3-harness-registry",
+    "category": "contract",
+    "description": "HARNESS.md + harness-manifest.json + validate-harness-manifest.js. Every agent/skill/hook/command is a row in {maintainability, architecture, behaviour, traceability} \u00d7 {planning, session, commit, integration, drift} matrix. Validator runs in CI; empty cells are documented gaps.",
+    "steps": [
+      "Author HARNESS.md with per-cadence tables",
+      "Author harness-manifest.json (69 rows at v3.1)",
+      "Author scripts/validate-harness-manifest.js with schema + coverage matrix",
+      "Wire into CI (npm test / .github/workflows/ci.yml)",
+      "Verify: 69/69 rows validate, 0 missing wired_at paths, coverage matrix prints, empty cells match documented v3.2 deferrals"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.1 \u00a74 (v3.1.3)",
+    "depends_on": [],
+    "verification_artifact_path": "verification/v3.1.3-harness-registry.json"
+  },
+  {
+    "id": "v3.1.4-worktree-by-default",
+    "category": "settings",
+    "description": "Top-level worktree block in settings.json (bgIsolation: worktree, baseRef: head, symlinkDirectories). Prevents parallel subagent file collisions. Documented in scaffold.md Step 4.",
+    "steps": [
+      "Add worktree block to settings.json",
+      "Document in commands/scaffold.md Step 4",
+      "Verify parallel Task spawns run in isolated worktrees"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.1 \u00a74 (v3.1.4)",
+    "depends_on": [],
+    "verification_artifact_path": "verification/v3.1.4-worktree-by-default.json"
+  },
+  {
+    "id": "v3.1.5-defensive-triad",
+    "category": "hook",
+    "description": "hooks/pre-bash-gate.js (extracts bash write targets, applies sensitive-path + scope rules) + hooks/concurrency-gate.js (caps parallel Task/Agent at 18, TTL-prunes leaked spawns) + templates/git-hooks/{pre-commit,prepare-commit-msg} installed by scaffold Step 10.",
+    "steps": [
+      "Author hooks/pre-bash-gate.js",
+      "Author hooks/concurrency-gate.js",
+      "Author templates/git-hooks/pre-commit + prepare-commit-msg + README.md",
+      "Wire hooks into settings.json (PreToolUse Bash, PreToolUse Agent|Task, SubagentStop)",
+      "Update commands/scaffold.md Step 10 to install real git hooks",
+      "Verify: benign bash allowed, .env write blocked, sed -i .env blocked, tee credentials blocked, concurrency cap enforced at 18, CONCURRENCY_CAP env overrides"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.1 \u00a74 (v3.1.5)",
+    "depends_on": [],
+    "verification_artifact_path": "verification/v3.1.5-defensive-triad.json"
+  },
+  {
+    "id": "v3.1.6-token-governor-mvp",
+    "category": "command",
+    "description": "/context command + scripts/{context-pack,context-retrieve,search-compact,run-compact}.js + hooks/token-advisor.js. CCR pipeline with hash-cached raw output under state/context-cache/. Advisory hook (never blocks) warns on avoidable broad Reads/Bashes/Globs, rate-limited to 3 warnings per session.",
+    "steps": [
+      "Author commands/context.md",
+      "Author scripts/context-pack.js (execFileSync only \u2014 no shell interpolation)",
+      "Author scripts/context-retrieve.js (--list / --like / <hash>)",
+      "Author scripts/search-compact.js (per-file grouped digest)",
+      "Author scripts/run-compact.js (failure-first digest, hash-cached)",
+      "Author hooks/token-advisor.js (advisory, 3-warning cap per session)",
+      "Wire token-advisor into PreToolUse(Read|Glob|Grep) + PreToolUse(Bash)",
+      "Create state/context-cache/README.md",
+      "Verify: cache hit on repeat call, duplicate Read advisory fires, wide find advisory fires, targeted find allowed, no shell interpolation vulns"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.1 \u00a74 (v3.1.6)",
+    "depends_on": [],
+    "verification_artifact_path": "verification/v3.1.6-token-governor-mvp.json"
+  },
+  {
+    "id": "v3.1.7-triage-inbox",
+    "category": "skill",
+    "description": "skills/triage/SKILL.md + commands/triage.md. New surface specs/triage/inbox.md \u2014 pre-work queue for discovery automations, drift sensors, human notes. Sub-commands: add/list/promote/archive. Distinct from feature_list.json (committed work).",
+    "steps": [
+      "Author skills/triage/SKILL.md",
+      "Author commands/triage.md",
+      "Verify /triage add creates specs/triage/inbox.md if missing, appends item with T-YYYY-MM-DD-NN id",
+      "Verify /triage promote invokes /feature-add and marks item promoted"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.1 \u00a74 (v3.1.7)",
+    "depends_on": [],
+    "verification_artifact_path": "verification/v3.1.7-triage-inbox.json"
+  },
+  {
+    "id": "v3.1.8-scheduled-automations",
+    "category": "recipe",
+    "description": "recipes/example-morning-triage.yaml + templates/github-workflows/scheduled-triage.yml. Weekday 07:30 discovery pass writes to specs/triage/inbox.md and opens a PR via peter-evans/create-pull-request.",
+    "steps": [
+      "Author recipes/example-morning-triage.yaml with 5 steps",
+      "Author templates/github-workflows/scheduled-triage.yml (cron + workflow_dispatch)",
+      "Verify recipe runs and appends a note to specs/triage/inbox.md"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.1 \u00a74 (v3.1.8)",
+    "depends_on": [
+      "v3.1.7-triage-inbox"
+    ],
+    "verification_artifact_path": "verification/v3.1.8-scheduled-automations.json"
+  },
+  {
+    "id": "v3.1.9-living-code-graph",
+    "category": "skill",
+    "description": "skills/code-map/SKILL.md + scripts/build-code-graph.js (JS/TS/Python/Markdown regex parsers) + hooks/verify-on-save.js (PostToolUse dirty-file ledger) + hooks/graph-refresh.js (Stop event incremental refresh) + agents/codebase-explorer.md (read-only, no Write/Edit).",
+    "steps": [
+      "Author skills/code-map/SKILL.md",
+      "Author scripts/build-code-graph.js (execFileSync git ls-files; regex parsers)",
+      "Author hooks/verify-on-save.js (skips node_modules/.venv)",
+      "Author hooks/graph-refresh.js (drains dirty-files.jsonl, calls builder --files)",
+      "Author agents/codebase-explorer.md (tool grant excludes Write/Edit)",
+      "Wire verify-on-save into PostToolUse(Edit|Write), graph-refresh into Stop chain",
+      "Commit initial state/code-graph.json + state/symbol-map.md",
+      "Verify: full build 253 forge files, 3201 defines, ~80ms; incremental refresh; skip patterns; JSON valid"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.1 \u00a74 (v3.1.9)",
+    "depends_on": [],
+    "verification_artifact_path": "verification/v3.1.9-living-code-graph.json"
+  },
+  {
+    "id": "v3.1.10-aac-parsers",
+    "category": "script",
+    "description": "scripts/parse-structurizr.js + scripts/parse-plantuml-c4.js + scripts/parse-mermaid-c4.js. All three normalize to a common IR (containers/components/relationships/external_systems/notes). Wired into scaffold-import Q0 Branch B.",
+    "steps": [
+      "Author scripts/parse-structurizr.js",
+      "Author scripts/parse-plantuml-c4.js",
+      "Author scripts/parse-mermaid-c4.js",
+      "Author skills/scaffold-import/parsers/README.md (IR schema)",
+      "Update skills/scaffold-import/SKILL.md dispatch bash + markdown fallback renderer",
+      "Verify all three parsers extract same shape from equivalent fixture (3 containers, 4 rels, 2 external systems)"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.1 \u00a74 (v3.1.10)",
+    "depends_on": [
+      "v3.1.1-scaffold-import-mode"
+    ],
+    "verification_artifact_path": "verification/v3.1.10-aac-parsers.json"
+  },
+  {
+    "id": "v3.1.11-memory-os-fs",
+    "category": "skill",
+    "description": "skills/memory-os/SKILL.md + core/recall/archival scripts. 3-tier: core-blocks (always-in-context, 4KB cap, agent-writable) / sessions.jsonl (compactor writes, recall search) / archival (agent notes, BM25 search). SessionStart hook injects core-blocks into every session reminder.",
+    "steps": [
+      "Author skills/memory-os/SKILL.md",
+      "Author scripts/core-memory-{read,write}.js (4KB per-block cap)",
+      "Author scripts/recall-search.js (TF-IDF ranking)",
+      "Author scripts/archival-{write,search}.js (BM25 with title+tag bonus)",
+      "Update hooks/session-start.js to inject Core memory section (12KB cap)",
+      "Seed state/memory/{core-blocks,sessions,archival}/.gitkeep",
+      "Verify: write\u2192read\u2192list; 4KB cap enforced; archival BM25 ranks correctly; SessionStart shows core blocks"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.1 \u00a74 (v3.1.11)",
+    "depends_on": [],
+    "verification_artifact_path": "verification/v3.1.11-memory-os-fs.json"
+  },
+  {
+    "id": "v3.1.12-memory-os-vector-spec",
+    "category": "doc",
+    "description": "skills/memory-os/vector-backend.md \u2014 design-only interface spec for --backend {mem0,letta,zep}. No vendor SDK code. Decision deferred until v3.1.11 filesystem tier has been used on \u22652 dogfood projects.",
+    "steps": [
+      "Author skills/memory-os/vector-backend.md with contract, response schema, sync semantics, MCP-server survey, migration path, open decisions",
+      "No code changes"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.1 \u00a74 (v3.1.12)",
+    "depends_on": [
+      "v3.1.11-memory-os-fs"
+    ],
+    "verification_artifact_path": "verification/v3.1.12-memory-os-vector-spec.json"
+  },
+  {
+    "id": "v3.1.13-salary-dashboard-dogfood",
+    "category": "doc",
+    "description": "brd/v3.1-dogfood-runbook.md \u2014 end-to-end runbook for the salary-dashboard test project. Exercises v3.1.1 through v3.1.11 via Branch B artifact import (Structurizr DSL), architect synthesis + review, memory-OS core write, /context, /triage, harness registry validator, defensive triad, AAC parser round-trip. Actual execution requires an interactive session.",
+    "steps": [
+      "Author brd/v3.1-dogfood-runbook.md with per-increment step mapping",
+      "Prepare fixture BRD.md + Structurizr DSL for /tmp/salary-dashboard-imports/",
+      "Execute steps 2-14 interactively",
+      "Produce verification/v3.1.1-.11.json artifacts + flip passes:false\u2192true for those entries",
+      "Write specs/dogfood-report-v3.1.md summarizing what worked, what didn't, v3.2 candidates"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.1 \u00a74 (v3.1.13)",
+    "depends_on": [
+      "v3.1.1-scaffold-import-mode",
+      "v3.1.2-architect-synthesis-mode",
+      "v3.1.2-architect-review-loop",
+      "v3.1.3-harness-registry",
+      "v3.1.5-defensive-triad",
+      "v3.1.6-token-governor-mvp",
+      "v3.1.7-triage-inbox",
+      "v3.1.9-living-code-graph",
+      "v3.1.10-aac-parsers",
+      "v3.1.11-memory-os-fs"
+    ],
+    "verification_artifact_path": "verification/v3.1.13-salary-dashboard-dogfood.json"
   }
 ]

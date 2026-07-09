@@ -324,3 +324,145 @@ NEXT (separate sessions):
 - Verification artifacts under verification/v3.1.*.json — not written yet
   (E2E gate hook doesn't fire in forge repo, so entries remain passes:false
   until dogfooded through a scaffolded target project).
+
+================================================================
+[2026-06-11 | session: v3.1-complete-all-increments | branch: main]
+================================================================
+
+BRD v3.1 milestone — all 13 v3.1 increments landed (bar dogfood execution).
+
+DELIVERED
+
+v3.1.3 Harness registry
+  - HARNESS.md (per-cadence table + gaps section)
+  - harness-manifest.json (69 rows: agent/skill/hook/command/gate/contract)
+  - scripts/validate-harness-manifest.js (schema + coverage matrix + empty
+    cells warning)
+  - Result: 69/69 rows valid, 0 missing wired_at, 5 documented empty
+    cells (traceability/architecture/behaviour/maintainability × drift +
+    architecture × session/integration).
+
+v3.1.4 Worktree-by-default
+  - settings.json: worktree { bgIsolation: worktree, baseRef: head,
+    symlinkDirectories: [node_modules, .venv, .cache] }
+  - Documented in scaffold.md Step 4 with opt-out via
+    settings.local.json.
+
+v3.1.5 Defensive triad
+  - hooks/pre-bash-gate.js (blocks bash writes to .env / credentials /
+    .ssh / .claude/settings.json / out-of-project)
+  - hooks/concurrency-gate.js (CONCURRENCY_CAP=18 default, TTL prune,
+    ledger rotate at 256KB)
+  - templates/git-hooks/{pre-commit,prepare-commit-msg} (installed by
+    scaffold Step 10 — fires on git commit --amend from shell etc.)
+  - Wired into PreToolUse Bash, PreToolUse Agent|Task, SubagentStop.
+
+v3.1.6 Token Governor MVP
+  - commands/context.md (/context "<question>")
+  - scripts/context-pack.js (execFileSync-only, LRU eviction at 50MB)
+  - scripts/context-retrieve.js (--list / --like / <hash>)
+  - scripts/search-compact.js (per-file grouped digest, score by
+    definition/heading lines)
+  - scripts/run-compact.js (failure-first digest, dedup, cached raw)
+  - hooks/token-advisor.js (PreToolUse advisory, 3 warnings/session cap)
+  - state/context-cache/README.md seed.
+  - Security-guidance flagged initial execSync; refactored to
+    execFileSync + argument arrays.
+
+v3.1.7 Triage inbox
+  - skills/triage/SKILL.md + commands/triage.md
+  - New surface specs/triage/inbox.md (pre-work queue)
+  - Sub-commands: add / list / promote / archive
+  - Promote route reuses /feature-add + Critic subagent
+
+v3.1.8 Scheduled automations
+  - recipes/example-morning-triage.yaml (5-step recipe)
+  - templates/github-workflows/scheduled-triage.yml (cron 07:30 UTC
+    weekdays; opens PR via peter-evans/create-pull-request)
+
+v3.1.9 Living code-graph
+  - skills/code-map/SKILL.md
+  - scripts/build-code-graph.js (JS/TS/Python/Markdown regex parsers)
+  - hooks/verify-on-save.js (PostToolUse dirty-file ledger)
+  - hooks/graph-refresh.js (Stop event incremental refresh)
+  - agents/codebase-explorer.md (read-only, no Write/Edit; LSP grant
+    reserved for v3.2)
+  - Initial commit: 253 forge files indexed, 3201 defines, 171 imports,
+    ~80ms full build.
+  - Wired: PostToolUse(Edit|Write) + Stop chain.
+
+v3.1.10 AAC parsers
+  - scripts/parse-structurizr.js
+  - scripts/parse-plantuml-c4.js
+  - scripts/parse-mermaid-c4.js
+  - skills/scaffold-import/parsers/README.md (common IR schema)
+  - Updated scaffold-import SKILL.md with dispatch + markdown fallback
+  - Verified: all three parsers extract identical shape from equivalent
+    fixture (3 containers, 4 rels, 2 externals).
+
+v3.1.11 Memory OS filesystem tier
+  - skills/memory-os/SKILL.md
+  - scripts/core-memory-{read,write}.js (4KB per-block cap)
+  - scripts/recall-search.js (TF-IDF over state/memory/sessions/*.jsonl)
+  - scripts/archival-{write,search}.js (BM25 with title+tag bonuses)
+  - hooks/session-start.js updated: reads core-blocks, injects "Core
+    memory (BRD v3.1 §4 v3.1.11)" section (12KB cap total).
+  - state/memory/{core-blocks,sessions,archival}/.gitkeep seeds.
+
+v3.1.12 Memory OS vector backend (design-only)
+  - skills/memory-os/vector-backend.md
+  - No code. Deferred decision until v3.1.11 has ≥2 dogfoods.
+
+v3.1.13 Salary-dashboard dogfood (runbook only)
+  - brd/v3.1-dogfood-runbook.md (14-step end-to-end validation runbook)
+  - Requires interactive session to execute — not automated here.
+
+feature_list.json: 50 → 61 entries (all new passes:false).
+  New: v3.1.3-harness-registry, v3.1.4-worktree-by-default,
+       v3.1.5-defensive-triad, v3.1.6-token-governor-mvp,
+       v3.1.7-triage-inbox, v3.1.8-scheduled-automations,
+       v3.1.9-living-code-graph, v3.1.10-aac-parsers,
+       v3.1.11-memory-os-fs, v3.1.12-memory-os-vector-spec,
+       v3.1.13-salary-dashboard-dogfood.
+
+harness-manifest.json: 69 rows, includes new "proposed" agents/skills/
+hooks (codebase-explorer, code-map, triage, memory-os, aac-parsers,
+graph-refresh, verify-on-save, pre-bash-gate, concurrency-gate,
+token-advisor). Post-v3.1, promoting all these from "proposed" →
+"active" would flip them in the manifest and satisfy the ratchet.
+
+VERIFIED (structural smoke tests per increment)
+  v3.1.3: manifest validator 69/69 valid, coverage matrix, empty cells
+  v3.1.5: 7/7 (pre-bash-gate + concurrency-gate scenarios)
+  v3.1.6: 7/7 (CCR cache, token-advisor state persistence bug fixed)
+  v3.1.9: 7/7 (full build 253 files 80ms, skip patterns, verify-on-save,
+    graph-refresh empty-ledger short-circuit)
+  v3.1.10: 3/3 (all three parsers yield same IR from fixture)
+  v3.1.11: 11/11 (core write/read/append/cap, archival BM25, recall
+    seeded search, SessionStart core injection)
+
+NOT VERIFIED (deferred to v3.1.13 interactive dogfood)
+  - Real E2E flip of passes:false→true for any of the 11 new entries
+    (E2E gate hook doesn't fire in the forge repo itself; verification/
+    artifacts + git-tracked evidence must come from scaffolded target).
+  - Live subagent worktree isolation (v3.1.4) — settings landed, but
+    the isolation only kicks in when Claude Code runs against a
+    scaffolded project.
+  - Real git-hook firing on git commit --amend from external clients.
+
+NEXT (separate sessions)
+  - Execute brd/v3.1-dogfood-runbook.md against test-projects/salary-
+    dashboard/ interactively; produce verification/v3.1.*.json artifacts
+    and flip the 11 entries to passes:true.
+  - Post-dogfood: promote codebase-explorer/code-map/triage/memory-os/
+    aac-parsers rows from "proposed" → "active" in harness-manifest.json.
+  - v3.2 candidates surfaced during dogfood → append to specs/triage/
+    inbox.md.
+
+v3.2 explicit deferrals (from BRD v3.1 §1 sequencing):
+  - Symphony orchestrator (Docker sidecar → tracker → auto PRD-to-PR)
+  - Framework skill packs (LangGraph/LangChain/FastAPI/React/ADK)
+  - REASONS Canvas + drift monitor
+  - /vibe (micro-contract lane) + /sprint (per-PRD sprint evolution)
+  - Tree-sitter AST-based code-map (replacing regex parsers)
+  - Vector backend (v3.1.12 was design-only; ship after ≥2 dogfoods)
