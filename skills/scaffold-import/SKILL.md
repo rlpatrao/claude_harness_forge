@@ -21,12 +21,69 @@ Invoked by [`commands/scaffold.md`](../../commands/scaffold.md) when the user ch
 | BRD / requirements | `BRD.md`, `brd.md`, `requirements.md`, `prd.md`, `PRD.md` | `specs/brd/app_spec.md` |
 | Architecture | `architecture.md`, `Architecture.md`, `design.md`, `system-design.md` | `specs/design/architecture.md` |
 
-**Deferred to v3.1.10 (AAC parsers):**
-- Structurizr DSL (`*.dsl`)
-- PlantUML C4 (`*.puml` with `!include`)
-- Mermaid C4 (`*.mmd` with `C4Context` blocks)
+**Supported in v3.1.10 (AAC parsers):**
+- Structurizr DSL (`*.dsl`) → [`scripts/parse-structurizr.js`](../../scripts/parse-structurizr.js)
+- PlantUML C4 (`*.puml`, `*.plantuml`) → [`scripts/parse-plantuml-c4.js`](../../scripts/parse-plantuml-c4.js)
+- Mermaid C4 (`*.mmd`, `*.mermaid`) → [`scripts/parse-mermaid-c4.js`](../../scripts/parse-mermaid-c4.js)
 
-If the user provides an AAC file in v3.1.1, tell them clearly it's deferred, and offer to accept a Markdown equivalent instead.
+When the user provides an AAC file, invoke the appropriate parser:
+
+```bash
+EXT="${AAC_FILE##*.}"
+case "$EXT" in
+  dsl)             PARSER=parse-structurizr ;;
+  puml|plantuml)   PARSER=parse-plantuml-c4 ;;
+  mmd|mermaid)     PARSER=parse-mermaid-c4 ;;
+  *) echo "Unsupported AAC format: .$EXT — provide a Markdown equivalent"; exit 1 ;;
+esac
+mkdir -p specs/design
+node ".claude/scripts/$PARSER.js" "$AAC_FILE" > specs/design/architecture-ir.json
+```
+
+The parser writes a common IR JSON. Then produce a Markdown fallback for downstream agents that don't yet read the IR:
+
+```bash
+node - <<'PY'
+import json, sys
+ir = json.load(open('specs/design/architecture-ir.json'))
+md = [f"# Architecture — {ir['system_name']}", "",
+      f"_Imported from {ir['source_format']}: `{ir['source_file']}`_", ""]
+if ir.get('containers'):
+    md.append("## Containers")
+    for c in ir['containers']:
+        md.append(f"- **{c['name']}** ({c.get('technology','?')}) — {c.get('description','')}")
+    md.append("")
+if ir.get('components'):
+    md.append("## Components")
+    for c in ir['components']:
+        md.append(f"- **{c['name']}** in `{c.get('container_id','?')}` ({c.get('technology','?')}) — {c.get('description','')}")
+    md.append("")
+if ir.get('relationships'):
+    md.append("## Relationships")
+    for r in ir['relationships']:
+        md.append(f"- `{r['from']}` → `{r['to']}`: {r.get('description','')}" + (f" (via {r['technology']})" if r.get('technology') else ""))
+    md.append("")
+if ir.get('external_systems'):
+    md.append("## External systems / people")
+    for e in ir['external_systems']:
+        md.append(f"- **{e['name']}** — {e.get('description','')}")
+    md.append("")
+if ir.get('notes'):
+    md.append("## Parser notes")
+    for n in ir['notes'][:20]:
+        md.append(f"- {n}")
+open('specs/design/architecture.md', 'w').write("\n".join(md))
+PY
+```
+
+The `.imported` sentinel records the source format:
+
+```yaml
+imported_from: <source path>
+imported_at: <ISO 8601>
+scaffold_mode: B
+source_format: structurizr | plantuml-c4 | mermaid-c4 | markdown
+```
 
 ## Step 1 — Collect paths from user
 
