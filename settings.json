@@ -71,7 +71,8 @@
           { "type": "command", "command": "node .claude/hooks/check-function-length.js" },
           { "type": "command", "command": "node .claude/hooks/check-file-length.js" },
           { "type": "command", "command": "node .claude/hooks/prompt-injection-detect.js" },
-          { "type": "command", "command": "node .claude/hooks/pii-scan.js" }
+          { "type": "command", "command": "node .claude/hooks/pii-scan.js" },
+          { "type": "command", "command": "node .claude/hooks/verify-on-save.js" }
         ]
       },
       {
@@ -126,7 +127,8 @@
         "matcher": "",
         "hooks": [
           { "type": "command", "command": "node .claude/hooks/ralph-loop.js" },
-          { "type": "command", "command": "node .claude/hooks/instinct-extractor.js" }
+          { "type": "command", "command": "node .claude/hooks/instinct-extractor.js" },
+          { "type": "command", "command": "node .claude/hooks/graph-refresh.js" }
         ]
       }
     ],
