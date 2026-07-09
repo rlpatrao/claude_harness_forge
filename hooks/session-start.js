@@ -113,6 +113,37 @@ if (fs.existsSync(archApprovedPath)) {
   } catch (_) {}
 }
 
+// BRD v3.1 §4 (v3.1.11): read core-memory blocks and inject into
+// the SessionStart reminder. Bounded per-block by 4KB (enforced at
+// write); we further cap total core-memory section at 12KB.
+let coreMemoryBlock = null;
+const coreDir = path.join(projectDir, 'state', 'memory', 'core-blocks');
+if (fs.existsSync(coreDir)) {
+  try {
+    const blockFiles = fs.readdirSync(coreDir)
+      .filter(f => f.endsWith('.md') && f !== '.gitkeep')
+      .sort();
+    if (blockFiles.length > 0) {
+      const parts = ['### Core memory (BRD v3.1 §4 v3.1.11)', ''];
+      let total = 0;
+      for (const bf of blockFiles) {
+        const p = path.join(coreDir, bf);
+        let body = '';
+        try { body = fs.readFileSync(p, 'utf8').trim(); } catch (_) { continue; }
+        if (!body) continue;
+        const chunk = `**${bf.replace(/\.md$/, '')}:**\n${body}\n`;
+        if (total + chunk.length > 12 * 1024) {
+          parts.push('_(remaining core blocks truncated for context budget)_');
+          break;
+        }
+        parts.push(chunk);
+        total += chunk.length;
+      }
+      if (parts.length > 2) coreMemoryBlock = parts.join('\n');
+    }
+  } catch (_) {}
+}
+
 const lines = [
   '## BRD v3.0 SessionStart — coding-agent startup (BRD §3.1)',
   '',
@@ -122,6 +153,10 @@ const lines = [
 
 if (archApprovedBlock) {
   lines.push('', archApprovedBlock);
+}
+
+if (coreMemoryBlock) {
+  lines.push('', coreMemoryBlock);
 }
 
 lines.push(
