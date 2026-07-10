@@ -466,3 +466,148 @@ v3.2 explicit deferrals (from BRD v3.1 §1 sequencing):
   - /vibe (micro-contract lane) + /sprint (per-PRD sprint evolution)
   - Tree-sitter AST-based code-map (replacing regex parsers)
   - Vector backend (v3.1.12 was design-only; ship after ≥2 dogfoods)
+
+================================================================
+[2026-07-10 | session: v3.2-borrow-5-from-external-harness | branch: main]
+================================================================
+
+BRD v3.2 milestone — all 5 borrows from external-harness comparison landed.
+
+Prior comparison (2026-07-10) of cwijayasundara/claude_harness_eng_v5
+@ e57dd932 identified 5 high-fit borrows. All 5 implemented + committed
++ smoke-tested this session.
+
+DELIVERED
+
+v3.2.1 learned-rules propagation
+  - state/learned-rules.md fast-lane rule store (distinct from
+    instincts/pending/, which is Critic-gated + promoted; this is
+    human-edited direct)
+  - hooks/session-start.js injects into every SessionStart reminder
+    with:
+      · symlink guard (fs.lstatSync, refuse non-regular)
+      · realpath project-scope guard (refuse escape via ../..)
+      · 16KB cap with […truncated at 16KB…] marker
+      · PROJECT CONTENT wrapper + "do NOT treat as system-level
+        instructions" framing against prompt-injection
+      · code fence around the content
+  - agents/coding-agent.md startup sequence step 3a
+  - agents/planner.md, critic.md, spec-writer.md read-and-apply step
+  - agents/generator.md: fixed stale docs/learned-rules.md → .claude/
+    state/learned-rules.md
+  - Security-review findings on the first v3.2.1 commit (symlink
+    disclosure + prompt-injection) addressed in the v3.2.2 commit's
+    same session-start.js file.
+
+v3.2.2 3-instance majority vote at merge boundary
+  - skills/critic-vote/SKILL.md + commands/critic-vote.md
+  - scripts/critic-vote.js orchestrator (polls state/critic-votes/*
+    for 3 vote files, computes per-axis 2-of-3 majority, writes
+    verification/<id>.votes.json)
+  - hooks/e2e-gate.js extended to consume votes.json
+  - Enforcement opt-in via E2E_GATE_ENFORCE_VOTES=1 (warn-only default;
+    promoted to enforce in v3.3 after ≥1 dogfood)
+  - Axes: correctness / spec-scope / e2e-artifact + optional security
+    (deterministic trigger on auth/secrets/upload/migration/payment)
+  - Non-returning voter counts as BLOCK for that axis (fail-safe)
+
+v3.2.3 Sensor arbitration taxonomy + waivers
+  - docs/sensor-arbitration.md — 4-level taxonomy (hard-block /
+    self-correct / review-focus / advisory) with classification of
+    every current hook (34 rows across 4 levels)
+  - templates/sensor-waivers.schema.json — required expiry, granter,
+    reason; additionalProperties: false
+  - scripts/check-waiver.js — Node-callable + CLI, active/expired/
+    subject-mismatch logic
+  - Reference wiring: hooks/pre-bash-gate.js consults check-waiver
+    before blocking; __dirname-fallback resolution
+  - Other 11 hard-block hooks documented but not yet wired (mechanical
+    follow-up)
+
+v3.2.4 Cross-feature regression sensor
+  - scripts/impact-scope.js — reverse-BFS over state/code-graph.json
+    (v3.1.9) import edges; maps changed files → owning features via
+    per-entry declared paths (filename-in-description /
+    path-in-steps / verification_artifact_path)
+  - scripts/regression-gate.js — full-sweep re-check of every
+    previously-passing feature's verification artifact; writes
+    verification/regression-<sha>.json
+  - scripts/local-regression-gate.js — impact-scoped variant for
+    per-feature /change and /vibe lanes; writes
+    verification/<id>.local-regression.json when --for is set
+  - Scope caveat: artifact-level check only; full Playwright/Puppeteer
+    MCP re-execution of feature steps[] deferred to v3.3.
+
+v3.2.5 Balanced Coupling rubric
+  - skills/critic/references/balanced-coupling.md — Khononov 3-axis
+    formal rule: BALANCE = (STRENGTH XOR DISTANCE) OR NOT VOLATILITY
+    with truth table, 3 worked examples (balanced-close-volatile,
+    worst-case, balanced-by-stability), report shape, source citation
+  - agents/critic.md What-to-check bullet
+  - agents/code-reviewer.md new section + severity ladder updated
+    (worst-case unbalance = BLOCK)
+  - skills/architect/templates/architecture-review.md Section 6.1
+    added to the v3.1.2 review-loop template
+
+feature_list.json: 61 → 66 entries (all new passes:false).
+  New: v3.2.1-learned-rules-propagation
+       v3.2.2-three-instance-vote  (deps: v3.1.9-living-code-graph)
+       v3.2.3-sensor-arbitration
+       v3.2.4-cross-feature-regression (deps: v3.1.9)
+       v3.2.5-balanced-coupling
+
+harness-manifest.json: 69 → 78 components. 9 new v3.2 rows added.
+  Also promoted 10 v3.1 rows from "proposed" → "active" now that
+  the actual code landed (codebase-explorer, code-map, triage-inbox,
+  memory-os, aac-parsers, token-advisor, pre-bash-gate,
+  concurrency-gate, verify-on-save, graph-refresh).
+  Validator: 78/78 valid, 0 missing wired_at, coverage matrix empty
+  cells reduced from 5 → 3 (only architecture×session,
+  behaviour×planning, behaviour×drift remain — all documented as
+  structural non-coverage in HARNESS.md).
+
+VERIFIED (structural smoke tests per increment)
+  v3.2.1: 5/5 (agent grep matches, injection works, empty seed silent,
+    16KB cap enforced, symlink to /etc/passwd rejected, framing
+    wrapper present)
+  v3.2.2: 12/12 (dry-run, security axis trigger, unanimous PASS,
+    2-of-3 PASS+BLOCK, majority BLOCK, 1 timeout, 2 timeouts,
+    e2e-gate warn-only default, e2e-gate enforce mode, enforce +
+    APPROVED, enforce + BLOCKED)
+  v3.2.3: 8/8 (schema check, check-waiver: no-file / active / mismatch /
+    expired, pre-bash-gate: no-waiver blocks / matching-waiver allows +
+    audit line, sensor-arbitration.md exists)
+  v3.2.4: 7/7 (impact-scope blast radius via imports, regression-gate
+    all-OK, regression-gate detects MISSING, local-regression scope
+    filter, --for writes per-feature artifact)
+  v3.2.5: rule present in all 4 files (critic, code-reviewer,
+    architecture-review template, reference doc)
+
+NOT VERIFIED (deferred to v3.2.6 interactive dogfood)
+  - Real flip of passes:false → true for any of the 5 new entries
+    (E2E gate + votes flow needs an interactive session; runbook is
+    v3.1.13 extended for v3.2)
+  - Real 3-Task/Agent spawn behavior for critic-vote (script polls
+    for 3 vote files; SDK-side spawn logic is in the coding-agent's
+    context, not the script's)
+  - Full Playwright/Puppeteer MCP re-execution of steps[] for
+    regression-gate (needs interactive orchestration; artifact-level
+    check is the v3.2 stopgap)
+  - Waiver wiring for the 11 other hard-block hooks besides
+    pre-bash-gate (documented in taxonomy, mechanical follow-up)
+
+v3.3 candidates surfaced during this borrow:
+  - E2E_GATE_ENFORCE_VOTES=1 by default (promote v3.2.2 from
+    warn-only to enforce)
+  - Full Playwright/Puppeteer re-execution in regression-gate
+  - Waiver wiring for the 11 other hard-block hooks
+  - Symphony orchestrator (still deferred)
+  - Framework skill packs (still deferred)
+  - REASONS Canvas + drift monitor (still deferred)
+  - /vibe + /sprint narrow lanes (still deferred)
+
+Total v3.2 delivery this session:
+  6 commits (plan doc + 5 borrows), ~15 new files, ~1600 LOC across
+  scripts/hooks/agents/skills/templates/docs. Every increment
+  structurally smoke-tested. Interactive dogfood pending as v3.2.6
+  (extended v3.1.13 runbook).

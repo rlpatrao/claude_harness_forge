@@ -984,5 +984,89 @@
       "v3.1.11-memory-os-fs"
     ],
     "verification_artifact_path": "verification/v3.1.13-salary-dashboard-dogfood.json"
+  },
+  {
+    "id": "v3.2.1-learned-rules-propagation",
+    "category": "hook",
+    "description": "state/learned-rules.md is injected into every SessionStart reminder and read verbatim by coding-agent/planner/critic/spec-writer/generator. Fast-lane rule store distinct from instincts/ (which is Critic-gated). Security: symlink guard + realpath project-scope check + PROJECT CONTENT framing wrapper against prompt injection.",
+    "steps": [
+      "Extend state/learned-rules.md seed with v3.2.1 header + Rules section",
+      "hooks/session-start.js: read learned-rules.md, wrap with PROJECT CONTENT delimiter, 16KB cap, symlink+realpath guards",
+      "agents/coding-agent.md: step 3a added to startup sequence",
+      "agents/planner.md, critic.md, spec-writer.md: read-and-apply step added",
+      "agents/generator.md: fixed stale docs/learned-rules.md ref \u2192 .claude/state/learned-rules.md",
+      "Verify: injection works with 3 seeded rules, empty seed produces no block, symlink to /etc/passwd rejected, prompt-injection framing wrapper present"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.2 \u00a73.1",
+    "depends_on": [],
+    "verification_artifact_path": "verification/v3.2.1-learned-rules-propagation.json"
+  },
+  {
+    "id": "v3.2.2-three-instance-vote",
+    "category": "hook",
+    "description": "Bounded 3-instance majority-vote re-verification at merge boundary. New /critic-vote command + orchestrator script + hooks/e2e-gate.js consumption. Fail-safe: non-returning voter counts as BLOCK. Enforcement opt-in via E2E_GATE_ENFORCE_VOTES=1 (warn-only default for v3.2 rollout).",
+    "steps": [
+      "Author skills/critic-vote/SKILL.md + commands/critic-vote.md",
+      "Author scripts/critic-vote.js (orchestrator polls state/critic-votes/*.json, computes per-axis 2-of-3 majority, writes verification/<id>.votes.json)",
+      "Extend hooks/e2e-gate.js to consume votes.json with E2E_GATE_ENFORCE_VOTES gate",
+      "Axes: correctness / spec-scope / e2e-artifact + optional security (deterministic trigger on auth/secrets/upload/migration/payment keywords)",
+      "Verify: 3-way unanimous PASS \u2192 APPROVED, 2-of-3 BLOCK on any axis \u2192 BLOCKED, voter timeout counts as BLOCK, e2e-gate warns default, blocks under enforcement"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.2 \u00a73.2",
+    "depends_on": [
+      "v3.1.9-living-code-graph"
+    ],
+    "verification_artifact_path": "verification/v3.2.2-three-instance-vote.json"
+  },
+  {
+    "id": "v3.2.3-sensor-arbitration",
+    "category": "doc",
+    "description": "4-level sensor arbitration taxonomy (hard-block / self-correct / review-focus / advisory) + waiver JSON schema + check-waiver.js helper. Reference wiring: hooks/pre-bash-gate.js consults check-waiver before blocking. Other 11 hard-block hooks documented, waiver wiring is mechanical follow-up.",
+    "steps": [
+      "Author docs/sensor-arbitration.md with taxonomy + classification of all 27+ hooks",
+      "Author templates/sensor-waivers.schema.json (JSON schema, required fields + expiry mandatory)",
+      "Author scripts/check-waiver.js (Node-callable + CLI)",
+      "Wire hooks/pre-bash-gate.js to consult check-waiver with __dirname-fallback resolution",
+      "Verify: active waiver honored with audit line, expired waiver rejected, subject mismatch rejected"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.2 \u00a73.3",
+    "depends_on": [],
+    "verification_artifact_path": "verification/v3.2.3-sensor-arbitration.json"
+  },
+  {
+    "id": "v3.2.4-cross-feature-regression",
+    "category": "script",
+    "description": "3 scripts: impact-scope.js (blast radius via code-graph reverse-BFS + feature-owning-file mapping), regression-gate.js (full-sweep re-check of every previously-passing feature's verification artifact), local-regression-gate.js (impact-scoped variant). Closes G15/G16 gap our BRD \u00a73.8 E2E gate leaves open.",
+    "steps": [
+      "Author scripts/impact-scope.js (uses state/code-graph.json import edges, --files/--staged/--files modes)",
+      "Author scripts/regression-gate.js (writes verification/regression-<sha>.json)",
+      "Author scripts/local-regression-gate.js (invokes impact-scope, writes <id>.local-regression.json)",
+      "Verify: helper.js edit \u2192 helper+main impacted, unrelated not impacted; regression-gate detects deleted artifact; local variant writes per-feature artifact"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.2 \u00a73.4",
+    "depends_on": [
+      "v3.1.9-living-code-graph"
+    ],
+    "verification_artifact_path": "verification/v3.2.4-cross-feature-regression.json"
+  },
+  {
+    "id": "v3.2.5-balanced-coupling",
+    "category": "doc",
+    "description": "Khononov 3-axis Balanced Coupling formal rule injected into critic + code-reviewer + architecture-review template. Reference doc at skills/critic/references/balanced-coupling.md with truth table, 3 worked examples, report shape. Replaces prose-level architectural judgment with a published rule.",
+    "steps": [
+      "Author skills/critic/references/balanced-coupling.md",
+      "agents/critic.md: What-to-check adds Balanced Coupling bullet",
+      "agents/code-reviewer.md: new section + severity ladder updated (worst-case = BLOCK)",
+      "skills/architect/templates/architecture-review.md: Section 6.1 added",
+      "Verify: rule present in all 4 files"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.2 \u00a73.5",
+    "depends_on": [],
+    "verification_artifact_path": "verification/v3.2.5-balanced-coupling.json"
   }
 ]
