@@ -142,6 +142,39 @@ for (const entry of flipped) {
     block(entry.id, artifactRel,
           `artifact at ${artifactRel} is empty — expected a screenshot, DOM assertion, or JSON proof-of-state`);
   }
+
+  // BRD v3.2.2: check for 3-instance majority vote result.
+  // Enforcement is opt-in via E2E_GATE_ENFORCE_VOTES=1 during v3.2
+  // rollout — a warn-only default lets the mechanism land without
+  // breaking existing scaffolded projects. Promote to enforce in v3.3
+  // after ≥1 dogfood confirms the vote flow.
+  const votesRel = artifactRel.replace(/\.(png|json)$/, '.votes.json');
+  const votesAbs = path.resolve(projectDir, votesRel);
+  const enforce = process.env.E2E_GATE_ENFORCE_VOTES === '1';
+
+  if (!fs.existsSync(votesAbs)) {
+    if (enforce) {
+      block(entry.id, votesRel,
+            `3-instance majority vote (BRD v3.2.2) required — no ${votesRel} found. Run: node .claude/scripts/critic-vote.js ${entry.id}`);
+    } else {
+      process.stderr.write(`WARN (e2e-gate v3.2.2): no ${votesRel} — will be required once E2E_GATE_ENFORCE_VOTES=1 is set (promotion planned for v3.3).\n`);
+    }
+  } else {
+    let votes;
+    try { votes = JSON.parse(fs.readFileSync(votesAbs, 'utf8')); }
+    catch (e) {
+      if (enforce) block(entry.id, votesRel, `votes JSON is malformed: ${e.message}`);
+      else { process.stderr.write(`WARN (e2e-gate v3.2.2): ${votesRel} is malformed JSON.\n`); continue; }
+    }
+    if (votes && votes.verdict !== 'APPROVED') {
+      if (enforce) {
+        block(entry.id, votesRel,
+              `3-instance majority vote returned "${votes.verdict}" (not APPROVED). See per-axis breakdown in ${votesRel}`);
+      } else {
+        process.stderr.write(`WARN (e2e-gate v3.2.2): vote verdict is "${votes && votes.verdict}" (not APPROVED) — would BLOCK when E2E_GATE_ENFORCE_VOTES=1.\n`);
+      }
+    }
+  }
 }
 
 process.exit(0);
