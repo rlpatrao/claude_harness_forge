@@ -1068,5 +1068,174 @@
     "source_section": "BRD v3.2 \u00a73.5",
     "depends_on": [],
     "verification_artifact_path": "verification/v3.2.5-balanced-coupling.json"
+  },
+  {
+    "id": "v3.3.0-rule-gate",
+    "category": "hook",
+    "description": "TRACE compiled-rule enforcement (arXiv 2606.13174). hooks/rule-gate.js (PreToolUse Edit|Write|Bash) evaluates pattern-kind compiled rules from state/compiled-rules.json against pending content; blocks on a confirmed-severity match, warns on tentative. Fail-open on malformed rules. Closes the enforcement gap the advisory learned-rules.md lane (v3.2.1) leaves open.",
+    "steps": [
+      "Author state/compiled-rules.json seed (empty, monotonic, versioned schema)",
+      "Author hooks/lib/log-rejection.js (defensive appendRejection to state/rejections.jsonl)",
+      "Author hooks/rule-gate.js (pattern match on Edit new_string / Write content / Bash command; block vs warn by severity; skip malformed rules; exit 0 on internal error)",
+      "Wire rule-gate.js into settings.json PreToolUse Edit|Write and PreToolUse Bash",
+      "Verify with a hand-authored AWS-key block rule: violating Write blocked with rule reason, benign Write passes, malformed compiled-rules.json fails open"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.3 (TRACE, plan brd/v3.3-trace-compiled-rules-plan.md)",
+    "depends_on": [
+      "v3.2.1-learned-rules-propagation"
+    ],
+    "verification_artifact_path": "verification/v3.3.0-rule-gate.json"
+  },
+  {
+    "id": "v3.3.1-correction-detector",
+    "category": "hook",
+    "description": "TRACE acquisition half. hooks/correction-detector.js (Stop, after instinct-extractor) mines state/rejections.jsonl for repeated Critic/gate rejections (source A: Critic BLOCK + failed ratchet gates), groups by normalized reason, and writes rule candidates (with a synthesized pattern check, or semantic fallback) to state/rule-candidates/. Never writes to compiled-rules.json or skills/. Adapter-shaped so a human-chat source (option C) is additive later.",
+    "steps": [
+      "Author hooks/correction-detector.js (group rejections seen >=2 times; synthesize pattern from excerpt or mark semantic; dedup via state/.rule-candidate-hashes.txt)",
+      "Wire log-rejection producers: agents/critic.md on BLOCK, hooks/e2e-gate.js, hooks/feature-edit-guard.js, security-review + code-reviewer gates",
+      "Wire correction-detector.js into settings.json Stop chain after instinct-extractor.js",
+      "Verify: a session with a repeated security-review BLOCK yields a candidate with a synthesized pattern check in state/rule-candidates/"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.3 (TRACE, plan brd/v3.3-trace-compiled-rules-plan.md)",
+    "depends_on": [
+      "v3.3.0-rule-gate"
+    ],
+    "verification_artifact_path": "verification/v3.3.1-correction-detector.json"
+  },
+  {
+    "id": "v3.3.2-rules-command",
+    "category": "command",
+    "description": "TRACE curation lane. commands/rules.md + scripts/rule-compile.js promote candidate -> tentative(warn) -> confirmed(block) mirroring /evolve, Critic-validated. No auto-promotion past candidate without Critic; tentative->confirmed only via recurrence (>=2 sessions) with 0 false-positive overrides; user reviews the staged compiled-rules.json diff before any rule reaches block severity.",
+    "steps": [
+      "Author scripts/rule-compile.js (status / promote-candidates / promote-tentative / compile / prune-candidates)",
+      "Author commands/rules.md documenting the lifecycle + hard rules (copy /evolve guarantees)",
+      "Wire Critic validation per candidate (real pattern, no obvious false positives on sample matches)",
+      "Implement false-positive override tracking: a rule with >0 overrides cannot auto-promote to block",
+      "Verify: candidate -> tentative(warn) -> confirmed(block) with recurrence; /rules compile stages a reviewable diff; --force bypass gated"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.3 (TRACE, plan brd/v3.3-trace-compiled-rules-plan.md)",
+    "depends_on": [
+      "v3.3.1-correction-detector"
+    ],
+    "verification_artifact_path": "verification/v3.3.2-rules-command.json"
+  },
+  {
+    "id": "v3.3.3-compiled-rules-skill",
+    "category": "skill",
+    "description": "skills/compiled-rules/SKILL.md reference skill + semantic-rule enforcement path. Documents the two-store model (advisory learned-rules.md vs enforced compiled-rules.json), the pattern-vs-semantic split, hand-authoring, and the false-positive override contract. Extends agents/critic.md to read semantic-kind compiled rules and apply each as a hard filter (same treatment it gives learned-rules.md).",
+    "steps": [
+      "Author skills/compiled-rules/SKILL.md (frontmatter name/description/when_to_use/brd_ref; body mirrors skills/instinct-extraction/SKILL.md shape)",
+      "Extend agents/critic.md Read-Context step to also read check.kind==semantic rules from compiled-rules.json",
+      "Update CLAUDE.md component table + hook/skill/command counts; add brd/v3.3.md section",
+      "Verify: a semantic compiled rule is applied by the Critic as a hard filter"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.3 (TRACE, plan brd/v3.3-trace-compiled-rules-plan.md)",
+    "depends_on": [
+      "v3.3.2-rules-command"
+    ],
+    "verification_artifact_path": "verification/v3.3.3-compiled-rules-skill.json"
+  },
+  {
+    "id": "v3.3-compiled-rules-schema-and-log",
+    "category": "contract",
+    "description": "state/compiled-rules.json seed + state/rule-candidates/ dir + hooks/lib/log-rejection.js shared producer helper. Defensive appendRejection that never throws; ts-stamped records into state/rejections.jsonl for correction-detector to mine.",
+    "steps": [
+      "Seed state/compiled-rules.json with version 3.3.0 and empty rules[]",
+      "Create state/rule-candidates/.gitkeep",
+      "Author hooks/lib/log-rejection.js with appendRejection + findProjectRoot",
+      "Smoke: appendRejection writes, defensive on bad input, findProjectRoot walks up"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.3 \u00a73.1 \u00a73.2",
+    "depends_on": [],
+    "verification_artifact_path": "verification/v3.3-compiled-rules-schema-and-log.json"
+  },
+  {
+    "id": "v3.3-rule-gate-enforcement",
+    "category": "hook",
+    "description": "hooks/rule-gate.js PreToolUse hook evaluates pattern rules (regex / substring / forbid-substring) against Edit/Write/Bash content and hard-blocks when severity=block, warns when severity=warn. RULE_GATE_OVERRIDE=<rule_id> escape hatch downgrades block and increments false_positive_overrides (locks the rule out of auto-promotion). Fail-open on malformed rules.",
+    "steps": [
+      "Author hooks/rule-gate.js with pattern evaluation + glob matching + override handler",
+      "Wire into settings.json PreToolUse Edit|Write AND Bash matchers",
+      "Smoke: 7 scenarios (block on regex, benign pass, path filter, tentative warn, override + FP counter, Bash rule, malformed rules fail-open)"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.3 \u00a73.5",
+    "depends_on": [
+      "v3.3-compiled-rules-schema-and-log"
+    ],
+    "verification_artifact_path": "verification/v3.3-rule-gate-enforcement.json"
+  },
+  {
+    "id": "v3.3-correction-detector",
+    "category": "hook",
+    "description": "hooks/correction-detector.js Stop-event hook. Reads state/rejections.jsonl, groups by normalized reason+source, emits candidate JSON to state/rule-candidates/ for groups with >=2 recurrences. Synthesizes pattern (regex library + LCS + known-pattern detection) or falls back to semantic. Dedup via state/.rule-candidate-hashes.txt. Defensive: exit 0 on any error.",
+    "steps": [
+      "Author hooks/correction-detector.js",
+      "Wire into settings.json Stop chain (after instinct-extractor)",
+      "Instrument producers: hooks/e2e-gate.js + hooks/feature-edit-guard.js call appendRejection on BLOCK",
+      "Add instructions to agents/critic.md + agents/security-reviewer.md + agents/code-reviewer.md to call appendRejection on BLOCK findings",
+      "Smoke: 5 scenarios (2 recurrences \u2192 candidate with regex, single \u2192 no candidate, dedup, semantic fallback, producer wiring)"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.3 \u00a73.3 \u00a73.7",
+    "depends_on": [
+      "v3.3-compiled-rules-schema-and-log"
+    ],
+    "verification_artifact_path": "verification/v3.3-correction-detector.json"
+  },
+  {
+    "id": "v3.3-rules-curation-command",
+    "category": "command",
+    "description": "scripts/rule-compile.js + commands/rules.md \u2014 /rules {status | promote-candidates | promote-tentative | compile | prune-candidates | set-critic-verdict}. Lifecycle: candidate \u2192 tentative(warn) requires Critic pass; tentative \u2192 confirmed(block) requires sessions_seen>=2 AND false_positive_overrides==0. --force bypass for both gates. compile stages diff; human commits.",
+    "steps": [
+      "Author scripts/rule-compile.js with subcommand dispatch",
+      "Author commands/rules.md wrapping the script",
+      "Smoke: 9 scenarios (status, promote without Critic \u2192 0, set-critic-verdict + promote \u2192 1 tentative, block verdict \u2192 no promote, promote-tentative + FP guard, --force override, prune >30d, compile wrapper)"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.3 \u00a73.4",
+    "depends_on": [
+      "v3.3-correction-detector"
+    ],
+    "verification_artifact_path": "verification/v3.3-rules-curation-command.json"
+  },
+  {
+    "id": "v3.3-semantic-path-and-session-injection",
+    "category": "hook",
+    "description": "agents/critic.md consumes semantic compiled rules (check.kind==='semantic'), applying each as a hard filter and BLOCK/needs-revision on violation. hooks/session-start.js surfaces active tentative + confirmed compiled rules in the SessionStart reminder (pattern rules annotated 'pattern/rule-gate', semantic 'semantic/Critic') so non-Critic agents know what to avoid pre-iteration.",
+    "steps": [
+      "Extend agents/critic.md What-you-receive with semantic-rule reading step",
+      "Extend hooks/session-start.js to inject compiled-rules block after learned-rules",
+      "Smoke: empty rules \u2192 no block, mixed pattern+semantic \u2192 both cited + escape-hatch documented, coexists with learned-rules"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.3 \u00a73.7",
+    "depends_on": [
+      "v3.3-rule-gate-enforcement"
+    ],
+    "verification_artifact_path": "verification/v3.3-semantic-path-and-session-injection.json"
+  },
+  {
+    "id": "v3.3-skill-and-registry-docs",
+    "category": "doc",
+    "description": "skills/compiled-rules/SKILL.md \u2014 two-store model, pattern vs semantic, lifecycle, hand-authoring, escape hatch, gate checklist. CLAUDE.md BRD v3.0 additions table gains a TRACE row. harness-manifest.json gains 8 new rows for the v3.3 components. feature_list.json entries appended.",
+    "steps": [
+      "Author skills/compiled-rules/SKILL.md",
+      "Update CLAUDE.md BRD v3.0 additions table",
+      "Append 6 v3.3 rows to feature_list.json",
+      "Append 8 v3.3 rows to harness-manifest.json + validate"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.3 \u00a77",
+    "depends_on": [
+      "v3.3-rules-curation-command",
+      "v3.3-semantic-path-and-session-injection"
+    ],
+    "verification_artifact_path": "verification/v3.3-skill-and-registry-docs.json"
   }
 ]

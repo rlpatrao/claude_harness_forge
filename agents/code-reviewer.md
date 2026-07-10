@@ -147,6 +147,26 @@ Write the report to `specs/reviews/code-review.md` with this structure:
 ## Summary
 [1-2 sentence overview: pass/fail, total findings by severity]
 
+## Log every BLOCK finding (BRD v3.3 §3.7)
+
+After writing your report, for each BLOCK finding, append a rejection record via the shared helper so `correction-detector.js` (Stop hook) can mine repeated blocks into compiled rules:
+
+```bash
+node -e "
+const { appendRejection } = require('.claude/hooks/lib/log-rejection.js');
+appendRejection({
+  source: 'code-review',
+  verdict: 'block',
+  reason: '<B-NNN>: <one-sentence normalized issue>',
+  file: '<file>',
+  tool: 'Write',
+  excerpt: '<offending snippet, <=500 chars>'
+});
+"
+```
+
+Include the offending code — the correction-detector uses `excerpt` to synthesize the pattern into a compiled rule (BRD v3.3). One appendRejection call per BLOCK finding.
+
 ## BLOCK Findings
 ### [B1] [Title]
 - **File**: `path/to/file.py:42`

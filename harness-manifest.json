@@ -1,7 +1,7 @@
 {
   "$schema": "./scripts/harness-manifest-schema.json",
-  "version": "0.2.0",
-  "brd_ref": "v3.2 \u00a73 (v3.2.1-.5)",
+  "version": "0.3.0",
+  "brd_ref": "v3.3 (TRACE)",
   "generated_at_note": "Hand-authored 2026-06-11; regenerate whenever a new agent/hook/skill/command lands. Run scripts/validate-harness-manifest.js after edits.",
   "components": [
     {
@@ -939,6 +939,102 @@
       "wired_at": "skills/critic/references/balanced-coupling.md",
       "status": "active",
       "brd_ref": "v3.2 \u00a73.5"
+    },
+    {
+      "id": "compiled-rules-contract",
+      "kind": "contract",
+      "name": "compiled-rules.json store (TRACE)",
+      "axis": "behaviour",
+      "cadence": "commit",
+      "type": "computational",
+      "scope": "both",
+      "wired_at": "state/compiled-rules.json",
+      "status": "active",
+      "brd_ref": "v3.3"
+    },
+    {
+      "id": "log-rejection",
+      "kind": "script",
+      "name": "log-rejection.js shared producer helper",
+      "axis": "traceability",
+      "cadence": "commit",
+      "type": "computational",
+      "scope": "scaffolded-project",
+      "wired_at": "hooks/lib/log-rejection.js",
+      "status": "active",
+      "brd_ref": "v3.3 \u00a73.7"
+    },
+    {
+      "id": "rule-gate",
+      "kind": "hook",
+      "name": "rule-gate.js PreToolUse pattern-block",
+      "axis": "behaviour",
+      "cadence": "commit",
+      "type": "computational",
+      "scope": "scaffolded-project",
+      "wired_at": "hooks/rule-gate.js",
+      "status": "active",
+      "brd_ref": "v3.3 \u00a73.5"
+    },
+    {
+      "id": "correction-detector",
+      "kind": "hook",
+      "name": "correction-detector.js Stop-event candidate miner",
+      "axis": "traceability",
+      "cadence": "drift",
+      "type": "hybrid",
+      "scope": "scaffolded-project",
+      "wired_at": "hooks/correction-detector.js",
+      "status": "active",
+      "brd_ref": "v3.3 \u00a73.3"
+    },
+    {
+      "id": "rule-compile",
+      "kind": "script",
+      "name": "rule-compile.js /rules curation entry point",
+      "axis": "traceability",
+      "cadence": "drift",
+      "type": "computational",
+      "scope": "both",
+      "wired_at": "scripts/rule-compile.js",
+      "status": "active",
+      "brd_ref": "v3.3 \u00a73.4"
+    },
+    {
+      "id": "rules-cmd",
+      "kind": "command",
+      "name": "/rules \u2014 curate compiled rules",
+      "axis": "traceability",
+      "cadence": "drift",
+      "type": "computational",
+      "scope": "both",
+      "wired_at": "commands/rules.md",
+      "status": "active",
+      "brd_ref": "v3.3 \u00a73.4"
+    },
+    {
+      "id": "compiled-rules-skill",
+      "kind": "skill",
+      "name": "compiled-rules \u2014 TRACE model documentation",
+      "axis": "traceability",
+      "cadence": "planning",
+      "type": "computational",
+      "scope": "both",
+      "wired_at": "skills/compiled-rules/SKILL.md",
+      "status": "active",
+      "brd_ref": "v3.3 \u00a73.6"
+    },
+    {
+      "id": "rejections-log",
+      "kind": "contract",
+      "name": "state/rejections.jsonl \u2014 normalized correction stream",
+      "axis": "traceability",
+      "cadence": "drift",
+      "type": "computational",
+      "scope": "scaffolded-project",
+      "wired_at": "hooks/lib/log-rejection.js",
+      "status": "active",
+      "brd_ref": "v3.3 \u00a73.2"
     }
   ],
   "gaps": [

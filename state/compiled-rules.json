@@ -1,0 +1,5 @@
+{
+  "version": "3.3.0",
+  "comment": "Monotonic. Rules are never deleted; superseded rules get status:'retired'. Produced by /rules from state/rule-candidates/. Consumed by hooks/rule-gate.js (pattern rules) and agents/critic.md (semantic rules). See brd/v3.3-trace-compiled-rules-plan.md and skills/compiled-rules/SKILL.md.",
+  "rules": []
+}

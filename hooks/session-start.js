@@ -170,6 +170,48 @@ if (fs.existsSync(learnedRulesPath)) {
   }
 }
 
+// BRD v3.3: surface tentative + confirmed compiled rules in the
+// SessionStart reminder so agents know what's active. Pattern rules
+// are enforced by hooks/rule-gate.js PreToolUse — the injection is
+// informational. Semantic rules are Critic-enforced only (see
+// agents/critic.md What-you-receive step) — the injection also tells
+// non-Critic agents what to avoid so they don't waste iterations.
+let compiledRulesBlock = null;
+const compiledRulesPath = path.join(projectDir, 'state', 'compiled-rules.json');
+if (fs.existsSync(compiledRulesPath)) {
+  try {
+    const doc = JSON.parse(fs.readFileSync(compiledRulesPath, 'utf8'));
+    if (doc && Array.isArray(doc.rules) && doc.rules.length > 0) {
+      const active = doc.rules.filter(r => r && (r.status === 'confirmed' || r.status === 'tentative'));
+      if (active.length > 0) {
+        const lines = ['### Compiled rules (BRD v3.3) — active', ''];
+        const confirmed = active.filter(r => r.status === 'confirmed');
+        const tentative = active.filter(r => r.status === 'tentative');
+        if (confirmed.length > 0) {
+          lines.push(`**Confirmed (block on match, enforced pre-tool):** ${confirmed.length}`);
+          for (const r of confirmed.slice(0, 20)) {
+            const kind = r.check && r.check.kind === 'semantic' ? 'semantic/Critic' : 'pattern/rule-gate';
+            lines.push(`- \`${r.rule_id}\` [${kind}] ${r.statement}`);
+          }
+          if (confirmed.length > 20) lines.push(`- _(+${confirmed.length - 20} more)_`);
+          lines.push('');
+        }
+        if (tentative.length > 0) {
+          lines.push(`**Tentative (warn on match; block auto-promotion if you override):** ${tentative.length}`);
+          for (const r of tentative.slice(0, 10)) {
+            const kind = r.check && r.check.kind === 'semantic' ? 'semantic/Critic' : 'pattern/rule-gate';
+            lines.push(`- \`${r.rule_id}\` [${kind}] ${r.statement}`);
+          }
+          if (tentative.length > 10) lines.push(`- _(+${tentative.length - 10} more)_`);
+          lines.push('');
+        }
+        lines.push('_Escape hatch: `RULE_GATE_OVERRIDE=<rule_id>` downgrades a block to audit + increments false_positive_overrides on the rule (blocking auto-promotion). Only use if you\'re confident it\'s a false positive._');
+        compiledRulesBlock = lines.join('\n');
+      }
+    }
+  } catch (_) { /* malformed compiled-rules.json — silent */ }
+}
+
 // BRD v3.1 §4 (v3.1.11): read core-memory blocks and inject into
 // the SessionStart reminder. Bounded per-block by 4KB (enforced at
 // write); we further cap total core-memory section at 12KB.
@@ -214,6 +256,10 @@ if (archApprovedBlock) {
 
 if (learnedRulesBlock) {
   lines.push('', learnedRulesBlock);
+}
+
+if (compiledRulesBlock) {
+  lines.push('', compiledRulesBlock);
 }
 
 if (coreMemoryBlock) {

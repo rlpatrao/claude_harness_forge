@@ -20,9 +20,30 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
+// BRD v3.3 §3.7: log rejections into state/rejections.jsonl so
+// correction-detector.js (Stop hook) can mine recurring corrections
+// into rule candidates. Defensive require — hook never crashes.
+let logRejection = null;
+try {
+  logRejection = require('./lib/log-rejection.js');
+} catch (_) {
+  try { logRejection = require(path.join(__dirname, 'lib', 'log-rejection.js')); }
+  catch (_) { logRejection = null; }
+}
+
 function block(featureId, artifactPath, reason) {
   process.stderr.write(`BLOCKED: passes flip on "${featureId}" rejected — ${reason}\n`);
   process.stderr.write(`Per BRD §3.8: a Playwright or Puppeteer MCP session must execute the feature's steps[] and commit the verification artifact to ${artifactPath} before the flip.\n`);
+  if (logRejection && logRejection.appendRejection) {
+    logRejection.appendRejection({
+      source: 'e2e-gate',
+      verdict: 'block',
+      reason,
+      file: artifactPath,
+      tool: 'Edit',
+      session_id: (typeof input !== 'undefined' && input && input.session_id) || null,
+    });
+  }
   process.exit(2);
 }
 

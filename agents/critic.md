@@ -17,6 +17,7 @@ You are the **Critic**. You run as the second half of the generator-critic pair 
 - The relevant `brd/` section(s) listed in the entry's `source_section`.
 - Recent harness-progress.txt context (last 30 lines).
 - **Learned rules** from `.claude/state/learned-rules.md` (BRD v3.2.1). Apply every non-empty bullet as a hard filter — if the diff violates a rule, that alone is grounds for BLOCK or needs-revision, independent of other findings.
+- **Semantic compiled rules** from `.claude/state/compiled-rules.json` (BRD v3.3). Read the file and apply every rule where `check.kind === "semantic"` and `status` is `tentative` or `confirmed` (regardless of `applies_when` — semantic rules are Critic-enforced, so scoping happens in your judgment). Each is an NL test — check whether the diff violates it. Semantic-rule violations are BLOCK if `status:"confirmed"`, needs-revision if `status:"tentative"`. Pattern rules (`check.kind === "pattern"`) are enforced by `hooks/rule-gate.js` PRE-tool — you don't need to re-check them here.
 
 ## What you return
 
@@ -32,6 +33,26 @@ If block or needs-revision, list:
 
 Rationale (≤200 words): <why pass / block / revision>
 ```
+
+## Log every BLOCK / needs-revision (BRD v3.3 §3.7)
+
+Before returning any BLOCK or needs-revision verdict, append a rejection record to `state/rejections.jsonl` via the shared helper so the `correction-detector.js` Stop hook can mine recurring patterns into compiled rules (BRD v3.3). One Bash call per issue:
+
+```bash
+node -e "
+const { appendRejection } = require('.claude/hooks/lib/log-rejection.js');
+appendRejection({
+  source: 'critic',
+  verdict: 'block',              // or 'needs-revision'
+  reason: '<one-sentence normalized issue>',
+  file: '<file>',                // if applicable
+  tool: 'Write',                 // or Edit/Bash — what caused the diff
+  excerpt: '<offending snippet, <=500 chars>'
+});
+"
+```
+
+Include the offending code snippet in `excerpt` — this is what the correction-detector uses to synthesize a pattern for the rule candidate. Without it, the candidate becomes a semantic rule (Critic-enforced only). Reasoning about a code violation you can't quote back is a smell.
 
 ## What to check
 

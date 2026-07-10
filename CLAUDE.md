@@ -101,6 +101,7 @@ These are *not* additional ratchet gates; they are runtime infrastructure that t
 | Instinct extraction | §4.4 | `hooks/instinct-extractor.js` (Stop event, after Ralph Loop) → `instincts/pending/` → `/evolve` promotes via Critic. |
 | Tree sessions | §4.5 | `skills/tree-sessions/`, `commands/{tree,fork,branch,export}.md`, `sessions/<id>.json`. |
 | YAML recipes | §6.5 | `recipes/<name>.yaml` deterministic workflows; `/recipe-run`. |
+| **TRACE compiled rules** | **v3.3** | `state/compiled-rules.json` + `hooks/rule-gate.js` (PreToolUse pattern-block) + `hooks/correction-detector.js` (Stop, mines from `state/rejections.jsonl`) + `hooks/lib/log-rejection.js` (producer helper) + `scripts/rule-compile.js` + `/rules` + `skills/compiled-rules/SKILL.md`. Two-store model: human fast-lane (`state/learned-rules.md`) advisory; compiled rules with pattern check hard-block pre-tool, semantic check Critic-enforced. Lifecycle: candidate → tentative(warn) → confirmed(block). |
 
 ## Key Design Decisions
 

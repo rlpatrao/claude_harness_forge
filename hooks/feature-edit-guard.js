@@ -14,9 +14,29 @@
 const fs = require('fs');
 const path = require('path');
 
+// BRD v3.3 §3.7: log rejections into state/rejections.jsonl so
+// correction-detector.js (Stop hook) can mine recurring corrections
+// into rule candidates. Defensive require — hook never crashes.
+let logRejection = null;
+try { logRejection = require('./lib/log-rejection.js'); }
+catch (_) {
+  try { logRejection = require(path.join(__dirname, 'lib', 'log-rejection.js')); }
+  catch (_) { logRejection = null; }
+}
+
 function block(reason) {
   process.stderr.write(`BLOCKED: feature_list.json edit rejected — ${reason}\n`);
   process.stderr.write('Per BRD §3.2: entries are append-only via /feature-add; only the passes field may flip false→true after E2E verification.\n');
+  if (logRejection && logRejection.appendRejection) {
+    logRejection.appendRejection({
+      source: 'feature-edit-guard',
+      verdict: 'block',
+      reason,
+      file: 'feature_list.json',
+      tool: (typeof input !== 'undefined' && input && input.tool_name) || null,
+      session_id: (typeof input !== 'undefined' && input && input.session_id) || null,
+    });
+  }
   process.exit(2);
 }
 
@@ -100,8 +120,12 @@ if (toolName === 'Write') {
   if (!Array.isArray(newList)) block('top-level must be a JSON array');
 }
 
-if (oldList.length !== newList.length) {
-  block(`entry count changed (${oldList.length} → ${newList.length}); entries are append-only via /feature-add`);
+// Entries are append-only via /feature-add: the list may stay the same length
+// (a passes flip) or grow by exactly one (an append). Any shrink, or growth by
+// more than one, is rejected. The appended entry is validated below.
+const grew = newList.length - oldList.length;
+if (grew !== 0 && grew !== 1) {
+  block(`entry count changed by ${grew} (${oldList.length} → ${newList.length}); appends are one entry at a time via /feature-add, and deletions are never allowed`);
 }
 
 const allowedKeys = new Set([
@@ -140,6 +164,22 @@ for (let i = 0; i < oldList.length; i++) {
 
 if (flippedCount > 1) {
   block(`${flippedCount} entries flipped in a single edit; only one passes flip per edit allowed (BRD §3.1 step 7: one feature per session)`);
+}
+
+// Validate an appended entry (grew === 1). The appended entry is the last
+// element of newList and was not covered by the prefix loop above.
+if (grew === 1) {
+  if (flippedCount > 0) {
+    block('an append edit must not also flip a passes field; do the append and the flip in separate edits');
+  }
+  const added = newList[newList.length - 1];
+  if (!added || typeof added !== 'object') block('appended entry must be an object');
+  if (typeof added.id !== 'string' || added.id.length === 0) block('appended entry must have a non-empty string id');
+  if (oldList.some(e => e && e.id === added.id)) block(`appended entry id "${added.id}" duplicates an existing entry`);
+  if (added.passes !== false) block(`appended entry "${added.id}" must be seeded passes:false (got ${JSON.stringify(added.passes)})`);
+  for (const key of Object.keys(added)) {
+    if (!allowedKeys.has(key)) block(`appended entry "${added.id}" has unknown field "${key}"`);
+  }
 }
 
 process.exit(0);

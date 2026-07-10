@@ -99,6 +99,26 @@ Write the full report to `specs/reviews/security-review.md`:
 - INFO findings: N
 - Overall verdict: BLOCK | WARN | CLEAR
 
+## Log every BLOCK finding (BRD v3.3 §3.7)
+
+After writing your report, for each BLOCK finding, append a rejection record via the shared helper so `correction-detector.js` (Stop hook) can mine repeated blocks into compiled security rules:
+
+```bash
+node -e "
+const { appendRejection } = require('.claude/hooks/lib/log-rejection.js');
+appendRejection({
+  source: 'security-review',
+  verdict: 'block',
+  reason: '<VULN-NNN>: <one-sentence normalized issue>',
+  file: '<file>',
+  tool: 'Write',
+  excerpt: '<offending snippet, <=500 chars>'
+});
+"
+```
+
+Include the offending code — the correction-detector uses `excerpt` to synthesize the pattern (e.g. lifts `AKIA[0-9A-Z]{16}` into a regex rule). One appendRejection call per BLOCK finding.
+
 ## BLOCK Findings
 
 ### [VULN-001] SQL Injection in user search

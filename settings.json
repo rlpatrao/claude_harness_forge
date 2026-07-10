@@ -32,7 +32,8 @@
           { "type": "command", "command": "node .claude/hooks/dangerous-patterns.js" },
           { "type": "command", "command": "node .claude/hooks/reminder-injector.js" },
           { "type": "command", "command": "node .claude/hooks/e2e-gate.js" },
-          { "type": "command", "command": "node .claude/hooks/feature-edit-guard.js" }
+          { "type": "command", "command": "node .claude/hooks/feature-edit-guard.js" },
+          { "type": "command", "command": "node .claude/hooks/rule-gate.js" }
         ]
       },
       {
@@ -47,7 +48,8 @@
           { "type": "command", "command": "node .claude/hooks/dangerous-patterns.js" },
           { "type": "command", "command": "node .claude/hooks/reminder-injector.js" },
           { "type": "command", "command": "node .claude/hooks/pre-bash-gate.js" },
-          { "type": "command", "command": "node .claude/hooks/token-advisor.js" }
+          { "type": "command", "command": "node .claude/hooks/token-advisor.js" },
+          { "type": "command", "command": "node .claude/hooks/rule-gate.js" }
         ]
       },
       {
@@ -128,6 +130,7 @@
         "hooks": [
           { "type": "command", "command": "node .claude/hooks/ralph-loop.js" },
           { "type": "command", "command": "node .claude/hooks/instinct-extractor.js" },
+          { "type": "command", "command": "node .claude/hooks/correction-detector.js" },
           { "type": "command", "command": "node .claude/hooks/graph-refresh.js" }
         ]
       }
