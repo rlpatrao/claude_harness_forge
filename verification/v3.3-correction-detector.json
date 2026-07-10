@@ -1,0 +1,48 @@
+{
+  "verified_at": "2026-07-10T00:00:00Z",
+  "harness_version": "v3.3",
+  "dogfood_script": "scratchpad/dogfood-v33.sh",
+  "dogfood_result": "26 passed, 0 failed",
+  "phases": [
+    "P1 acquisition (correction-detector + >=2 recurrences)",
+    "P2 curation (set-critic-verdict + promote-candidates)",
+    "P3 warn (rule-gate tentative WARN)",
+    "P4 promotion (promote-tentative \u2192 confirmed)",
+    "P5 block (rule-gate confirmed BLOCK)",
+    "P6 escape hatch (RULE_GATE_OVERRIDE)",
+    "P7 FP-guard (FP>0 blocks re-promote)",
+    "P8 no regressions (SessionStart, settings.json, harness-manifest)",
+    "P9 producer (appendRejection + debugger pattern mining)"
+  ],
+  "id": "v3.3-correction-detector",
+  "checks": [
+    {
+      "check": "1 rejection \u2192 NO candidate (below >=2 threshold)",
+      "result": true
+    },
+    {
+      "check": "2 similar rejections \u2192 candidate with proposed regex + path_glob",
+      "result": true
+    },
+    {
+      "check": "candidate lifecycle_status=candidate, critic_verdict=null",
+      "result": true
+    },
+    {
+      "check": "dedup via state/.rule-candidate-hashes.txt (re-run emits same count)",
+      "result": true
+    },
+    {
+      "check": "semantic fallback when excerpts share no meaningful pattern",
+      "result": true
+    },
+    {
+      "check": "known-pattern library detects AKIA regex + debugger pattern",
+      "result": true
+    },
+    {
+      "check": "producers wired: e2e-gate, feature-edit-guard, critic, security-reviewer, code-reviewer",
+      "result": true
+    }
+  ]
+}

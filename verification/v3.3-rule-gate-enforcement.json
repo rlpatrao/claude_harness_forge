@@ -1,0 +1,52 @@
+{
+  "verified_at": "2026-07-10T00:00:00Z",
+  "harness_version": "v3.3",
+  "dogfood_script": "scratchpad/dogfood-v33.sh",
+  "dogfood_result": "26 passed, 0 failed",
+  "phases": [
+    "P1 acquisition (correction-detector + >=2 recurrences)",
+    "P2 curation (set-critic-verdict + promote-candidates)",
+    "P3 warn (rule-gate tentative WARN)",
+    "P4 promotion (promote-tentative \u2192 confirmed)",
+    "P5 block (rule-gate confirmed BLOCK)",
+    "P6 escape hatch (RULE_GATE_OVERRIDE)",
+    "P7 FP-guard (FP>0 blocks re-promote)",
+    "P8 no regressions (SessionStart, settings.json, harness-manifest)",
+    "P9 producer (appendRejection + debugger pattern mining)"
+  ],
+  "id": "v3.3-rule-gate-enforcement",
+  "checks": [
+    {
+      "check": "AKIA regex blocks Write to src/ (exit 2)",
+      "result": true
+    },
+    {
+      "check": "benign Write to src/ passes (exit 0)",
+      "result": true
+    },
+    {
+      "check": "path_glob excludes docs/ from src/** rule",
+      "result": true
+    },
+    {
+      "check": "tentative rule fires as WARN via additionalContext",
+      "result": true
+    },
+    {
+      "check": "RULE_GATE_OVERRIDE downgrades + increments FP counter",
+      "result": true
+    },
+    {
+      "check": "Bash rule blocks matching curl|bash",
+      "result": true
+    },
+    {
+      "check": "malformed compiled-rules.json \u2192 fail-open exit 0",
+      "result": true
+    },
+    {
+      "check": "settings.json wires rule-gate on Edit|Write AND Bash",
+      "result": true
+    }
+  ]
+}

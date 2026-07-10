@@ -1,0 +1,40 @@
+{
+  "verified_at": "2026-07-10T00:00:00Z",
+  "harness_version": "v3.3",
+  "dogfood_script": "scratchpad/dogfood-v33.sh",
+  "dogfood_result": "26 passed, 0 failed",
+  "phases": [
+    "P1 acquisition (correction-detector + >=2 recurrences)",
+    "P2 curation (set-critic-verdict + promote-candidates)",
+    "P3 warn (rule-gate tentative WARN)",
+    "P4 promotion (promote-tentative \u2192 confirmed)",
+    "P5 block (rule-gate confirmed BLOCK)",
+    "P6 escape hatch (RULE_GATE_OVERRIDE)",
+    "P7 FP-guard (FP>0 blocks re-promote)",
+    "P8 no regressions (SessionStart, settings.json, harness-manifest)",
+    "P9 producer (appendRejection + debugger pattern mining)"
+  ],
+  "id": "v3.3-skill-and-registry-docs",
+  "checks": [
+    {
+      "check": "skills/compiled-rules/SKILL.md exists with two-store model + lifecycle + gate",
+      "result": true
+    },
+    {
+      "check": "CLAUDE.md BRD v3.0 additions table gains TRACE row",
+      "result": true
+    },
+    {
+      "check": "feature_list.json: 6 v3.3 entries appended, all passes:false",
+      "result": true
+    },
+    {
+      "check": "harness-manifest.json: 8 v3.3 rows added, 86/86 validate",
+      "result": true
+    },
+    {
+      "check": "empty cells reduced to 3 (structural non-coverage)",
+      "result": true
+    }
+  ]
+}

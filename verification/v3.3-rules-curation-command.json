@@ -1,0 +1,56 @@
+{
+  "verified_at": "2026-07-10T00:00:00Z",
+  "harness_version": "v3.3",
+  "dogfood_script": "scratchpad/dogfood-v33.sh",
+  "dogfood_result": "26 passed, 0 failed",
+  "phases": [
+    "P1 acquisition (correction-detector + >=2 recurrences)",
+    "P2 curation (set-critic-verdict + promote-candidates)",
+    "P3 warn (rule-gate tentative WARN)",
+    "P4 promotion (promote-tentative \u2192 confirmed)",
+    "P5 block (rule-gate confirmed BLOCK)",
+    "P6 escape hatch (RULE_GATE_OVERRIDE)",
+    "P7 FP-guard (FP>0 blocks re-promote)",
+    "P8 no regressions (SessionStart, settings.json, harness-manifest)",
+    "P9 producer (appendRejection + debugger pattern mining)"
+  ],
+  "id": "v3.3-rules-curation-command",
+  "checks": [
+    {
+      "check": "status prints counts per lifecycle stage",
+      "result": true
+    },
+    {
+      "check": "promote-candidates without critic_verdict:pass \u2192 0 promoted",
+      "result": true
+    },
+    {
+      "check": "set-critic-verdict pass + promote-candidates \u2192 tentative(warn)",
+      "result": true
+    },
+    {
+      "check": "set-critic-verdict block \u2192 candidate NOT promoted",
+      "result": true
+    },
+    {
+      "check": "promote-tentative requires sessions_seen>=2 AND FP=0",
+      "result": true
+    },
+    {
+      "check": "false_positive_overrides>0 blocks tentative\u2192confirmed",
+      "result": true
+    },
+    {
+      "check": "--force bypasses Critic AND FP gates",
+      "result": true
+    },
+    {
+      "check": "prune-candidates removes entries >30d old",
+      "result": true
+    },
+    {
+      "check": "compile = promote-candidates + promote-tentative + review reminder",
+      "result": true
+    }
+  ]
+}

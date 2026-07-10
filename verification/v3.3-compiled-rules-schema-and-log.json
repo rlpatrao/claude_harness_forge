@@ -1,0 +1,40 @@
+{
+  "verified_at": "2026-07-10T00:00:00Z",
+  "harness_version": "v3.3",
+  "dogfood_script": "scratchpad/dogfood-v33.sh",
+  "dogfood_result": "26 passed, 0 failed",
+  "phases": [
+    "P1 acquisition (correction-detector + >=2 recurrences)",
+    "P2 curation (set-critic-verdict + promote-candidates)",
+    "P3 warn (rule-gate tentative WARN)",
+    "P4 promotion (promote-tentative \u2192 confirmed)",
+    "P5 block (rule-gate confirmed BLOCK)",
+    "P6 escape hatch (RULE_GATE_OVERRIDE)",
+    "P7 FP-guard (FP>0 blocks re-promote)",
+    "P8 no regressions (SessionStart, settings.json, harness-manifest)",
+    "P9 producer (appendRejection + debugger pattern mining)"
+  ],
+  "id": "v3.3-compiled-rules-schema-and-log",
+  "checks": [
+    {
+      "check": "compiled-rules.json parses as JSON with version 3.3.0",
+      "result": true
+    },
+    {
+      "check": "state/rule-candidates/.gitkeep committed",
+      "result": true
+    },
+    {
+      "check": "appendRejection writes ts-stamped record to rejections.jsonl",
+      "result": true
+    },
+    {
+      "check": "appendRejection returns false on bad input",
+      "result": true
+    },
+    {
+      "check": "findProjectRoot walks up from nested dir",
+      "result": true
+    }
+  ]
+}

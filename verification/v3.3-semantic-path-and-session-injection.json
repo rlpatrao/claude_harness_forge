@@ -1,0 +1,44 @@
+{
+  "verified_at": "2026-07-10T00:00:00Z",
+  "harness_version": "v3.3",
+  "dogfood_script": "scratchpad/dogfood-v33.sh",
+  "dogfood_result": "26 passed, 0 failed",
+  "phases": [
+    "P1 acquisition (correction-detector + >=2 recurrences)",
+    "P2 curation (set-critic-verdict + promote-candidates)",
+    "P3 warn (rule-gate tentative WARN)",
+    "P4 promotion (promote-tentative \u2192 confirmed)",
+    "P5 block (rule-gate confirmed BLOCK)",
+    "P6 escape hatch (RULE_GATE_OVERRIDE)",
+    "P7 FP-guard (FP>0 blocks re-promote)",
+    "P8 no regressions (SessionStart, settings.json, harness-manifest)",
+    "P9 producer (appendRejection + debugger pattern mining)"
+  ],
+  "id": "v3.3-semantic-path-and-session-injection",
+  "checks": [
+    {
+      "check": "empty compiled-rules \u2192 no SessionStart block",
+      "result": true
+    },
+    {
+      "check": "mixed pattern + semantic rules \u2192 both cited with annotations",
+      "result": true
+    },
+    {
+      "check": "'pattern/rule-gate' and 'semantic/Critic' annotations present",
+      "result": true
+    },
+    {
+      "check": "RULE_GATE_OVERRIDE escape-hatch documented in block",
+      "result": true
+    },
+    {
+      "check": "critic.md instructs to read semantic rules from compiled-rules.json",
+      "result": true
+    },
+    {
+      "check": "learned-rules and compiled-rules blocks coexist in SessionStart",
+      "result": true
+    }
+  ]
+}

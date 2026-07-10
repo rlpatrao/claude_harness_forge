@@ -611,3 +611,119 @@ Total v3.2 delivery this session:
   scripts/hooks/agents/skills/templates/docs. Every increment
   structurally smoke-tested. Interactive dogfood pending as v3.2.6
   (extended v3.1.13 runbook).
+
+================================================================
+[2026-07-10 | session: v3.3-trace-compiled-rules | branch: main]
+================================================================
+
+BRD v3.3 milestone — TRACE compiled-rule enforcement landed + dogfooded.
+
+Reference: brd/v3.3-trace-compiled-rules-plan.md (existed pre-session);
+paper: TRACE — Test-time Rule Acquisition and Compiled Enforcement
+(arXiv 2606.13174). Compiled rules move preference compliance from
+55% (context-injection) → 70.1% (compiled); repeated violations drop
+from 100% → 2% out-of-distribution.
+
+DELIVERED (6 build steps, single commit)
+
+  Step 1 — Schemas + stubs
+    state/compiled-rules.json (seed, version 3.3.0)
+    state/rule-candidates/.gitkeep
+    hooks/lib/log-rejection.js — appendRejection producer helper,
+      defensive, never throws
+
+  Step 2 — Enforcement first
+    hooks/rule-gate.js — PreToolUse Edit|Write|Bash. Pattern eval
+      (regex / substring / forbid-substring) with path_glob + tools
+      filter. Confirmed→block, tentative→warn. RULE_GATE_OVERRIDE=
+      <rule_id> escape hatch increments FP counter and locks the
+      rule out of auto-promotion. Fail-open on malformed rules.
+    settings.json — wired into PreToolUse Edit|Write AND Bash.
+
+  Step 3 — Acquisition
+    hooks/correction-detector.js — Stop hook. Reads rejections.jsonl,
+      groups by normalized reason+source, emits candidate for >=2
+      recurrences. Regex library (AWS/GitHub/Slack, .only(), debugger,
+      TODO) + longest-common-substring fallback + semantic fallback.
+      Dedup via state/.rule-candidate-hashes.txt.
+    settings.json — wired into Stop after instinct-extractor.
+    hooks/e2e-gate.js, hooks/feature-edit-guard.js — call
+      appendRejection on BLOCK.
+    agents/critic.md, security-reviewer.md, code-reviewer.md —
+      instructed to call appendRejection on BLOCK / needs-revision
+      findings with excerpt (so detector can lift patterns).
+
+  Step 4 — Curation
+    scripts/rule-compile.js — status / promote-candidates /
+      promote-tentative / compile / prune-candidates / set-critic-
+      verdict. NO auto-promotion past candidate without Critic pass.
+      NO auto-confirmation without recurrence + 0 FP overrides.
+      --force bypasses (discouraged).
+    commands/rules.md — /rules wrapper; documents Critic validation
+      flow; contrasts with /evolve (instincts are advisory skills;
+      rules are enforceable).
+
+  Step 5 — Semantic path + SessionStart surfacing
+    agents/critic.md — What-you-receive gains semantic-rule reading
+      step. Pattern rules are rule-gate's domain; semantic rules are
+      Critic-enforced.
+    hooks/session-start.js — injects active tentative + confirmed
+      rules into reminder, annotated pattern/rule-gate vs semantic/
+      Critic. Escape-hatch documented.
+
+  Step 6 — Docs + registry
+    skills/compiled-rules/SKILL.md — two-store model, pattern-vs-
+      semantic, lifecycle, hand-authoring guide, escape hatch, gate
+      checklist. Distinct from instincts/learnings/learned-rules
+      documented explicitly.
+    CLAUDE.md — BRD v3.0 additions table gains TRACE row.
+    feature_list.json — 6 v3.3 entries appended (all passes:false).
+    harness-manifest.json — 8 v3.3 rows added; 86/86 validate.
+      Empty cells: 3 (architecture×session, behaviour×planning,
+      behaviour×drift — all structural non-coverage documented in
+      HARNESS.md).
+
+DOGFOOD (scratchpad/dogfood-v33.sh — 26/26 checks passed)
+
+  Phase 1 (acquisition): 1 rejection → no candidate; 2 rejections →
+    candidate with regex AKIA[0-9A-Z]{16} + path_glob src/**.
+  Phase 2 (curation): set-critic-verdict pass → promote-candidates
+    → tentative(warn).
+  Phase 3 (warn): rule-gate fires WARN via additionalContext with
+    rule_id citation.
+  Phase 4 (promotion): promote-tentative (sessions>=2, FP=0) →
+    confirmed(block).
+  Phase 5 (block): rule-gate blocks matching Write (exit 2), cites
+    statement + rule_id + escape-hatch hint; benign write passes.
+  Phase 6 (override): RULE_GATE_OVERRIDE=<rule_id> downgrades block
+    (exit 0), emits stderr audit line, increments false_positive_
+    overrides to 1.
+  Phase 7 (FP-guard): FP=1 prevents tentative → confirmed auto-
+    promotion.
+  Phase 8 (no regressions): SessionStart surfaces the compiled rule;
+    settings.json valid; validate-harness-manifest.js prints OK.
+  Phase 9 (producer): appendRejection called from Node writes ts-
+    stamped record; a fresh correction-detector run against 2
+    debugger-pattern rejections mines a new candidate with the
+    library-detected regex \\bdebugger\\s*;
+
+Verification artifacts written for all 6 v3.3 feature entries under
+verification/v3.3-*.json capturing the 26 dogfood checks.
+
+feature_list.json flips remain false pending the interactive dogfood
+target (extended v3.1.13 runbook against test-projects/salary-
+dashboard). Path: same as v3.2 — needs an actual scaffolded project
+session, not a script.
+
+NEXT (separate sessions)
+  - Interactive dogfood: exercise the full v3.1 + v3.2 + v3.3 stack
+    on test-projects/salary-dashboard, flip feature_list.json entries
+    with real verification artifacts (not the smoke-fixture ones).
+  - Promote E2E_GATE_ENFORCE_VOTES=1 to default (v3.2.2 warn-only
+    was a rollout choice; now stable).
+  - Wire /rules into the /auto post-Stop path so mined candidates
+    surface automatically without a separate /rules status call.
+  - Human-chat correction adapter — mine rules from conversational
+    corrections too (detector is adapter-shaped; additive).
+  - AST-grep / structural check.kind — beyond regex/substring.
+  - Cross-project rule sharing via /instinct-export analog.
