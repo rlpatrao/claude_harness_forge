@@ -140,14 +140,45 @@ for (const t of targets) {
 
 if (violations.length === 0) process.exit(0);
 
+// BRD v3.2.3: consult sensor-waivers before blocking. Waived
+// violations emit an audit line but do not block. Subject format for
+// pre-bash-gate: the target file path (violation.target).
+let checkWaiver = () => ({ waived: false });
+const checkWaiverCandidates = [
+  path.join(projectRoot, 'scripts', 'check-waiver.js'),
+  path.join(projectRoot, '.claude', 'scripts', 'check-waiver.js'),
+  path.resolve(__dirname, '..', 'scripts', 'check-waiver.js'),  // hooks/../scripts
+  path.resolve(__dirname, '..', '.claude', 'scripts', 'check-waiver.js'),
+];
+for (const cand of checkWaiverCandidates) {
+  try {
+    if (fs.existsSync(cand)) {
+      ({ checkWaiver } = require(cand));
+      break;
+    }
+  } catch (_) { /* try next candidate */ }
+}
+
+const stillBlocking = [];
+for (const v of violations) {
+  const result = checkWaiver('pre-bash-gate', v.target, projectRoot);
+  if (result && result.waived) {
+    process.stderr.write(result.audit_line + '\n');
+  } else {
+    stillBlocking.push(v);
+  }
+}
+
+if (stillBlocking.length === 0) process.exit(0);
+
 process.stderr.write('BLOCKED (pre-bash-gate, BRD v3.1 §4 v3.1.5): bash command writes to protected paths.\n\n');
 process.stderr.write(`Command: ${cmd.length > 200 ? cmd.slice(0, 200) + '…' : cmd}\n\n`);
 process.stderr.write('Violations:\n');
-for (const v of violations) {
+for (const v of stillBlocking) {
   process.stderr.write(`  - ${v.target}: ${v.reason}\n`);
 }
 process.stderr.write('\nWrite-tool hooks only see Write/Edit tool_use. Bash redirections bypass them.\n');
-process.stderr.write('If this write is intentional, use the Write tool instead (which has documented scope rules) or explicitly override via .claude/settings.local.json.\n');
+process.stderr.write('If this write is intentional, use the Write tool instead (which has documented scope rules) or add a waiver to specs/reviews/sensor-waivers.json (BRD v3.2.3 — see docs/sensor-arbitration.md and templates/sensor-waivers.schema.json).\n');
 process.exit(2);
 
 function findProjectRoot(startDir) {

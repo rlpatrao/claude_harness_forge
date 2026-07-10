@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/rlpatrao/claude_harness_forge/templates/sensor-waivers.schema.json",
+  "title": "Sensor waivers",
+  "description": "Human-granted overrides for hard-block hooks (BRD v3.2.3). Waived enforcements emit a stderr audit line and do not block. Each entry MUST have a granter and an expiry.",
+  "type": "object",
+  "required": ["waivers"],
+  "properties": {
+    "waivers": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/waiver" }
+    }
+  },
+  "definitions": {
+    "waiver": {
+      "type": "object",
+      "required": ["sensor", "subject", "reason", "granted_by", "granted_at", "expires_at"],
+      "properties": {
+        "sensor": {
+          "type": "string",
+          "description": "Hook filename without .js extension (e.g. 'pre-bash-gate', 'detect-secrets', 'e2e-gate')",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        },
+        "subject": {
+          "type": "string",
+          "description": "Hook-specific string identifying the exact enforcement this waiver overrides. For pre-bash-gate: file path being written. For detect-secrets: file:line. Check the hook's head comment for its subject format."
+        },
+        "reason": {
+          "type": "string",
+          "description": "Human-authored justification. Reviewed at expiry.",
+          "minLength": 10
+        },
+        "granted_by": {
+          "type": "string",
+          "description": "Who granted the waiver — human name, email, or role."
+        },
+        "granted_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of when the waiver was granted."
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp of when the waiver ceases to apply. Every waiver MUST expire — indefinite waivers are code changes, not waivers. Common values: 24h, 7d, 30d from granted_at."
+        },
+        "audit_ref": {
+          "type": "string",
+          "description": "Optional link to a PR, issue, or Slack thread where the waiver was discussed."
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
