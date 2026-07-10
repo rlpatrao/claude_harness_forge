@@ -132,6 +132,20 @@ Approaches evaluated at the whole-system level before decomposing into per-decis
 |---|---|---|---|
 | ... | ... | ... | ... |
 
+### 6.1 Balanced Coupling check (BRD v3.2.5)
+
+For each significant inter-component coupling in the design above, apply the 3-axis rule from [`.claude/skills/critic/references/balanced-coupling.md`](../../critic/references/balanced-coupling.md):
+
+```
+BALANCE = (STRENGTH XOR DISTANCE) OR (NOT VOLATILITY)
+```
+
+| # | A → B | STRENGTH | DISTANCE | VOLATILITY | BALANCE | Notes |
+|---|---|---|---|---|---|---|
+| 1 | ... | intimate/weak | same-module/same-service/cross-service | high/low | ✓ or ✗ | ... |
+
+Flag any BALANCE=✗ with a mitigation in section 6 above. Worst-case (intimate × cross-service × high volatility) is a design-review blocker.
+
 ---
 
 ## 7. Open questions

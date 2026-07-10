@@ -39,6 +39,7 @@ Rationale (≤200 words): <why pass / block / revision>
 - **Spec-gap surface area.** If the diff implements something not in the entry, flag it. This is the trigger condition for `/spec-audit` (BRD §4.7).
 - **Missing E2E verification.** Per BRD §3.8, the `passes` flip is gated on an artifact under `verification/<id>.{png,json}`. If the diff includes the flip but no artifact, BLOCK.
 - **Side-effects.** Does the diff change code paths outside the feature's scope? If yes and not justified, NEEDS-REVISION.
+- **Balanced Coupling** (BRD v3.2.5). For every meaningful coupling introduced or modified in the diff, apply the 3-axis rule from [`.claude/skills/critic/references/balanced-coupling.md`](../.claude/skills/critic/references/balanced-coupling.md): `BALANCE = (STRENGTH XOR DISTANCE) OR (NOT VOLATILITY)`. Unbalanced coupling — especially (intimate strength × far distance × high volatility) — is grounds for NEEDS-REVISION. Include a small table when reporting findings (see the reference doc for shape).
 - **Test integrity.** Were tests added that exercise the new behavior end-to-end, or only unit-mocked stubs? Mock-only tests for new feature paths → NEEDS-REVISION.
 - **Style + safety.** Existing forge hooks (`detect-secrets`, `pii-scan`, `prompt-injection-detect`, etc.) catch many issues. You catch what they miss — concurrency, race conditions, error-swallowing, hidden retries, exception leaks.
 

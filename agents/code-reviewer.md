@@ -117,10 +117,24 @@ These checks catch recurring bugs found through dogfooding and user reports (see
 - When code restores auth state on page load (checking tokens, session cookies, Firebase auth), the UI must show a loading state until auth is confirmed or denied. Flag pages that flash unauthenticated content before redirecting.
 - WARN: "Auth state restoration without loading state — users see unauthenticated flash before redirect"
 
+## Balanced Coupling review (BRD v3.2.5)
+
+For every meaningful coupling introduced or modified in the diff, apply the 3-axis rule from [`.claude/skills/critic/references/balanced-coupling.md`](../.claude/skills/critic/references/balanced-coupling.md):
+
+```
+BALANCE = (STRENGTH XOR DISTANCE) OR (NOT VOLATILITY)
+```
+
+- **STRENGTH:** intimate (touches internals) vs weak (public API only)
+- **DISTANCE:** same-module / same-service / cross-service
+- **VOLATILITY:** high (B changes often) vs low (B is stable)
+
+Unbalanced coupling is a WARN by default, escalated to BLOCK when all three axes are worst-case: **intimate strength × cross-service distance × high volatility**. Include a table in the Report Format section with columns `# | A → B | STRENGTH | DISTANCE | VOLATILITY | BALANCE | Recommendation`.
+
 ## Severity
 
-- **BLOCK**: Must fix before merge. Architecture violations, coverage below 80%, bare exceptions, security issues, files over 300 lines, functions over 50 lines, missing type annotations, violations of learned rules.
-- **WARN**: Should fix, but not a merge blocker. Functions approaching 50 lines, missing edge case tests, dead code (first occurrence), cryptic names, orphan files.
+- **BLOCK**: Must fix before merge. Architecture violations, coverage below 80%, bare exceptions, security issues, files over 300 lines, functions over 50 lines, missing type annotations, violations of learned rules, worst-case unbalanced coupling (intimate × cross-service × high volatility).
+- **WARN**: Should fix, but not a merge blocker. Functions approaching 50 lines, missing edge case tests, dead code (first occurrence), cryptic names, orphan files, unbalanced coupling (not worst-case).
 - **INFO**: Style suggestions, minor improvements, alternative approaches.
 
 ## Report Format
