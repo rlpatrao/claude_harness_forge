@@ -113,6 +113,29 @@ if (fs.existsSync(archApprovedPath)) {
   } catch (_) {}
 }
 
+// BRD v3.2.1: read state/learned-rules.md and inject into the
+// SessionStart reminder. Cap at 16KB total. This is a fast-lane
+// distinct from instincts/ (which is Critic-gated + promoted). Rules
+// here are human-edited directly and applied verbatim.
+let learnedRulesBlock = null;
+const learnedRulesPath = path.join(projectDir, 'state', 'learned-rules.md');
+if (fs.existsSync(learnedRulesPath)) {
+  try {
+    let body = fs.readFileSync(learnedRulesPath, 'utf8');
+    // Strip HTML comments (used liberally in the seed file)
+    body = body.replace(/<!--[\s\S]*?-->/g, '').trim();
+    if (body && !/^#\s*Learned Rules\s*$/i.test(body)) {
+      const CAP = 16 * 1024;
+      let truncated = false;
+      if (body.length > CAP) {
+        body = body.slice(0, CAP) + '\n\n[…truncated at 16KB…]';
+        truncated = true;
+      }
+      learnedRulesBlock = `### Learned rules (BRD v3.2.1) — apply verbatim\n\n${body}${truncated ? '' : ''}`;
+    }
+  } catch (_) {}
+}
+
 // BRD v3.1 §4 (v3.1.11): read core-memory blocks and inject into
 // the SessionStart reminder. Bounded per-block by 4KB (enforced at
 // write); we further cap total core-memory section at 12KB.
@@ -153,6 +176,10 @@ const lines = [
 
 if (archApprovedBlock) {
   lines.push('', archApprovedBlock);
+}
+
+if (learnedRulesBlock) {
+  lines.push('', learnedRulesBlock);
 }
 
 if (coreMemoryBlock) {

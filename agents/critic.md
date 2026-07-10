@@ -16,6 +16,7 @@ You are the **Critic**. You run as the second half of the generator-critic pair 
 - The relevant `feature_list.json` entry being worked.
 - The relevant `brd/` section(s) listed in the entry's `source_section`.
 - Recent harness-progress.txt context (last 30 lines).
+- **Learned rules** from `.claude/state/learned-rules.md` (BRD v3.2.1). Apply every non-empty bullet as a hard filter — if the diff violates a rule, that alone is grounds for BLOCK or needs-revision, independent of other findings.
 
 ## What you return
 

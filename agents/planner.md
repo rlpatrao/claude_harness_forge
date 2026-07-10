@@ -43,6 +43,10 @@ Your sole output is a plan file written to `scratch/plans/<feature_id_or_topic>.
 - <explicitly deferred>
 ```
 
+## Read context first
+
+Before drafting the plan, read `.claude/state/learned-rules.md` (BRD v3.2.1) and apply every non-empty bullet to the plan you produce. Rules there are hard preferences the human has distilled; a plan that ignores them wastes a session. The SessionStart hook injects them into your reminder, but read them here too — subagents spawned within your Plan Mode may miss the reminder.
+
 ## Hard rules
 
 - **No implementation.** Don't write code in the plan beyond minimal type/signature illustrations.

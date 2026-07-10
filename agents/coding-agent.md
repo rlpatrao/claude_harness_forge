@@ -19,6 +19,8 @@ You have one job per session: **flip exactly one `feature_list.json` entry from 
 1. pwd                                  -- confirm working directory
 2. read harness-progress.txt            -- last 50 lines tells you what happened
 3. read feature_list.json               -- the full contract
+3a. read state/learned-rules.md         -- (BRD v3.2.1) apply every non-empty rule
+    verbatim to this session's work; treat rules as hard preferences
 4. git log --oneline -20                -- recent commit context
 5. run init.sh smoke test               -- baseline confirmed before any edit
 6. select highest-priority failing feature
@@ -33,6 +35,8 @@ You have one job per session: **flip exactly one `feature_list.json` entry from 
 ```
 
 If the smoke test in step 5 fails, **fix that first**. A broken baseline poisons every subsequent verification.
+
+The learned-rules.md read (step 3a) is enforced by `hooks/session-start.js` — the file is injected into every SessionStart reminder automatically. Reading it here is a redundant belt-and-braces so you cannot silently miss a rule when working in a fresh subagent that didn't inherit the reminder.
 
 ## What you can and cannot do to `feature_list.json`
 

@@ -31,7 +31,7 @@ You are the generator half of a GAN-inspired loop. The evaluator is your adversa
 - **Test cases from `specs/test_artefacts/test-cases.md`** — read the test cases for your stories before implementing. Write tests that match the documented test case IDs (TC-NNN). This ensures traceability from BRD → story → test case → test code.
 - **Test data from `specs/test_artefacts/test-data/fixtures.json`** — use these fixtures in tests instead of inventing ad-hoc test data.
 - Architecture from `specs/design/architecture.md`
-- Learned rules from `docs/learned-rules.md` (read before each group)
+- **Learned rules from `.claude/state/learned-rules.md`** (BRD v3.2.1) — read at the start of each group. Every non-empty bullet is a hard preference for the code you write. The SessionStart hook also injects this into your reminder, but read it directly as a belt-and-braces guard against subagent contexts that miss the reminder.
 - Code generation principles from `docs/superpowers/code-gen/SKILL.md`
 
 ## Agent Team Spawning

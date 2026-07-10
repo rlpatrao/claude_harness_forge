@@ -14,6 +14,7 @@ You decompose a BRD into development artifacts. Read `.claude/skills/spec-patter
 - BRD from `specs/brd/app_spec.md` (greenfield) or `specs/brd/features/*.md` (individual features).
 - If a BRD path is provided as argument, use that instead.
 - Calibration profile from `specs/state/calibration-profile.json` for project context.
+- **Learned rules** from `.claude/state/learned-rules.md` (BRD v3.2.1). Read before decomposing — every non-empty bullet is a hard preference that the epics/stories should reflect (e.g., "always use pytest, never nose"; "no separate frontend workspace"). Do NOT propose specs that contradict these rules.
 
 ## Process
 
