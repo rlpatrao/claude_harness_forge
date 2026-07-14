@@ -1237,5 +1237,93 @@
       "v3.3-semantic-path-and-session-injection"
     ],
     "verification_artifact_path": "verification/v3.3-skill-and-registry-docs.json"
+  },
+  {
+    "id": "v3.4-scaffold-headless-flags",
+    "category": "command",
+    "description": "commands/scaffold.md accepts --branch, --brd, --arch, --name, --type, --plugins, --yes flags. Each flag opts-out of one interactive question. Fully-headless invocation asks zero questions.",
+    "steps": [
+      "Add Step -1 argument parser to commands/scaffold.md",
+      "Update Q0 (Requirements source) to honor --branch",
+      "Update Q1-Q3 to honor --name/--type/--plugins",
+      "Document --yes for confirmation bypass",
+      "Verify all 7 flags documented; smoke test each flag independently"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.4 \u00a7B.1",
+    "depends_on": [
+      "v3.1.1-scaffold-import-mode"
+    ],
+    "verification_artifact_path": "verification/v3.4-scaffold-headless-flags.json"
+  },
+  {
+    "id": "v3.4-architect-auto-approve",
+    "category": "agent",
+    "description": "architect gains --auto-approve flag. In synthesis mode ONLY, skips the Step 6.2 A/M/R prompt and auto-approves v1. Refused in interview mode (would skip human decision on interview output \u2014 wrong direction).",
+    "steps": [
+      "Document --auto-approve in commands/architect.md",
+      "Wire skills/architect/SKILL.md Step 6.2 to check the flag",
+      "Wire agents/architect.md Phase 6 to check the flag",
+      "Verify: auto-approve fires only in synthesis mode; audit log records auto-approval"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.4 \u00a7B.2",
+    "depends_on": [
+      "v3.1.2-architect-review-loop"
+    ],
+    "verification_artifact_path": "verification/v3.4-architect-auto-approve.json"
+  },
+  {
+    "id": "v3.4-auto-advance-env-var",
+    "category": "hook",
+    "description": "AUTO_ADVANCE_ON_ARCHITECTURE_APPROVED=1 env var upgrades hooks/session-start.js output from 'Suggested next command' to imperative 'Invoke /auto as your first action \u2014 do NOT prompt'. agents/coding-agent.md step 3a acts on the imperative form and invokes /auto immediately. Reserved for CI / headless dogfood.",
+    "steps": [
+      "Extend hooks/session-start.js to check AUTO_ADVANCE_ON_ARCHITECTURE_APPROVED env var",
+      "Emit imperative banner when env=1 + flag file present; suggested banner otherwise",
+      "Update agents/coding-agent.md step 3a with imperative-form handling",
+      "Verify: no env \u2192 suggested phrasing; env=1 \u2192 imperative language + BRD v3.4 citation"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.4 \u00a7B.3",
+    "depends_on": [
+      "v3.1.2-architect-review-loop"
+    ],
+    "verification_artifact_path": "verification/v3.4-auto-advance-env-var.json"
+  },
+  {
+    "id": "v3.4-dogfood-fixture-salary-dashboard",
+    "category": "template",
+    "description": "First fixture library entry: templates/dogfood-fixtures/salary-dashboard/{BRD.md, architecture.dsl}. Full 5-dimension BRD (5 ACs), Structurizr DSL with 5 containers + 3 external systems + 9 relationships. Sourced from the paused 2026-05-20 salary-dashboard interview.",
+    "steps": [
+      "Author BRD.md with D1-D5 + ACs + assumptions register",
+      "Author architecture.dsl with system + containers + relationships",
+      "Verify: parses via scripts/parse-structurizr.js into a valid IR (5 containers, >=5 rels)"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.4 \u00a7A.1",
+    "depends_on": [
+      "v3.1.10-aac-parsers"
+    ],
+    "verification_artifact_path": "verification/v3.4-dogfood-fixture-salary-dashboard.json"
+  },
+  {
+    "id": "v3.4-dogfood-setup-script",
+    "category": "script",
+    "description": "scripts/dogfood-setup.sh consumes a fixture (--fixture <name>), stages all artifacts the forge expects into --target <dir>, auto-detects AAC format (.dsl/.puml/.mmd/.md) and invokes the right parser, writes architecture-approved.flag directly (skipping the ceremonial review loop), seeds feature_list.json + state files + .claude/ scaffold, initial-commits. Idempotent re-run.",
+    "steps": [
+      "Author scripts/dogfood-setup.sh",
+      "Support --target, --fixture, --help flags",
+      "Auto-detect BRD.md + architecture.{md,dsl,puml,mmd} in fixture dir",
+      "Chain into v3.1.10 parsers when AAC input; render Markdown fallback",
+      "Seed feature_list.json + state/{learned,compiled}-rules + .claude/ scaffold + git init + initial commit",
+      "Verify: 23/23 end-to-end checks (setup exits 0, all sentinels + IR + AUTO_ADVANCE work, idempotent, rule-gate still fires in target)"
+    ],
+    "passes": false,
+    "source_section": "BRD v3.4 \u00a7A.2",
+    "depends_on": [
+      "v3.4-dogfood-fixture-salary-dashboard",
+      "v3.4-scaffold-headless-flags"
+    ],
+    "verification_artifact_path": "verification/v3.4-dogfood-setup-script.json"
   }
 ]

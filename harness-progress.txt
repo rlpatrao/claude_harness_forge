@@ -727,3 +727,152 @@ NEXT (separate sessions)
     corrections too (detector is adapter-shaped; additive).
   - AST-grep / structural check.kind — beyond regex/substring.
   - Cross-project rule sharing via /instinct-export analog.
+
+================================================================
+[2026-07-14 | session: v3.4-headless-dogfood | branch: main]
+================================================================
+
+BRD v3.4 milestone — headless scaffold + dogfood setup landed.
+
+Motivation: v3.1.1 (scaffold-import Branch B) + v3.1.2 (architect
+synthesis mode) had made ~85% of the scaffold path non-interactive
+when BRD + Architecture artifacts are provided upfront. Three
+touchpoints still needed a human keystroke (Q0/Q1-Q3, review-loop
+A/M/R, SessionStart's /auto suggestion). v3.4 removes all three so
+the dogfood can run under CI / SDK driver with zero prompts.
+
+DELIVERED — B (headless flags + env)
+
+  commands/scaffold.md
+    Step -1 argument parser accepts:
+      --branch A|B|C      (skips Q0)
+      --brd <path>        (Branch B/C BRD source)
+      --arch <path>       (Branch B architecture; auto-detects .md/
+                           .dsl/.puml/.mmd)
+      --name <name>       (skips Q1)
+      --type saas|enterprise|api-only  (skips Q2)
+      --plugins minimal|full|none      (skips Q3)
+      --yes               (accepts any subsequent Y/N confirmation)
+    Every flag opt-in per-question. Omitted flag → prompt as before.
+
+  commands/architect.md + skills/architect/SKILL.md + agents/architect.md
+    --auto-approve flag. In SYNTHESIS mode ONLY, skips the Step 6.2
+    A/M/R review-loop prompt and auto-approves v1. Refused in
+    interview mode (would skip human decision on interview output).
+    Audit log records auto-approval in the review doc.
+
+  hooks/session-start.js
+    Reads AUTO_ADVANCE_ON_ARCHITECTURE_APPROVED env var. When set
+    AND state/architecture-approved.flag exists, upgrades the
+    "Suggested next command: /auto" banner to an IMPERATIVE:
+      "**...Invoke `/auto` as your first action this session —
+       do NOT prompt the human, do NOT ask for confirmation.**"
+    Otherwise stays "Suggested".
+
+  agents/coding-agent.md step 3a
+    On imperative form, coding-agent invokes /auto as its first
+    action. Fall back to ordinary 8-step flow when SUGGESTED-form
+    (i.e. env unset).
+
+DELIVERED — A (fixtures + setup script + docs)
+
+  templates/dogfood-fixtures/salary-dashboard/BRD.md
+    Full 5-dimension BRD (D1 Why, D2 What, D2.5 Approach, D3 How,
+    D4 Edge Cases, D5 UI Context) + 5 ACs in Given/When/Then + an
+    assumptions register. Sourced from the paused 2026-05-20
+    interview + a self-contained rewrite for headless consumption.
+
+  templates/dogfood-fixtures/salary-dashboard/architecture.dsl
+    Structurizr DSL:
+      1 system (SalaryDashboard)
+      5 containers (Web / API / DuckDB / LLM Proxy / ETL Cron)
+      3 external systems (US DOL OFLC / Anthropic API / OpenAI API)
+      9 relationships (with technology + description on each)
+
+  scripts/dogfood-setup.sh
+    Headless target seeder. Usage:
+      scripts/dogfood-setup.sh --target <dir> --fixture <name>
+    Reads fixture dir, auto-detects architecture format, chains
+    into v3.1.10 parsers when AAC, renders Markdown fallback, writes
+    both .imported sentinels, writes architecture-approved.flag
+    (skipping the ceremonial review loop since the fixture IS the
+    approved input), seeds feature_list.json + state/{compiled,
+    learned}-rules + .claude/ scaffold + git init + initial commit.
+    Idempotent re-run: preserves existing feature_list.json.
+
+  brd/v3.4-headless-dogfood.md
+    User-facing doc: what changed, how to use for CI vs interactive,
+    how to author new fixtures, what still needs a human.
+
+VERIFIED
+
+  In-session smoke (scratchpad/smoke-v34.sh): 13/13
+    - all 7 scaffold flags documented
+    - --auto-approve documented in command + skill + agent
+    - coding-agent knows imperative form
+    - SessionStart no-env → 'Suggested' phrasing
+    - SessionStart env=1 → 'auto-advance ON' + imperative
+    - no flag file → no banner in either mode
+    - settings.json still valid JSON
+
+  End-to-end smoke (scratchpad/smoke-v34-e2e.sh): 23/23
+    - dogfood-setup exits 0
+    - all 13 on-disk invariants present (manifests, sentinels,
+      architecture-approved.flag, IR from DSL, learned-rules seed,
+      compiled-rules seed, .claude/ copy, feature_list seed, git)
+    - Structurizr DSL parsed correctly (5 containers, 9 rels, 3
+      external systems, system_name=SalaryDashboard)
+    - .imported sentinel records source_format
+    - SessionStart no-env → suggested; env=1 → imperative (both
+      forms verified against the freshly-set-up target)
+    - feature_list.json seed: 1 entry (dogfood-mvp-shell, passes:
+      false)
+    - Idempotent re-run preserves feature_list
+    - rule-gate still fires against the target's compiled-rules.json
+      after setup (adds a hand-authored TODO rule, proves block on
+      Write of 'TODO')
+
+  Total: 13 in-session + 23 end-to-end = 36 checks, 0 failed.
+  Verification artifacts under verification/v3.4-*.json for the 5
+  feature entries.
+
+feature_list.json: 76 → 81 entries
+  v3.4-scaffold-headless-flags       (deps: v3.1.1-scaffold-import-mode)
+  v3.4-architect-auto-approve        (deps: v3.1.2-architect-review-loop)
+  v3.4-auto-advance-env-var          (deps: v3.1.2-architect-review-loop)
+  v3.4-dogfood-fixture-salary-dashboard  (deps: v3.1.10-aac-parsers)
+  v3.4-dogfood-setup-script          (deps: fixture + scaffold-flags)
+
+harness-manifest.json: 86 → 91 components
+  scaffold-headless-flags (command, traceability×planning)
+  architect-auto-approve (agent, architecture×planning)
+  auto-advance-env-var (hook, traceability×session)
+  dogfood-fixture-salary-dashboard (doc, traceability×planning)
+  dogfood-setup-script (script, traceability×planning)
+Validator: 91/91 valid, 0 missing wired_at, empty cells still 3
+  (architecture×session, behaviour×planning, behaviour×drift — all
+  structural non-coverage per HARNESS.md).
+
+READY TO EXECUTE
+
+  ./scripts/dogfood-setup.sh --target ./test-projects/salary-dashboard \
+                             --fixture salary-dashboard
+  cd ./test-projects/salary-dashboard
+  AUTO_ADVANCE_ON_ARCHITECTURE_APPROVED=1 claude
+
+  Interactive Claude Code session (still needed as SDK driver) starts,
+  sees the imperative banner, invokes /auto as first action. Downstream
+  fully autonomous — the coding-agent flips feature_list.json entries
+  as verification artifacts land under verification/<id>.{png,json}.
+
+NEXT (separate sessions)
+
+- Drive an actual /auto run on the seeded salary-dashboard target.
+- Additional fixtures under templates/dogfood-fixtures/ (small
+  greenfield app + one brownfield example).
+- SDK-based CI driver that does the equivalent of an interactive
+  session — spawns Task/Agent subagents, drives Playwright/Puppeteer
+  MCP. That's what closes the last "still needs a human" gap.
+- Promote E2E_GATE_ENFORCE_VOTES=1 to default (deferred from v3.2).
+- Wire /rules status into the /auto post-Stop surface so mined
+  candidates surface automatically.

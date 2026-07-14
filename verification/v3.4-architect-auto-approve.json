@@ -1,0 +1,28 @@
+{
+  "verified_at": "2026-07-14T00:00:00Z",
+  "harness_version": "v3.4",
+  "smoke_scripts": [
+    "scratchpad/smoke-v34.sh",
+    "scratchpad/smoke-v34-e2e.sh"
+  ],
+  "smoke_result": "13 in-session + 23 end-to-end = 36 checks passed, 0 failed",
+  "id": "v3.4-architect-auto-approve",
+  "checks": [
+    {
+      "check": "--auto-approve documented in commands/architect.md",
+      "result": true
+    },
+    {
+      "check": "skills/architect/SKILL.md Step 6.2 respects the flag",
+      "result": true
+    },
+    {
+      "check": "agents/architect.md Phase 6 mirrors the skill",
+      "result": true
+    },
+    {
+      "check": "Refusal in interview mode documented",
+      "result": true
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "verified_at": "2026-07-14T00:00:00Z",
+  "harness_version": "v3.4",
+  "smoke_scripts": [
+    "scratchpad/smoke-v34.sh",
+    "scratchpad/smoke-v34-e2e.sh"
+  ],
+  "smoke_result": "13 in-session + 23 end-to-end = 36 checks passed, 0 failed",
+  "id": "v3.4-dogfood-fixture-salary-dashboard",
+  "checks": [
+    {
+      "check": "templates/dogfood-fixtures/salary-dashboard/BRD.md authored",
+      "result": true
+    },
+    {
+      "check": "BRD has D1-D5 sections + 5 ACs + assumptions register",
+      "result": true
+    },
+    {
+      "check": "templates/dogfood-fixtures/salary-dashboard/architecture.dsl authored",
+      "result": true
+    },
+    {
+      "check": "Structurizr DSL parses to IR with SalaryDashboard system, 5 containers, 9 relationships, 3 external systems",
+      "result": true
+    }
+  ]
+}

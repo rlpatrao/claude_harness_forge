@@ -91,8 +91,15 @@ const nextLine = nextFeature
 // BRD v3.1 §3: architecture-approved handoff — surface a suggestion to run /auto
 // on the session immediately after architect approval. Read but do NOT delete
 // the flag — it's a persistent signal.
+//
+// BRD v3.4: when AUTO_ADVANCE_ON_ARCHITECTURE_APPROVED=1 is set in the env,
+// upgrade the SUGGESTED phrasing to an IMPERATIVE — the coding-agent's
+// step 3a reads this and, on the imperative form, invokes /auto as its
+// first action rather than waiting for the human. Reserved for CI /
+// headless dogfoods where interactive confirmation isn't feasible.
 let archApprovedBlock = null;
 const archApprovedPath = path.join(projectDir, 'state', 'architecture-approved.flag');
+const autoAdvance = process.env.AUTO_ADVANCE_ON_ARCHITECTURE_APPROVED === '1';
 if (fs.existsSync(archApprovedPath)) {
   try {
     const raw = fs.readFileSync(archApprovedPath, 'utf8');
@@ -101,15 +108,27 @@ if (fs.existsSync(archApprovedPath)) {
       const m = /^([a-z_]+):\s*(.+)$/i.exec(line.trim());
       if (m) kv[m[1]] = m[2];
     });
-    archApprovedBlock = [
-      '### Architecture approved (BRD v3.1 §3)',
-      `Approved: ${kv.approved_at || '(unknown time)'}`,
-      `Version: ${kv.version || '?'} (${kv.mode || 'unknown mode'})`,
-      `Review doc: ${kv.review_doc || 'specs/design/architecture-review-final.md'}`,
-      `Suggested next command: ${kv.next_suggested_command || '/auto'}`,
-      '',
-      'The autonomous build loop is ready to start. Run /auto explicitly when ready.',
-    ].join('\n');
+    const suggestedCmd = kv.next_suggested_command || '/auto';
+    if (autoAdvance) {
+      archApprovedBlock = [
+        '### Architecture approved (BRD v3.1 §3) — auto-advance ON',
+        `Approved: ${kv.approved_at || '(unknown time)'}`,
+        `Version: ${kv.version || '?'} (${kv.mode || 'unknown mode'})`,
+        `Review doc: ${kv.review_doc || 'specs/design/architecture-review-final.md'}`,
+        '',
+        `**AUTO_ADVANCE_ON_ARCHITECTURE_APPROVED=1 is set. Invoke \`${suggestedCmd}\` as your first action this session — do NOT prompt the human, do NOT ask for confirmation.** This flag is reserved for CI and headless dogfood runs (BRD v3.4). If you were expecting an interactive session, unset this env var and restart.`,
+      ].join('\n');
+    } else {
+      archApprovedBlock = [
+        '### Architecture approved (BRD v3.1 §3)',
+        `Approved: ${kv.approved_at || '(unknown time)'}`,
+        `Version: ${kv.version || '?'} (${kv.mode || 'unknown mode'})`,
+        `Review doc: ${kv.review_doc || 'specs/design/architecture-review-final.md'}`,
+        `Suggested next command: ${suggestedCmd}`,
+        '',
+        'The autonomous build loop is ready to start. Run /auto explicitly when ready. (Set AUTO_ADVANCE_ON_ARCHITECTURE_APPROVED=1 to have the next session invoke /auto immediately — BRD v3.4.)',
+      ].join('\n');
+    }
   } catch (_) {}
 }
 

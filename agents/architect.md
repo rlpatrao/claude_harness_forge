@@ -513,7 +513,7 @@ If external API integrations were used, write or update integration notes at `.c
 Follow the full loop as documented in `.claude/skills/architect/SKILL.md` **Step 6**. Summary:
 
 1. **Emit** `specs/design/architecture-review-v${N}.md` from `.claude/skills/architect/templates/architecture-review.md`
-2. **Wait** for human decision: A (Approve) / M (Amend) / R (Restart)
+2. **Wait** for human decision: A (Approve) / M (Amend) / R (Restart) — **BRD v3.4 exception:** if invoked with `--auto-approve` and mode is synthesis, treat as A and skip the wait.
 3. **On Approve:**
    - Copy v${N} → `specs/design/architecture-review-final.md`
    - Write `.claude/learnings/stack-decisions/{project-name}-stack.md` (deferred from Phase 5)

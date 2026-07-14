@@ -155,7 +155,9 @@ Type A, M, or R:
 
 ### Step 6.2 — Read the human decision
 
-Wait for A/M/R. Interpret:
+**BRD v3.4 auto-approve:** if `--auto-approve` was passed AND mode is `synthesis` (never in interview mode), skip this step: treat the decision as `A (Approve)` and jump to Step 6.3. Log a note "auto-approved via --auto-approve (BRD v3.4)" to the review doc's decision section for audit.
+
+Otherwise, wait for A/M/R. Interpret:
 
 - **A (Approve):** proceed to Step 6.3
 - **M (Amend):** proceed to Step 6.4 (if amend budget remains)

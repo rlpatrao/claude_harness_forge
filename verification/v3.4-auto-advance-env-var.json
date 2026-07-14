@@ -1,0 +1,32 @@
+{
+  "verified_at": "2026-07-14T00:00:00Z",
+  "harness_version": "v3.4",
+  "smoke_scripts": [
+    "scratchpad/smoke-v34.sh",
+    "scratchpad/smoke-v34-e2e.sh"
+  ],
+  "smoke_result": "13 in-session + 23 end-to-end = 36 checks passed, 0 failed",
+  "id": "v3.4-auto-advance-env-var",
+  "checks": [
+    {
+      "check": "hooks/session-start.js reads AUTO_ADVANCE_ON_ARCHITECTURE_APPROVED",
+      "result": true
+    },
+    {
+      "check": "no env \u2192 'Suggested next command' phrasing",
+      "result": true
+    },
+    {
+      "check": "env=1 \u2192 'auto-advance ON' + 'do NOT prompt' imperative",
+      "result": true
+    },
+    {
+      "check": "agents/coding-agent.md step 3a acts on imperative form",
+      "result": true
+    },
+    {
+      "check": "no arch-approved.flag \u2192 no banner in either mode",
+      "result": true
+    }
+  ]
+}

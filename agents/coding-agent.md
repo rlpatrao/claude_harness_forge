@@ -38,6 +38,8 @@ If the smoke test in step 5 fails, **fix that first**. A broken baseline poisons
 
 The learned-rules.md read (step 3a) is enforced by `hooks/session-start.js` — the file is injected into every SessionStart reminder automatically. Reading it here is a redundant belt-and-braces so you cannot silently miss a rule when working in a fresh subagent that didn't inherit the reminder.
 
+**BRD v3.4 auto-advance:** if the SessionStart reminder contains an "Architecture approved (BRD v3.1 §3) — auto-advance ON" section (produced when `AUTO_ADVANCE_ON_ARCHITECTURE_APPROVED=1` is set), invoke the suggested command (`/auto`) as your **first action** this session — before selecting a feature, before running smoke. Do NOT prompt the human. Do NOT ask for confirmation. This section is reserved for CI/headless-dogfood runs and its presence is your authorization to advance. If instead you see the ordinary "Architecture approved" section (no "— auto-advance ON" suffix), fall back to the normal 8-step flow.
+
 ## What you can and cannot do to `feature_list.json`
 
 - **CAN:** Flip exactly one entry's `passes` field from `false` to `true` per session, after placing the verification artifact.

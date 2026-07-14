@@ -1,0 +1,24 @@
+{
+  "verified_at": "2026-07-14T00:00:00Z",
+  "harness_version": "v3.4",
+  "smoke_scripts": [
+    "scratchpad/smoke-v34.sh",
+    "scratchpad/smoke-v34-e2e.sh"
+  ],
+  "smoke_result": "13 in-session + 23 end-to-end = 36 checks passed, 0 failed",
+  "id": "v3.4-scaffold-headless-flags",
+  "checks": [
+    {
+      "check": "7 flags documented in commands/scaffold.md (--branch/--brd/--arch/--name/--type/--plugins/--yes)",
+      "result": true
+    },
+    {
+      "check": "Step -1 argument parser section added before Step 0",
+      "result": true
+    },
+    {
+      "check": "Q0 and Q1-Q3 updated to honor flags",
+      "result": true
+    }
+  ]
+}

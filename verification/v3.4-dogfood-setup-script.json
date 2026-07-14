@@ -1,0 +1,40 @@
+{
+  "verified_at": "2026-07-14T00:00:00Z",
+  "harness_version": "v3.4",
+  "smoke_scripts": [
+    "scratchpad/smoke-v34.sh",
+    "scratchpad/smoke-v34-e2e.sh"
+  ],
+  "smoke_result": "13 in-session + 23 end-to-end = 36 checks passed, 0 failed",
+  "id": "v3.4-dogfood-setup-script",
+  "checks": [
+    {
+      "check": "scripts/dogfood-setup.sh authored, +x, --help works",
+      "result": true
+    },
+    {
+      "check": "Setup exits 0 against salary-dashboard fixture",
+      "result": true
+    },
+    {
+      "check": "All 13 on-disk invariants present after setup (manifests, sentinels, IR, approved flag, scaffold copy, git)",
+      "result": true
+    },
+    {
+      "check": "Idempotent re-run preserves feature_list.json (does not clobber)",
+      "result": true
+    },
+    {
+      "check": "SessionStart WITHOUT env \u2192 suggested phrasing",
+      "result": true
+    },
+    {
+      "check": "SessionStart WITH AUTO_ADVANCE=1 \u2192 imperative form",
+      "result": true
+    },
+    {
+      "check": "rule-gate still fires against target's compiled-rules.json after setup",
+      "result": true
+    }
+  ]
+}

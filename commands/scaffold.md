@@ -1,15 +1,40 @@
 ---
 name: scaffold
-description: Initialize a new project with the Claude Harness Forge scaffold.
+description: Initialize a new project with the Claude Harness Forge scaffold. Interactive by default; supports non-interactive mode via CLI flags (BRD v3.4).
+argument-hint: "[--branch A|B|C] [--brd <path>] [--arch <path>] [--name <name>] [--type saas|enterprise|api-only] [--plugins minimal|full|none]"
 ---
 
 # /scaffold — Project Initialization
 
-When the user runs this command, follow these steps exactly:
+When the user runs this command, follow these steps exactly.
+
+## Step -1 — Argument parsing (BRD v3.4 headless mode)
+
+Parse `$ARGUMENTS` before Step 0. Recognized flags:
+
+| Flag | Q equivalent | Values |
+|---|---|---|
+| `--branch A\|B\|C` | Q0 | A (Q&A), B (import both), C (BRD only) |
+| `--brd <path>` | Branch B/C BRD path | absolute or relative path to a `.md` file |
+| `--arch <path>` | Branch B architecture path | absolute or relative path to `.md`/`.dsl`/`.puml`/`.mmd` file |
+| `--name <name>` | Q1 project name | kebab-case string |
+| `--type saas\|enterprise\|api-only` | Q2 project type | matches calibration-profile keys |
+| `--plugins minimal\|full\|none` | Q3 plugin preset | minimal = utilities only, full = utilities + prompt for services, none = skip |
+| `--yes` | any subsequent Y/N confirmation | accept default (e.g. overwrite prompts in scaffold-import) |
+
+**Rule:** for every flag provided, skip the corresponding interactive question and use the flag value. For every question NOT covered by a flag, ask interactively as before. This preserves the interactive default; headless is opt-in per-question.
+
+**Fully-headless example:**
+
+```
+/scaffold --branch B --brd /path/to/BRD.md --arch /path/to/architecture.dsl --name salary-dashboard --type saas --plugins minimal --yes
+```
+
+That invocation asks zero questions.
 
 ## Step 0 — Requirements source (BRD v3.1 §2)
 
-**Ask first, before any other question:**
+**If `--branch` is set, skip this question and use it directly.** Otherwise ask:
 
 > "How are you providing requirements and architecture for this project?
 >
@@ -39,7 +64,14 @@ Proceed to Step 1 unchanged. Downstream `/brd` and `/architect` will run their f
 
 ## Step 1: Gather Project Info
 
-Ask the user these questions (one at a time):
+**Skip any question whose flag was provided in Step -1.** For each unflagged question, ask interactively (one at a time).
+
+Flag → question mapping:
+- `--name <name>` → Q1 (name); if provided AND Branch B was chosen, use the name for CLAUDE.md and skip prompting for a description. If the flag is absent, still ask "What are you building?" for the description.
+- `--type saas|enterprise|api-only` → Q2
+- `--plugins minimal|full|none` → Q3 (minimal ↔ option A, full ↔ option A + auto-select common integrations, none ↔ option C)
+
+Questions:
 
 1. "What are you building?" (brief description for CLAUDE.md)
 2. "What type of project is this?" (for UI standards and calibration):

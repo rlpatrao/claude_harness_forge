@@ -1,7 +1,7 @@
 {
   "$schema": "./scripts/harness-manifest-schema.json",
-  "version": "0.3.0",
-  "brd_ref": "v3.3 (TRACE)",
+  "version": "0.4.0",
+  "brd_ref": "v3.4 (headless dogfood)",
   "generated_at_note": "Hand-authored 2026-06-11; regenerate whenever a new agent/hook/skill/command lands. Run scripts/validate-harness-manifest.js after edits.",
   "components": [
     {
@@ -1035,6 +1035,66 @@
       "wired_at": "hooks/lib/log-rejection.js",
       "status": "active",
       "brd_ref": "v3.3 \u00a73.2"
+    },
+    {
+      "id": "scaffold-headless-flags",
+      "kind": "command",
+      "name": "scaffold headless flags (--branch/--brd/--arch/etc)",
+      "axis": "traceability",
+      "cadence": "planning",
+      "type": "computational",
+      "scope": "both",
+      "wired_at": "commands/scaffold.md",
+      "status": "active",
+      "brd_ref": "v3.4 \u00a7B.1"
+    },
+    {
+      "id": "architect-auto-approve",
+      "kind": "agent",
+      "name": "architect --auto-approve synthesis-mode bypass",
+      "axis": "architecture",
+      "cadence": "planning",
+      "type": "computational",
+      "scope": "both",
+      "wired_at": "agents/architect.md",
+      "status": "active",
+      "brd_ref": "v3.4 \u00a7B.2"
+    },
+    {
+      "id": "auto-advance-env-var",
+      "kind": "hook",
+      "name": "AUTO_ADVANCE_ON_ARCHITECTURE_APPROVED \u2014 SessionStart imperative",
+      "axis": "traceability",
+      "cadence": "session",
+      "type": "computational",
+      "scope": "scaffolded-project",
+      "wired_at": "hooks/session-start.js",
+      "status": "active",
+      "brd_ref": "v3.4 \u00a7B.3"
+    },
+    {
+      "id": "dogfood-fixture-salary-dashboard",
+      "kind": "doc",
+      "name": "salary-dashboard headless dogfood fixture (BRD + architecture.dsl)",
+      "axis": "traceability",
+      "cadence": "planning",
+      "type": "computational",
+      "scope": "forge",
+      "wired_at": "templates/dogfood-fixtures/salary-dashboard/BRD.md",
+      "status": "active",
+      "brd_ref": "v3.4 \u00a7A.1"
+    },
+    {
+      "id": "dogfood-setup-script",
+      "kind": "script",
+      "name": "dogfood-setup.sh \u2014 headless target seeding",
+      "axis": "traceability",
+      "cadence": "planning",
+      "type": "computational",
+      "scope": "forge",
+      "wired_at": "scripts/dogfood-setup.sh",
+      "status": "active",
+      "brd_ref": "v3.4 \u00a7A.2"
     }
   ],
   "gaps": [
