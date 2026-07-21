@@ -10,16 +10,28 @@ You describe what you want to build. The forge runs specialized agents through t
 
 One command starts it. Human approval gates the creative decisions (BRD, architecture, design). Everything after that — implementation, testing, verification, self-healing, rule acquisition — runs autonomously, bounded by the [`feature_list.json`](feature_list.json) contract.
 
+Two ways to start — pick one based on whether you already have a BRD and architecture doc.
+
 ```bash
-# Interactive — traditional path
+# INTERACTIVE — the forge interviews you
+git clone https://github.com/rlpatrao/claude_harness_forge.git ~/claude-harness-forge
+mkdir my-app && cd my-app
 claude --plugin-dir ~/claude-harness-forge
 > /scaffold
-
-# OR headless (BRD v3.4) — bring your own BRD + architecture
-./scripts/dogfood-setup.sh --target ./my-app --fixture salary-dashboard
-cd ./my-app
-AUTO_ADVANCE_ON_ARCHITECTURE_APPROVED=1 claude
 ```
+
+```bash
+# HEADLESS — bring your own BRD + Architecture
+git clone https://github.com/rlpatrao/claude_harness_forge.git ~/claude-harness-forge
+mkdir my-app && cd my-app
+cp /path/to/your/BRD.md ./BRD.md                      # or requirements.md / prd.md
+cp /path/to/your/architecture.md ./architecture.md    # or .dsl / .puml / .mmd (AAC)
+claude --plugin-dir ~/claude-harness-forge
+> /scaffold --branch B --brd BRD.md --arch architecture.md \
+            --name my-app --type saas --plugins minimal --yes
+```
+
+The headless invocation skips every interactive question — Q0 (source), Q1-Q3 (project info), the 11-round architect interrogation (replaced by synthesis over your imported architecture), and the architect review loop (auto-approved). It ends with `state/architecture-approved.flag` written and the project ready for `/auto`.
 
 ---
 
@@ -237,18 +249,16 @@ coding-agent:
 
 ## Dogfooding
 
-The forge tests itself. The v3.4 headless flow eliminates all human touchpoints:
+The forge tests itself. For forge development, `scripts/dogfood-setup.sh` seeds a target from a bundled fixture (with `AUTO_ADVANCE_ON_ARCHITECTURE_APPROVED=1` for CI runs):
 
 ```bash
-# Seed a target from a fixture (v3.4)
+# Forge-developer only — seeds a test target from a bundled fixture
 ./scripts/dogfood-setup.sh --target ./test-projects/salary-dashboard --fixture salary-dashboard
 cd ./test-projects/salary-dashboard
-
-# Drive it autonomously
 AUTO_ADVANCE_ON_ARCHITECTURE_APPROVED=1 claude
 ```
 
-Fixtures under [`templates/dogfood-fixtures/`](templates/dogfood-fixtures/) — currently the `salary-dashboard` fixture (public H1B/OFLC salary explorer with a chatbot) with a full 5-dimension BRD + Structurizr DSL architecture. Add new fixtures by dropping a directory with `BRD.md` + `architecture.{md,dsl,puml,mmd}`.
+**End users don't need this** — use Path 2 in the Quick Start above. The dogfood-setup script is a shortcut for the forge team to test the forge itself against bundled fixtures under [`templates/dogfood-fixtures/`](templates/dogfood-fixtures/) (currently `salary-dashboard`, a public H1B/OFLC salary explorer with a chatbot, complete with 5-dim BRD + Structurizr DSL architecture).
 
 Historical dogfood targets ([`test-projects/`](test-projects/), gitignored):
 
@@ -293,39 +303,89 @@ Both are mined from what the system already rejected. Both go through the same l
 
 ## Quick Start
 
-### Interactive path (traditional)
+Pick one of two paths based on whether you already have written requirements + architecture.
+
+### Path 1 — Interactive (forge interviews you)
+
+Use this when: you're starting from a rough idea and want the forge to draw out requirements and stack decisions through Socratic dialogue.
 
 ```bash
-# 1. Clone the forge
+# 1. Clone the forge (one-time, anywhere on your filesystem)
 git clone https://github.com/rlpatrao/claude_harness_forge.git ~/claude-harness-forge
 
-# 2. Create your project
+# 2. Create your project folder
 mkdir my-app && cd my-app
 
-# 3. Load as plugin and scaffold
+# 3. Start Claude Code with the forge loaded as a plugin
 claude --plugin-dir ~/claude-harness-forge
+
+# 4. Scaffold — the forge asks questions
 > /scaffold
 
-# 4. Exit and restart (project is now self-contained)
-> /exit
-claude
+# 5. Answer the prompts:
+#    - Q0: A (interactive Q&A)
+#    - Q1: "What are you building?" — describe the app
+#    - Q2: Consumer SaaS / Enterprise / API-only
+#    - Q3: Plugin preset (minimal is fine)
+#    Then /brd runs (5-dimension interview) and /architect runs
+#    (up to 11 rounds of stack decisions). Human approves each step.
 
-# 5. Run the full pipeline
+# 6. Build
 > /build
 ```
 
-### Headless path (v3.4)
+**Expected duration** for a first-time scaffold with interviews: 20-60 minutes depending on how much detail you provide. All decisions are captured under `specs/brd/` and `specs/design/` for review.
+
+### Path 2 — Headless (you bring BRD + Architecture)
+
+Use this when: you already have a written BRD and an architecture document, and you want the forge to just consume them and start building.
 
 ```bash
-# 1. Author or reuse a fixture at templates/dogfood-fixtures/<name>/
-#    (need: BRD.md + architecture.{md,dsl,puml,mmd})
+# 1. Clone the forge (one-time, anywhere on your filesystem)
+git clone https://github.com/rlpatrao/claude_harness_forge.git ~/claude-harness-forge
 
-# 2. Seed the target
-./scripts/dogfood-setup.sh --target ./my-app --fixture <name>
+# 2. Create your project folder
+mkdir my-app && cd my-app
 
-# 3. Drive it — the coding-agent sees the auto-advance banner
-cd ./my-app
-AUTO_ADVANCE_ON_ARCHITECTURE_APPROVED=1 claude
+# 3. Copy YOUR BRD + Architecture into the project folder
+cp /path/to/your/BRD.md ./BRD.md
+cp /path/to/your/architecture.md ./architecture.md
+#    (Architecture can also be Structurizr DSL, PlantUML C4, or Mermaid C4:
+#     cp /path/to/architecture.dsl ./architecture.dsl
+#     cp /path/to/architecture.puml ./architecture.puml
+#     cp /path/to/architecture.mmd ./architecture.mmd
+#     The forge auto-detects the format via file extension.)
+
+# 4. Start Claude Code with the forge loaded as a plugin
+claude --plugin-dir ~/claude-harness-forge
+
+# 5. Scaffold with flags — no interactive questions asked
+> /scaffold --branch B --brd BRD.md --arch architecture.md \
+            --name my-app --type saas --plugins minimal --yes
+
+# 6. Build
+> /build
+```
+
+**What Branch B does:** stages `BRD.md` into `specs/brd/app_spec.md`, parses `architecture.*` (with AAC parsers if applicable) into `specs/design/architecture.md` + `specs/design/architecture-ir.json`, writes `.imported` sentinels, runs the architect in **synthesis mode** (no 11-round interview — it derives design artifacts from your imported architecture), and produces `state/architecture-approved.flag`. Zero interactive prompts.
+
+**Flag reference:**
+
+| Flag | Purpose | Values |
+|---|---|---|
+| `--branch A\|B\|C` | Requirements source | A = interactive, B = both docs imported, C = BRD only (still interviews for architecture) |
+| `--brd <path>` | Path to BRD file | `.md` — relative to project folder |
+| `--arch <path>` | Path to Architecture file | `.md`, `.dsl`, `.puml`, or `.mmd` |
+| `--name <name>` | Project name | kebab-case |
+| `--type saas\|enterprise\|api-only` | Project type (drives UI standards) | one of three |
+| `--plugins minimal\|full\|none` | Plugin preset | minimal recommended |
+| `--yes` | Accept confirmations | for overwrite prompts, etc. |
+
+**Hybrid variant** — you have a BRD but no architecture yet:
+
+```bash
+> /scaffold --branch C --brd BRD.md --name my-app --type saas --plugins minimal --yes
+# /brd skips (BRD imported); /architect runs the 11-round interview
 ```
 
 Or headless via scaffold flags without a fixture:
