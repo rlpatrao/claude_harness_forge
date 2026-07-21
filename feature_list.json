@@ -1325,5 +1325,19 @@
       "v3.4-scaffold-headless-flags"
     ],
     "verification_artifact_path": "verification/v3.4-dogfood-setup-script.json"
+  },
+  {
+    "id": "cleanup-freeze",
+    "category": "policy",
+    "description": "FREEZE: no new feature_list entries, no new skills/hooks/agents/commands, no external-harness borrows until 10 features are passes:true on a real project. Only exception is retiring code (deletions always allowed). Directional imbalance identified in post-v3.4 review: 32/81 entries are verification machinery, 0/81 have ever passed. The forge has been building referees for a game not yet played.",
+    "steps": [
+      "This entry itself is a policy marker \u2014 do not add any new feature_list entries until 10 real passes:true land on a project like test-projects/salary-dashboard.",
+      "Phase 1 unlocks progress: get dogfood-mvp-shell to passes:true via a real Playwright E2E run in test-projects/salary-dashboard.",
+      "This entry flips to passes:true only after 10 other entries have flipped to passes:true first."
+    ],
+    "passes": false,
+    "source_section": "Post-v3.4 lean review 2026-07-21",
+    "depends_on": [],
+    "verification_artifact_path": "verification/cleanup-freeze.json"
   }
 ]
