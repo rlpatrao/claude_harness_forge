@@ -1,0 +1,6 @@
+{
+  "minTokens": 50,
+  "absoluteThreshold": 10,
+  "reporters": ["json"],
+  "ignore": ["**/node_modules/**", "**/.next/**", "**/mutants/**", "**/__pycache__/**", "**/*.test.*", "**/tests/**", "**/__fixtures__/**"]
+}
