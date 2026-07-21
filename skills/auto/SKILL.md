@@ -477,6 +477,9 @@ FAIL if any critical vulnerability found. Fix instructions go to generator via s
 
 Execute these steps in order:
 
+0. **Write the integrity sidecar (before staging/flip):** for each verified feature, hash its artifact(s) so the E2E gate can detect post-hoc tampering:
+   `node -e "require('.claude/hooks/lib/artifact-integrity.js').writeSidecar(process.cwd(),'{id}',['verification/{id}.json','verification/{id}.png'])"`
+   Then `git add verification/{id}.json verification/{id}.png verification/{id}.sha256.json`. The `hooks/e2e-gate.js` hook BLOCKS the `passes` flip unless the committed/staged sidecar matches the artifacts.
 1. **Commit:** `git add -A && git commit -m "feat: implement group {group}"`
 2. **Update features.json:** Set `passes: true` for all features in this group's sprint contract.
 3. **Update claude-progress.txt:** Append a new session block (see SECTION 10 for format).
@@ -511,6 +514,7 @@ Do not immediately revert. Attempt targeted self-healing first.
 | Setup fail | Test fixture creation failed (API returned error during setup) | Fix the endpoint or seed script that the setup action calls |
 | Behavioral fail | 200 response with error body, empty list when data expected | Fix the feature logic — the endpoint is reachable but not functioning correctly |
 | Architecture drift | Schema mismatch / missing file | Read the schema, fix the response or create the file |
+| Duplication | jscpd % over baseline/cap (runs inside the lint-drift/entropy gate, not a numbered gate) | Extract the duplicated block into a shared helper; re-run `node .claude/scripts/jscpd-gate.js` |
 | UI standards fail | Conformance check failed | Apply the fix instruction from ui-standards-reviewer (e.g., change color to #767676, add min-height: 44px) |
 
 3. **Spawn generator** to apply the targeted fix. The generator prompt must include:

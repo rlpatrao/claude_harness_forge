@@ -66,23 +66,15 @@ jobs:
       - name: Functional smoke tests
         run: bash scripts/test-hooks.sh
 
-      # ----- BRD invariants -----
-      - name: BRD docs invariants
-        run: |
-          test -f brd/v3.0.md && echo "OK brd/v3.0.md present"
-          test -f brd/v3.0-implementation-plan.md && echo "OK plan present"
-          test -f harness-progress.txt && echo "OK progress log present"
-          test -f .claude-plugin/plugin.json && echo "OK plugin manifest"
-          jq -e '.mcpServers.playwright.required == true' .claude-plugin/plugin.json > /dev/null
-          echo "OK Playwright MCP declared required (BRD §3.8)"
+      # ----- Declarative invariants (config/invariants.yaml) -----
+      # Replaces the former ad-hoc "BRD docs invariants" + "settings.json hook
+      # registration" bash steps. Edit config/invariants.yaml to add checks.
+      - name: Invariants
+        run: node scripts/check-invariants.js
 
-      # ----- Settings.json hook registration invariants -----
-      - name: settings.json hook registration
-        run: |
-          for evt in SessionStart PreToolUse PostToolUse PreCompact Stop TaskCompleted; do
-            jq -e ".hooks.$evt | length > 0" settings.json > /dev/null || { echo "MISSING: $evt"; exit 1; }
-            echo "OK $evt registered"
-          done
+      - name: Duplication (jscpd, dogfood self-scan)
+        continue-on-error: true
+        run: node scripts/jscpd-gate.js --paths scripts hooks
 
   agentshield:
     name: AgentShield (security scan of harness config)

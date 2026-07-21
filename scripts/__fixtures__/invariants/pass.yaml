@@ -1,0 +1,20 @@
+# All satisfiable relative to the forge root.
+- id: fixture-file-present
+  description: fixture target file exists
+  type: file_exists
+  path: scripts/__fixtures__/invariants/present.txt
+  severity: required
+
+- id: readme-has-forge
+  description: README mentions the forge
+  type: grep_match
+  file: scripts/__fixtures__/invariants/present.txt
+  pattern: fixture target
+  severity: required
+
+- id: scripts-present
+  description: at least 3 scripts exist
+  type: glob_min_count
+  glob: scripts/*.js
+  min: 3
+  severity: advisory

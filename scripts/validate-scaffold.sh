@@ -188,6 +188,20 @@ if [ "$FORGE_MODE" = true ]; then
   check_file "scripts/validate-gan-loop.sh"
   check_file "scripts/validate-evals.sh"
 
+  echo ""
+  echo "--- Quality Gates (jscpd / integrity / invariants) ---"
+  check_file "scripts/check-invariants.js"
+  check_file "scripts/jscpd-gate.js"
+  check_file "scripts/verify-artifacts.js"
+  check_file "hooks/lib/artifact-integrity.js"
+  check_file "config/invariants.yaml"
+  check_file "commands/invariants.md"
+  check_file "templates/.jscpd.json.template"
+  check_file "state/duplication-baseline.txt"
+  check_file "scripts/test-quality-gates.sh"
+  if grep -q "verifySidecar" hooks/e2e-gate.js; then pass "e2e-gate.js enforces artifact integrity"; else fail "e2e-gate.js missing verifySidecar integrity check"; fi
+  if grep -q "check-invariants.js" .github/workflows/ci.yml; then pass "CI runs check-invariants"; else fail "CI missing check-invariants step"; fi
+
 else
   # ===== SCAFFOLDED PROJECT VALIDATION =====
 

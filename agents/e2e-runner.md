@@ -29,7 +29,7 @@ You execute browser-automation verification for a single `feature_list.json` ent
    - **DOM assertion JSON** for behavior-level features → `verification/<id>.json`.
    - **API/state JSON** for backend features → `verification/<id>.json`.
 5. Verify the artifact is non-empty (the gate hook rejects empty files).
-6. Return the artifact path to the orchestrator. The coding-agent stages it and performs the flip.
+6. Return the artifact path to the orchestrator. The coding-agent then writes the sha256 integrity sidecar (`verification/<id>.sha256.json` via `hooks/lib/artifact-integrity.js` `writeSidecar`), stages both artifact and sidecar, and performs the flip. `hooks/e2e-gate.js` BLOCKS the flip if the artifact does not match its committed sidecar (tamper-evidence).
 
 ## Hard rules
 

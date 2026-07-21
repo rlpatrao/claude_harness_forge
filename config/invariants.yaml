@@ -1,0 +1,105 @@
+# Forge self-invariants. Checked in CI (scripts/check-invariants.js) and via /invariants.
+# Replaces the ad-hoc "BRD docs invariants" + "settings.json hook registration" bash in ci.yml.
+
+# ----- BRD / spec docs -----
+- id: brd-v30-present
+  description: Canonical BRD v3.0 spec exists
+  type: file_exists
+  path: brd/v3.0.md
+  severity: required
+
+- id: brd-v30-plan-present
+  description: BRD v3.0 implementation plan exists
+  type: file_exists
+  path: brd/v3.0-implementation-plan.md
+  severity: required
+
+- id: brd-v34-present
+  description: BRD v3.4 headless-dogfood spec exists
+  type: file_exists
+  path: brd/v3.4-headless-dogfood.md
+  severity: required
+
+- id: harness-progress-present
+  description: cross-session progress log exists
+  type: file_exists
+  path: harness-progress.txt
+  severity: required
+
+- id: workflows-config-present
+  description: per-workflow LLM routing config exists
+  type: file_exists
+  path: config/workflows.yaml
+  severity: required
+
+# ----- plugin manifest -----
+- id: plugin-manifest-present
+  description: plugin manifest exists
+  type: file_exists
+  path: .claude-plugin/plugin.json
+  severity: required
+
+- id: playwright-mcp-required
+  description: Playwright MCP declared required (BRD 3.8)
+  type: json_path_equals
+  file: .claude-plugin/plugin.json
+  path: mcpServers.playwright.required
+  equals: true
+  severity: required
+
+# ----- settings.json hook registration (one representative hook per event) -----
+- id: session-start-registered
+  description: session-start hook registered on SessionStart
+  type: hook_registered
+  event: SessionStart
+  hook: session-start.js
+  severity: required
+
+- id: e2e-gate-registered
+  description: e2e-gate hook registered on PreToolUse
+  type: hook_registered
+  event: PreToolUse
+  hook: e2e-gate.js
+  severity: required
+
+- id: feature-edit-guard-registered
+  description: feature-edit-guard hook registered on PreToolUse
+  type: hook_registered
+  event: PreToolUse
+  hook: feature-edit-guard.js
+  severity: required
+
+- id: check-architecture-registered
+  description: check-architecture hook registered on PostToolUse
+  type: hook_registered
+  event: PostToolUse
+  hook: check-architecture.js
+  severity: required
+
+- id: compaction-stage-registered
+  description: compaction-stage hook registered on PreCompact
+  type: hook_registered
+  event: PreCompact
+  hook: compaction-stage.js
+  severity: required
+
+- id: ralph-loop-registered
+  description: ralph-loop hook registered on Stop
+  type: hook_registered
+  event: Stop
+  hook: ralph-loop.js
+  severity: required
+
+- id: task-completed-registered
+  description: task-completed hook registered on TaskCompleted
+  type: hook_registered
+  event: TaskCompleted
+  hook: task-completed.js
+  severity: required
+
+# ----- self-guard: the quality-gate scripts exist -----
+- id: check-invariants-self
+  description: the invariants checker itself exists (self-guard)
+  type: file_exists
+  path: scripts/check-invariants.js
+  severity: required

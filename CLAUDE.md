@@ -12,7 +12,7 @@ GAN-inspired autonomous SDLC scaffold with browser-based verification, Karpathy 
 - `agents/` — **19 agents** (11 v2.0 + 8 v3.0: initializer, coding-agent, planner, critic, compactor, spec-auditor, e2e-runner, doc-updater)
 - `skills/` — **47 skills** (41 v2.0 + 6 v3.0: extended-react, spec-backprop, instinct-extraction, tree-sessions, iterative-retrieval, cross-provider-handoff) — reference skills use `-patterns` suffix
 - `hooks/` — **27 Node.js enforcement hooks** (19 v2.0 + 8 v3.0: session-start, feature-edit-guard, e2e-gate, ralph-loop, compaction-stage, budget-footer, instinct-extractor, experiment-logger)
-- `commands/` — **23 slash commands** (8 v2.0 + 15 v3.0: plan, feature-add, feature-status, tree, fork, branch, export, instinct-status, evolve, instinct-export, instinct-import, spec-audit, model, cost, recipe-run)
+- `commands/` — **24 slash commands** (8 v2.0 + 15 v3.0: plan, feature-add, feature-status, tree, fork, branch, export, instinct-status, evolve, instinct-export, instinct-import, spec-audit, model, cost, recipe-run + v3.4: invariants)
 - `config/` — `workflows.yaml` (BRD §3.4 per-workflow LLM routing, 13 workflows)
 - `recipes/` — YAML recipes (BRD §6.5) + example
 - `evals/` — Code reviewer regression tests
@@ -102,6 +102,7 @@ These are *not* additional ratchet gates; they are runtime infrastructure that t
 | Tree sessions | §4.5 | `skills/tree-sessions/`, `commands/{tree,fork,branch,export}.md`, `sessions/<id>.json`. |
 | YAML recipes | §6.5 | `recipes/<name>.yaml` deterministic workflows; `/recipe-run`. |
 | **TRACE compiled rules** | **v3.3** | `state/compiled-rules.json` + `hooks/rule-gate.js` (PreToolUse pattern-block) + `hooks/correction-detector.js` (Stop, mines from `state/rejections.jsonl`) + `hooks/lib/log-rejection.js` (producer helper) + `scripts/rule-compile.js` + `/rules` + `skills/compiled-rules/SKILL.md`. Two-store model: human fast-lane (`state/learned-rules.md`) advisory; compiled rules with pattern check hard-block pre-tool, semantic check Critic-enforced. Lifecycle: candidate → tentative(warn) → confirmed(block). |
+| **Quality gates** | **v3.4** | Three stdlib-only checks. (1) **jscpd duplication** — `scripts/jscpd-gate.js` ratchets `state/duplication-baseline.txt` (cap 10%), folded into the `lint-drift`/entropy gate (not a numbered gate), graceful `NOT_RUN`; `templates/.jscpd.json.template`. (2) **sha256 artifact integrity** — `hooks/lib/artifact-integrity.js` writes `verification/<id>.sha256.json` sidecars; `hooks/e2e-gate.js` verifies hashes before a `passes` flip (tamper-evident); `scripts/verify-artifacts.js`. (3) **invariants parser** — `config/invariants.yaml` + `scripts/check-invariants.js` (hand-parsed YAML, 7 check types incl. `artifact_integrity`) + `/invariants`, replacing the ad-hoc CI invariant bash. |
 
 ## Key Design Decisions
 

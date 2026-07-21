@@ -1,0 +1,5 @@
+- id: missing-required-file
+  description: a required file that does not exist
+  type: file_exists
+  path: scripts/__fixtures__/invariants/DOES_NOT_EXIST.txt
+  severity: required
