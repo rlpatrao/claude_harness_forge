@@ -1,0 +1,5 @@
+- id: missing-advisory-file
+  description: an advisory file that does not exist
+  type: file_exists
+  path: scripts/__fixtures__/invariants/DOES_NOT_EXIST.txt
+  severity: advisory
