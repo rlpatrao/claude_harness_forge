@@ -2,6 +2,10 @@
 
 'use strict';
 
+
+// Cleanup-plan Phase 2 (2026-07-21): fire-log instrumentation.
+try { require('./lib/fire-log.js')('e2e-gate'); } catch (_) {}
+
 // PreToolUse hook (BRD §3.8). When an Edit or Write would flip a
 // feature_list.json entry's passes:false → true, require that the
 // entry's verification_artifact_path exists in the working tree AND is

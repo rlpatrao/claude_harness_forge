@@ -2,6 +2,10 @@
 
 'use strict';
 
+
+// Cleanup-plan Phase 2 (2026-07-21): fire-log instrumentation.
+try { require('./lib/fire-log.js')('instinct-extractor'); } catch (_) {}
+
 // Stop-event hook (BRD §4.4). After Ralph Loop has decided whether to
 // intercept, this hook mines the just-completed session for repeating
 // {tool sequence → outcome} tuples and promotes high-scoring ones to

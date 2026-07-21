@@ -2,6 +2,10 @@
 
 'use strict';
 
+
+// Cleanup-plan Phase 2 (2026-07-21): fire-log instrumentation.
+try { require('./lib/fire-log.js')('session-start'); } catch (_) {}
+
 // SessionStart hook. Emits a system reminder containing the BRD §3.1
 // 8-step coding-agent startup sequence, the current feature_list.json
 // pass/fail counts, the next failing feature with deps satisfied, the

@@ -2,6 +2,10 @@
 
 'use strict';
 
+
+// Cleanup-plan Phase 2 (2026-07-21): fire-log instrumentation.
+try { require('./lib/fire-log.js')('lint-on-save'); } catch (_) {}
+
 const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');

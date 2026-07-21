@@ -2,6 +2,10 @@
 
 'use strict';
 
+
+// Cleanup-plan Phase 2 (2026-07-21): fire-log instrumentation.
+try { require('./lib/fire-log.js')('reminder-injector'); } catch (_) {}
+
 // PreToolUse hook (BRD §4.2). Inspects the tool name + arguments and
 // injects a targeted reminder snippet from prompts/reminders/ when a
 // decision-point trigger fires. The reminder rides as

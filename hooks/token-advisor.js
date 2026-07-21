@@ -2,6 +2,10 @@
 
 'use strict';
 
+
+// Cleanup-plan Phase 2 (2026-07-21): fire-log instrumentation.
+try { require('./lib/fire-log.js')('token-advisor'); } catch (_) {}
+
 // PreToolUse(Read|Bash|Glob|Grep) advisory hook (BRD v3.1 §4, v3.1.6).
 // Warns the agent — via additionalContext in the hook result — when a
 // Read/Bash/Glob/Grep call looks like avoidable broad exploration that

@@ -2,6 +2,10 @@
 
 'use strict';
 
+
+// Cleanup-plan Phase 2 (2026-07-21): fire-log instrumentation.
+try { require('./lib/fire-log.js')('ralph-loop'); } catch (_) {}
+
 // Stop-event hook (BRD §3.3). Intercepts agent exit when
 // feature_list.json has any passes:false entries. Emits a system
 // reminder asking the agent to continue; with low context budget,

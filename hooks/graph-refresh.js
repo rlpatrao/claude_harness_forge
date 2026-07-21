@@ -2,6 +2,10 @@
 
 'use strict';
 
+
+// Cleanup-plan Phase 2 (2026-07-21): fire-log instrumentation.
+try { require('./lib/fire-log.js')('graph-refresh'); } catch (_) {}
+
 // Stop-event hook (BRD v3.1 §4, v3.1.9). Drains state/dirty-files.jsonl
 // and calls scripts/build-code-graph.js --files <deduped list> to
 // re-index only what changed since the last Stop. Truncates the ledger

@@ -2,6 +2,10 @@
 
 'use strict';
 
+
+// Cleanup-plan Phase 2 (2026-07-21): fire-log instrumentation.
+try { require('./lib/fire-log.js')('pre-bash-gate'); } catch (_) {}
+
 // PreToolUse(Bash) hook (BRD v3.1 §4, v3.1.5). Extracts *write targets*
 // from a bash command line — file redirections (>, >>), tee, sed -i,
 // dd of=, cp/mv destinations — and re-applies the same scope + secret

@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 'use strict';
 
+
+// Cleanup-plan Phase 2 (2026-07-21): fire-log instrumentation.
+try { require('./lib/fire-log.js')('scope-directory'); } catch (_) {}
+
 const fs = require('fs');
 const path = require('path');
 

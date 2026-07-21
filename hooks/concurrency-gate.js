@@ -2,6 +2,10 @@
 
 'use strict';
 
+
+// Cleanup-plan Phase 2 (2026-07-21): fire-log instrumentation.
+try { require('./lib/fire-log.js')('concurrency-gate'); } catch (_) {}
+
 // PreToolUse(Task|Agent) and SubagentStop hook (BRD v3.1 §4, v3.1.5).
 // Caps the number of concurrent subagent invocations to prevent
 // runaway fan-out on parallel `generator` teammate spawns or

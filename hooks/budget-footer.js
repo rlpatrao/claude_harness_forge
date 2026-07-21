@@ -2,6 +2,10 @@
 
 'use strict';
 
+
+// Cleanup-plan Phase 2 (2026-07-21): fire-log instrumentation.
+try { require('./lib/fire-log.js')('budget-footer'); } catch (_) {}
+
 // PostToolUse hook (BRD §3.7). Appends a budget-regime footer to every
 // tool result so the agent has a per-call signal of context budget
 // status. Pattern from Stripe Minions and Google BATS research.

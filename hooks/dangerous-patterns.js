@@ -2,6 +2,10 @@
 
 'use strict';
 
+
+// Cleanup-plan Phase 2 (2026-07-21): fire-log instrumentation.
+try { require('./lib/fire-log.js')('dangerous-patterns'); } catch (_) {}
+
 // PreToolUse hook — BRD §4.1 Layer 4 (tool-level validation). Blocks
 // known-dangerous patterns at the tool layer regardless of permission
 // classifier (Layer 3). Layer 5 (existing 19 hooks) handles the rest.

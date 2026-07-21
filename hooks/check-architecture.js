@@ -2,6 +2,10 @@
 
 'use strict';
 
+
+// Cleanup-plan Phase 2 (2026-07-21): fire-log instrumentation.
+try { require('./lib/fire-log.js')('check-architecture'); } catch (_) {}
+
 const fs = require('fs');
 const path = require('path');
 

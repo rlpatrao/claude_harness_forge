@@ -2,6 +2,10 @@
 
 'use strict';
 
+
+// Cleanup-plan Phase 2 (2026-07-21): fire-log instrumentation.
+try { require('./lib/fire-log.js')('compaction-stage'); } catch (_) {}
+
 // Pre-LLM-call compaction hook (BRD §4.3). Reads the SDK's PreCompact
 // event input, decides which stage applies, and emits a directive for
 // the SDK to:

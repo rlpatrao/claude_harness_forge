@@ -1,4 +1,8 @@
 #!/usr/bin/env node
+
+// Cleanup-plan Phase 2 (2026-07-21): fire-log instrumentation.
+try { require('./lib/fire-log.js')('protect-pdfs'); } catch (_) {}
+
 /**
  * PostToolUse hook: Block writes to sample PDFs in docs/.
  * Cross-platform (Windows, macOS, Linux).

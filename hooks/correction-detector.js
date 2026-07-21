@@ -2,6 +2,10 @@
 
 'use strict';
 
+
+// Cleanup-plan Phase 2 (2026-07-21): fire-log instrumentation.
+try { require('./lib/fire-log.js')('correction-detector'); } catch (_) {}
+
 // Stop-event hook (BRD v3.3 §3.3). Runs AFTER instinct-extractor.js
 // in the same curation pass. Reads state/rejections.jsonl (produced
 // by Critic BLOCK verdicts, e2e-gate rejections, feature-edit-guard

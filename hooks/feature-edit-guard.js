@@ -2,6 +2,10 @@
 
 'use strict';
 
+
+// Cleanup-plan Phase 2 (2026-07-21): fire-log instrumentation.
+try { require('./lib/fire-log.js')('feature-edit-guard'); } catch (_) {}
+
 // PreToolUse hook on Edit | Write. Enforces BRD §3.2: feature_list.json
 // entries are append-only via /feature-add; only the `passes` field may
 // flip false → true, and only one entry per edit. Initial seeding

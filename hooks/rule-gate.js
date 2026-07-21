@@ -2,6 +2,10 @@
 
 'use strict';
 
+
+// Cleanup-plan Phase 2 (2026-07-21): fire-log instrumentation.
+try { require('./lib/fire-log.js')('rule-gate'); } catch (_) {}
+
 // PreToolUse hook — the enforcement half of the TRACE compiled-rule
 // pipeline (BRD v3.3 §3.5). Loads state/compiled-rules.json and for
 // each rule where check.kind === "pattern" and applies_when matches

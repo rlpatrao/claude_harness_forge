@@ -2,6 +2,10 @@
 
 'use strict';
 
+
+// Cleanup-plan Phase 2 (2026-07-21): fire-log instrumentation.
+try { require('./lib/fire-log.js')('verify-on-save'); } catch (_) {}
+
 // PostToolUse(Edit|Write) hook (BRD v3.1 §4, v3.1.9). Appends the
 // edited file path to state/dirty-files.jsonl so that the Stop-event
 // graph-refresh hook can re-index only what changed.

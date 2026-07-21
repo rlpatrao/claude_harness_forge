@@ -2,6 +2,10 @@
 
 'use strict';
 
+
+// Cleanup-plan Phase 2 (2026-07-21): fire-log instrumentation.
+try { require('./lib/fire-log.js')('experiment-logger'); } catch (_) {}
+
 // PostToolUse hook (BRD §4.8). Fires after Bash invocations that
 // finish `scripts/validate-evals.sh`. Compares the latest eval
 // snapshot in `state/eval-scores.json` against the previous one,
