@@ -59,17 +59,23 @@ print(json.dumps({
                 || fail "feature-edit-guard rejected a valid passes flip" "rc=$rc"
 
 # --- 3. e2e-gate: blocks passes flip with no verification artifact ---
+# Self-contained fixture (decoupled from the evolving real feature_list.json).
+e2e_tmp=$(mktemp -d)
+cat > "$e2e_tmp/feature_list.json" <<'JSON'
+[ { "id": "tmp-artifactless", "passes": false, "source_section": "TEST", "steps": [], "depends_on": [], "verification_artifact_path": "verification/tmp-artifactless.json" } ]
+JSON
 out=$(python3 -c "
 import json
 print(json.dumps({
   'tool_name': 'Edit',
   'tool_input': {
-    'file_path': 'feature_list.json',
-    'old_string': '    \"passes\": false,\n    \"source_section\": \"BRD §3.3\"',
-    'new_string': '    \"passes\": true,\n    \"source_section\": \"BRD §3.3\"',
+    'file_path': '$e2e_tmp/feature_list.json',
+    'old_string': '\"passes\": false',
+    'new_string': '\"passes\": true',
   }
 }))" | node hooks/e2e-gate.js 2>&1)
 rc=$?
+rm -rf "$e2e_tmp"
 if [[ $rc -eq 2 ]] && [[ "$out" == *"artifact file does not exist"* ]]; then
   ok "e2e-gate blocks passes-flip without artifact (exit 2)"
 else
