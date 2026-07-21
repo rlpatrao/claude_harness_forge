@@ -168,16 +168,19 @@ if [ "$FORGE_MODE" = true ]; then
   check_file "learnings/failure-patterns/common-failures.md"
   check_file "learnings/integration-notes/_template.md"
 
-  # --- 10. Agent model_preference ---
+  # --- 10. Agent model binding ---
+  # v2.0 agents declare `model_preference:`; v3.0 agents declare `model:`
+  # (a literal tier or a `{{model:<workflow>}}` placeholder resolved from
+  # config/workflows.yaml). Accept either — both bind the agent to a model.
   echo ""
-  echo "--- Agent Model Preferences ---"
+  echo "--- Agent Model Bindings ---"
   for agent in agents/*.md; do
     name=$(basename "$agent")
-    if grep -q "model_preference:" "$agent" 2>/dev/null; then
-      tier=$(grep "model_preference:" "$agent" | head -1 | awk '{print $2}')
-      pass "$name: model_preference=$tier"
+    if grep -qE "^(model|model_preference):" "$agent" 2>/dev/null; then
+      tier=$(grep -E "^(model|model_preference):" "$agent" | head -1 | awk '{print $2}')
+      pass "$name: model=$tier"
     else
-      fail "$name: missing model_preference"
+      fail "$name: missing model/model_preference"
     fi
   done
 
