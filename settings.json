@@ -21,7 +21,7 @@
       {
         "matcher": "",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/session-start.js" }
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-start.js\"" }
         ]
       }
     ],
@@ -29,34 +29,34 @@
       {
         "matcher": "Edit|Write",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/dangerous-patterns.js" },
-          { "type": "command", "command": "node .claude/hooks/reminder-injector.js" },
-          { "type": "command", "command": "node .claude/hooks/e2e-gate.js" },
-          { "type": "command", "command": "node .claude/hooks/feature-edit-guard.js" },
-          { "type": "command", "command": "node .claude/hooks/rule-gate.js" }
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/dangerous-patterns.js\"" },
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/reminder-injector.js\"" },
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/e2e-gate.js\"" },
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/feature-edit-guard.js\"" },
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/rule-gate.js\"" }
         ]
       },
       {
         "matcher": "Read|Glob|Grep",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/token-advisor.js" }
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/token-advisor.js\"" }
         ]
       },
       {
         "matcher": "Bash",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/dangerous-patterns.js" },
-          { "type": "command", "command": "node .claude/hooks/reminder-injector.js" },
-          { "type": "command", "command": "node .claude/hooks/pre-bash-gate.js" },
-          { "type": "command", "command": "node .claude/hooks/token-advisor.js" },
-          { "type": "command", "command": "node .claude/hooks/rule-gate.js" }
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/dangerous-patterns.js\"" },
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/reminder-injector.js\"" },
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/pre-bash-gate.js\"" },
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/token-advisor.js\"" },
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/rule-gate.js\"" }
         ]
       },
       {
         "matcher": "Agent|Task",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/reminder-injector.js" },
-          { "type": "command", "command": "node .claude/hooks/concurrency-gate.js" }
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/reminder-injector.js\"" },
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/concurrency-gate.js\"" }
         ]
       }
     ],
@@ -64,46 +64,46 @@
       {
         "matcher": "Edit|Write",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/scope-directory.js" },
-          { "type": "command", "command": "node .claude/hooks/protect-env.js" },
-          { "type": "command", "command": "node .claude/hooks/detect-secrets.js" },
-          { "type": "command", "command": "node .claude/hooks/lint-on-save.js" },
-          { "type": "command", "command": "node .claude/hooks/typecheck.js" },
-          { "type": "command", "command": "node .claude/hooks/check-architecture.js" },
-          { "type": "command", "command": "node .claude/hooks/check-function-length.js" },
-          { "type": "command", "command": "node .claude/hooks/check-file-length.js" },
-          { "type": "command", "command": "node .claude/hooks/prompt-injection-detect.js" },
-          { "type": "command", "command": "node .claude/hooks/pii-scan.js" },
-          { "type": "command", "command": "node .claude/hooks/verify-on-save.js" }
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/scope-directory.js\"" },
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/protect-env.js\"" },
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/detect-secrets.js\"" },
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/lint-on-save.js\"" },
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/typecheck.js\"" },
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/check-architecture.js\"" },
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/check-function-length.js\"" },
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/check-file-length.js\"" },
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/prompt-injection-detect.js\"" },
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/pii-scan.js\"" },
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/verify-on-save.js\"" }
         ]
       },
       {
         "matcher": "Write",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/protect-pdfs.js" }
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/protect-pdfs.js\"" }
         ]
       },
       {
         "matcher": "Bash",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/pre-commit-gate.js" },
-          { "type": "command", "command": "node .claude/hooks/sprint-contract-gate.js" },
-          { "type": "command", "command": "node .claude/hooks/teammate-idle-check.js" },
-          { "type": "command", "command": "node .claude/hooks/network-egress.js" },
-          { "type": "command", "command": "node .claude/hooks/experiment-logger.js" }
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/pre-commit-gate.js\"" },
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/sprint-contract-gate.js\"" },
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/teammate-idle-check.js\"" },
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/network-egress.js\"" },
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/experiment-logger.js\"" }
         ]
       },
       {
         "matcher": "Agent",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/cost-tracker.js" },
-          { "type": "command", "command": "node .claude/hooks/token-budget.js" }
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/cost-tracker.js\"" },
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/token-budget.js\"" }
         ]
       },
       {
         "matcher": "",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/budget-footer.js" }
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/budget-footer.js\"" }
         ]
       }
     ],
@@ -111,7 +111,7 @@
       {
         "matcher": "",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/compaction-stage.js" }
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/compaction-stage.js\"" }
         ]
       }
     ],
@@ -119,8 +119,8 @@
       {
         "matcher": "",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/task-completed.js" },
-          { "type": "command", "command": "node .claude/hooks/findings-collector.js" }
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/task-completed.js\"" },
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/findings-collector.js\"" }
         ]
       }
     ],
@@ -128,10 +128,10 @@
       {
         "matcher": "",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/ralph-loop.js" },
-          { "type": "command", "command": "node .claude/hooks/instinct-extractor.js" },
-          { "type": "command", "command": "node .claude/hooks/correction-detector.js" },
-          { "type": "command", "command": "node .claude/hooks/graph-refresh.js" }
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/ralph-loop.js\"" },
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/instinct-extractor.js\"" },
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/correction-detector.js\"" },
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/graph-refresh.js\"" }
         ]
       }
     ],
@@ -139,7 +139,7 @@
       {
         "matcher": "",
         "hooks": [
-          { "type": "command", "command": "node .claude/hooks/concurrency-gate.js" }
+          { "type": "command", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/concurrency-gate.js\"" }
         ]
       }
     ]
