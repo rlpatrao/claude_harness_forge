@@ -477,6 +477,9 @@ FAIL if any critical vulnerability found. Fix instructions go to generator via s
 
 Execute these steps in order:
 
+0. **Write the integrity sidecar (before staging/flip):** for each verified feature, hash its artifact(s) so the E2E gate can detect post-hoc tampering:
+   `node -e "require('.claude/hooks/lib/artifact-integrity.js').writeSidecar(process.cwd(),'{id}',['verification/{id}.json','verification/{id}.png'])"`
+   Then `git add verification/{id}.json verification/{id}.png verification/{id}.sha256.json`. The `hooks/e2e-gate.js` hook BLOCKS the `passes` flip unless the committed/staged sidecar matches the artifacts.
 1. **Commit:** `git add -A && git commit -m "feat: implement group {group}"`
 2. **Update features.json:** Set `passes: true` for all features in this group's sprint contract.
 3. **Update claude-progress.txt:** Append a new session block (see SECTION 10 for format).

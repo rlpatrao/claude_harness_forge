@@ -31,6 +31,16 @@ try {
   catch (_) { logRejection = null; }
 }
 
+// sha256 artifact-integrity: verify the committed artifact matches its
+// sidecar of hashes before allowing a passes flip. Defensive require.
+let artifactIntegrity = null;
+try {
+  artifactIntegrity = require('./lib/artifact-integrity.js');
+} catch (_) {
+  try { artifactIntegrity = require(path.join(__dirname, 'lib', 'artifact-integrity.js')); }
+  catch (_) { artifactIntegrity = null; }
+}
+
 function block(featureId, artifactPath, reason) {
   process.stderr.write(`BLOCKED: passes flip on "${featureId}" rejected — ${reason}\n`);
   process.stderr.write(`Per BRD §3.8: a Playwright or Puppeteer MCP session must execute the feature's steps[] and commit the verification artifact to ${artifactPath} before the flip.\n`);
@@ -162,6 +172,23 @@ for (const entry of flipped) {
   if (stat.size === 0) {
     block(entry.id, artifactRel,
           `artifact at ${artifactRel} is empty — expected a screenshot, DOM assertion, or JSON proof-of-state`);
+  }
+
+  // sha256 integrity: the artifact must match its committed sidecar of
+  // hashes (verification/<id>.sha256.json). Closes the hole where an
+  // artifact is hand-edited after verification to fake a passing flip.
+  if (artifactIntegrity && artifactIntegrity.verifySidecar) {
+    const integ = artifactIntegrity.verifySidecar(projectDir, entry.id);
+    if (!integ.ok) {
+      const why = integ.missing.length
+        ? `missing integrity sidecar/file: ${integ.missing.join(', ')}`
+        : `artifact hash mismatch (modified after verification): ${integ.mismatches.join(', ')}`;
+      block(entry.id, artifactRel, why);
+    }
+    const scRel = artifactIntegrity.sidecarRel(entry.id);
+    if (!(isTrackedInGit(scRel) || isStagedInGit(scRel))) {
+      block(entry.id, scRel, `integrity sidecar ${scRel} is not committed/staged in git (run: git add ${scRel})`);
+    }
   }
 
   // BRD v3.2.2: check for 3-instance majority vote result.

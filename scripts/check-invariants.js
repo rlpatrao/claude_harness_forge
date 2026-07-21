@@ -112,6 +112,13 @@ function evaluateInvariant(inv, rootDir) {
           return pass();
         } catch (e) { return fail(`command failed: ${inv.cmd.join(' ')}`); }
       }
+      case 'artifact_integrity': {
+        let ai;
+        try { ai = require(path.join(rootDir, 'hooks', 'lib', 'artifact-integrity.js')); }
+        catch (e) { return fail('artifact-integrity lib not found'); }
+        const r = ai.verifySidecar(rootDir, inv.feature_id);
+        return r.ok ? pass() : fail(`integrity fail for ${inv.feature_id}: missing[${r.missing}] mismatch[${r.mismatches}]`);
+      }
       default:
         return fail(`unknown invariant type: ${inv.type}`);
     }
