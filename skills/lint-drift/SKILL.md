@@ -76,3 +76,16 @@ This skill scans for deviations from golden principles and generates targeted re
 - Don't flag pre-existing issues — only scan files changed since last scan
 - CLEANUP fixes must pass the full ratchet gate before merging
 - Never delete "unused" code without grepping for dynamic references
+
+## Duplication check (jscpd)
+
+Entropy control includes a copy-paste ratchet. Run:
+
+    node .claude/scripts/jscpd-gate.js
+
+It runs jscpd over the project's source dirs, compares the duplicated-line
+percentage against `state/duplication-baseline.txt` (never regress; absolute
+cap 10%), and ratchets the baseline down on improvement. If jscpd/npx is
+unavailable it exits 0 with `NOT_RUN` (never a false pass). On regression
+(exit 2), extract the duplicated block into a shared helper — do not
+suppress the finding.

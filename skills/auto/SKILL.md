@@ -514,6 +514,7 @@ Do not immediately revert. Attempt targeted self-healing first.
 | Setup fail | Test fixture creation failed (API returned error during setup) | Fix the endpoint or seed script that the setup action calls |
 | Behavioral fail | 200 response with error body, empty list when data expected | Fix the feature logic — the endpoint is reachable but not functioning correctly |
 | Architecture drift | Schema mismatch / missing file | Read the schema, fix the response or create the file |
+| Duplication | jscpd % over baseline/cap (runs inside the lint-drift/entropy gate, not a numbered gate) | Extract the duplicated block into a shared helper; re-run `node .claude/scripts/jscpd-gate.js` |
 | UI standards fail | Conformance check failed | Apply the fix instruction from ui-standards-reviewer (e.g., change color to #767676, add min-height: 44px) |
 
 3. **Spawn generator** to apply the targeted fix. The generator prompt must include:

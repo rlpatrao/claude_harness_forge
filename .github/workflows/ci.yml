@@ -72,6 +72,10 @@ jobs:
       - name: Invariants
         run: node scripts/check-invariants.js
 
+      - name: Duplication (jscpd, dogfood self-scan)
+        continue-on-error: true
+        run: node scripts/jscpd-gate.js --paths scripts hooks
+
   agentshield:
     name: AgentShield (security scan of harness config)
     runs-on: ubuntu-latest
